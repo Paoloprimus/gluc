@@ -31,10 +31,35 @@ export default function Home() {
   const [originalInput, setOriginalInput] = useState("");
   const [isFetchingSuggestions, setIsFetchingSuggestions] = useState(false);
 
-  // Load data on mount
+  // State for URL from bookmarklet/share
+  const [initialUrl, setInitialUrl] = useState<string | null>(null);
+
+  // Load data on mount and check for URL parameter
   useEffect(() => {
     setLinks(getLocalLinks());
     setApiKey(getApiKey());
+    
+    // Check for URL in query params (from bookmarklet or share)
+    const params = new URLSearchParams(window.location.search);
+    let urlParam = params.get("url");
+    
+    // If no URL but text is provided (common in mobile share), try to extract URL from text
+    if (!urlParam) {
+      const textParam = params.get("text");
+      if (textParam) {
+        // Try to find a URL in the shared text
+        const urlMatch = textParam.match(/https?:\/\/[^\s]+/);
+        if (urlMatch) {
+          urlParam = urlMatch[0];
+        }
+      }
+    }
+    
+    if (urlParam) {
+      setInitialUrl(decodeURIComponent(urlParam));
+      // Clean up URL without reload
+      window.history.replaceState({}, "", window.location.pathname);
+    }
   }, []);
 
   // Get all unique tags
@@ -245,7 +270,12 @@ export default function Home() {
       {/* Content */}
       <div className="max-w-2xl mx-auto px-4 pt-6 space-y-6">
         {/* Input */}
-        <LinkInput onSubmit={handleSubmitLink} isLoading={isLoading} />
+        <LinkInput 
+          onSubmit={handleSubmitLink} 
+          isLoading={isLoading}
+          initialUrl={initialUrl || undefined}
+          onClearInitialUrl={() => setInitialUrl(null)}
+        />
 
         {/* Loading suggestions indicator */}
         <AnimatePresence>

@@ -22,6 +22,14 @@
     }
   ],
   "categories": ["productivity", "utilities"],
-  "lang": "it"
+  "lang": "it",
+  "share_target": {
+    "action": "/",
+    "method": "GET",
+    "params": {
+      "url": "url",
+      "text": "text",
+      "title": "title"
+    }
+  }
 }
-

@@ -7,17 +7,33 @@ import { motion, AnimatePresence } from "framer-motion";
 interface LinkInputProps {
   onSubmit: (url: string) => Promise<void>;
   isLoading: boolean;
+  initialUrl?: string;
+  onClearInitialUrl?: () => void;
 }
 
 // Common TLDs for autocomplete
 const COMMON_TLDS = [".com", ".it", ".org", ".net", ".io", ".co", ".app", ".dev"];
 
-export function LinkInput({ onSubmit, isLoading }: LinkInputProps) {
+export function LinkInput({ onSubmit, isLoading, initialUrl, onClearInitialUrl }: LinkInputProps) {
   const [url, setUrl] = useState("");
   const [isFocused, setIsFocused] = useState(false);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const inputRef = useRef<HTMLInputElement>(null);
+  const [hasShownInitial, setHasShownInitial] = useState(false);
+
+  // Handle initial URL from bookmarklet/share
+  useEffect(() => {
+    if (initialUrl && !hasShownInitial) {
+      setUrl(initialUrl);
+      setHasShownInitial(true);
+      // Focus input and show confirmation UI
+      setTimeout(() => {
+        inputRef.current?.focus();
+        inputRef.current?.select();
+      }, 100);
+    }
+  }, [initialUrl, hasShownInitial]);
 
   // Generate URL suggestions based on input
   useEffect(() => {
@@ -69,6 +85,9 @@ export function LinkInput({ onSubmit, isLoading }: LinkInputProps) {
     setUrl("");
     setSuggestions([]);
     if (input) input.value = "";
+    // Clear initial URL after submission
+    if (onClearInitialUrl) onClearInitialUrl();
+    setHasShownInitial(false);
   };
 
   const normalizeUrl = (input: string): string => {
@@ -227,7 +246,13 @@ export function LinkInput({ onSubmit, isLoading }: LinkInputProps) {
         initial={{ opacity: 0 }}
         animate={{ opacity: isFocused ? 1 : 0.5 }}
       >
-        Scrivi un dominio (es. &quot;github&quot;) o incolla un URL completo ✨
+        {initialUrl && hasShownInitial ? (
+          <span className="text-[var(--accent-purple)]">
+            ✨ Link catturato! Premi Gluc! per analizzarlo
+          </span>
+        ) : (
+          <>Scrivi un dominio (es. &quot;github&quot;) o incolla un URL completo ✨</>
+        )}
       </motion.p>
     </form>
   );

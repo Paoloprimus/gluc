@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Key, Eye, EyeOff, Check, AlertCircle } from "lucide-react";
+import { X, Key, Eye, EyeOff, Check, AlertCircle, Bookmark, Smartphone, Copy } from "lucide-react";
 import { getApiKey, saveApiKey, removeApiKey } from "@/lib/storage";
 
 interface SettingsModalProps {
@@ -16,6 +16,16 @@ export function SettingsModal({ isOpen, onClose, onApiKeyChange }: SettingsModal
   const [showKey, setShowKey] = useState(false);
   const [saved, setSaved] = useState(false);
   const [hasExistingKey, setHasExistingKey] = useState(false);
+  const [copiedBookmarklet, setCopiedBookmarklet] = useState(false);
+
+  // Bookmarklet code - opens Gluc with current page URL
+  const bookmarkletCode = `javascript:(function(){window.open('https://llucy.it/?url='+encodeURIComponent(window.location.href),'_blank')})()`;
+  
+  const handleCopyBookmarklet = () => {
+    navigator.clipboard.writeText(bookmarkletCode);
+    setCopiedBookmarklet(true);
+    setTimeout(() => setCopiedBookmarklet(false), 2000);
+  };
 
   useEffect(() => {
     const existingKey = getApiKey();
@@ -173,6 +183,68 @@ export function SettingsModal({ isOpen, onClose, onApiKeyChange }: SettingsModal
                     🔒 La tua API key è salvata solo nel browser e non viene mai inviata ai nostri server.
                     I costi delle chiamate AI sono a tuo carico (~$0.003 per link analizzato).
                   </p>
+                </div>
+
+                {/* Divider */}
+                <div className="border-t border-[var(--card-border)]" />
+
+                {/* Bookmarklet section */}
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Bookmark size={18} className="text-[var(--accent-pink)]" />
+                    <label className="font-semibold">Aggiungi a Browser</label>
+                  </div>
+                  
+                  <p className="text-sm text-[var(--foreground-muted)]">
+                    Trascina questo pulsante nella barra dei preferiti per salvare link con un click mentre navighi:
+                  </p>
+
+                  {/* Bookmarklet button to drag */}
+                  <div className="flex flex-col gap-3">
+                    <a
+                      href={bookmarkletCode}
+                      onClick={(e) => e.preventDefault()}
+                      draggable="true"
+                      className="
+                        inline-flex items-center justify-center gap-2 px-6 py-3 
+                        bg-gradient-to-r from-[var(--accent-purple)] to-[var(--accent-pink)] 
+                        text-white font-bold rounded-xl cursor-grab active:cursor-grabbing
+                        shadow-lg hover:shadow-xl transition-shadow
+                      "
+                    >
+                      ✨ Gluc It!
+                    </a>
+                    
+                    <div className="flex items-center gap-2 text-xs text-[var(--foreground-muted)]">
+                      <span>👆 Trascina sulla barra preferiti</span>
+                      <span className="text-[var(--card-border)]">|</span>
+                      <button 
+                        onClick={handleCopyBookmarklet}
+                        className="flex items-center gap-1 hover:text-[var(--accent-purple)] transition-colors"
+                      >
+                        {copiedBookmarklet ? (
+                          <>
+                            <Check size={12} />
+                            <span>Copiato!</span>
+                          </>
+                        ) : (
+                          <>
+                            <Copy size={12} />
+                            <span>Copia codice</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Mobile tip */}
+                  <div className="flex items-start gap-2 p-3 rounded-lg bg-[var(--card-bg)] border border-[var(--card-border)]">
+                    <Smartphone size={16} className="text-[var(--foreground-muted)] flex-shrink-0 mt-0.5" />
+                    <p className="text-xs text-[var(--foreground-muted)]">
+                      <strong>Su mobile:</strong> Usa il menu &quot;Condividi&quot; del browser e seleziona &quot;Gluc Link&quot; 
+                      (dopo aver installato l&apos;app dalla home page).
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
