@@ -3,7 +3,14 @@ import Anthropic from "@anthropic-ai/sdk";
 
 export const runtime = "edge";
 
-async function fetchPageContent(url: string): Promise<{ title: string; content: string; ogImage: string | null }> {
+interface PageData {
+  title: string;
+  content: string;
+  ogImage: string | null;
+  fetchFailed: boolean;
+}
+
+async function fetchPageContent(url: string): Promise<PageData> {
   try {
     const response = await fetch(url, {
       headers: {
@@ -48,6 +55,7 @@ async function fetchPageContent(url: string): Promise<{ title: string; content: 
       title: title.trim(),
       content: `${metaDesc}\n\n${bodyText}`.trim(),
       ogImage,
+      fetchFailed: false,
     };
   } catch (error) {
     console.error("Error fetching page:", error);
@@ -55,6 +63,7 @@ async function fetchPageContent(url: string): Promise<{ title: string; content: 
       title: url,
       content: "",
       ogImage: null,
+      fetchFailed: true,
     };
   }
 }
@@ -73,6 +82,14 @@ export async function POST(request: NextRequest) {
     
     // Fetch page content
     const pageData = await fetchPageContent(url);
+    
+    // If fetch failed, return special error for domain suggestions
+    if (pageData.fetchFailed) {
+      return NextResponse.json(
+        { error: "Dominio non trovato", code: "DOMAIN_NOT_FOUND" },
+        { status: 404 }
+      );
+    }
     
     // Initialize Anthropic client with user's API key
     const anthropic = new Anthropic({

@@ -8,6 +8,7 @@ import { LinkCard } from "@/components/LinkCard";
 import { ShareModal } from "@/components/ShareModal";
 import { ExportModal } from "@/components/ExportModal";
 import { SettingsModal } from "@/components/SettingsModal";
+import { SuggestionsModal } from "@/components/SuggestionsModal";
 import { EmptyState } from "@/components/EmptyState";
 import { FilterBar } from "@/components/FilterBar";
 import { getLocalLinks, addLocalLink, removeLocalLink, updateLocalLink, getApiKey } from "@/lib/storage";
@@ -23,6 +24,12 @@ export default function Home() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
+  
+  // Suggestions modal state
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [originalInput, setOriginalInput] = useState("");
+  const [isFetchingSuggestions, setIsFetchingSuggestions] = useState(false);
 
   // Load data on mount
   useEffect(() => {
@@ -61,6 +68,46 @@ export default function Home() {
     });
   }, [links, searchQuery, selectedTags]);
 
+  // Extract domain from URL for suggestions
+  const extractDomain = (url: string): string => {
+    try {
+      const urlObj = new URL(url.startsWith("http") ? url : `https://${url}`);
+      return urlObj.hostname.replace("www.", "");
+    } catch {
+      return url.replace(/^https?:\/\//, "").replace("www.", "").split("/")[0];
+    }
+  };
+
+  // Fetch domain suggestions from AI
+  const fetchSuggestions = async (input: string) => {
+    if (!apiKey) return;
+    
+    setIsFetchingSuggestions(true);
+    try {
+      const response = await fetch("/api/suggest-domains", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ input, apiKey }),
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (data.suggestions && data.suggestions.length > 0) {
+          setSuggestions(data.suggestions);
+          setOriginalInput(input);
+          setShowSuggestions(true);
+        } else {
+          setError(`Dominio "${input}" non trovato e nessun suggerimento disponibile`);
+        }
+      }
+    } catch {
+      setError("Errore durante la ricerca di suggerimenti");
+    } finally {
+      setIsFetchingSuggestions(false);
+      setIsLoading(false);
+    }
+  };
+
   const handleSubmitLink = async (url: string) => {
     if (!apiKey) {
       setShowSettings(true);
@@ -78,20 +125,26 @@ export default function Home() {
         body: JSON.stringify({ url, apiKey }),
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        const data = await response.json();
+        // Check if it's a domain not found error
+        if (data.code === "DOMAIN_NOT_FOUND") {
+          // Extract domain and fetch suggestions
+          const domain = extractDomain(url);
+          await fetchSuggestions(domain);
+          return;
+        }
         throw new Error(data.error || "Errore durante l'analisi");
       }
-
-      const analysis = await response.json();
 
       const newLink: GlucLink = {
         id: crypto.randomUUID(),
         url,
-        title: analysis.title,
-        description: analysis.description,
-        thumbnail: analysis.thumbnail,
-        tags: analysis.tags,
+        title: data.title,
+        description: data.description,
+        thumbnail: data.thumbnail,
+        tags: data.tags,
         createdAt: new Date().toISOString(),
       };
 
@@ -102,6 +155,20 @@ export default function Home() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Handle suggestion selection
+  const handleSelectSuggestion = (domain: string) => {
+    setShowSuggestions(false);
+    setSuggestions([]);
+    handleSubmitLink(`https://${domain}`);
+  };
+
+  // Handle retry (close modal and focus input)
+  const handleRetry = () => {
+    setShowSuggestions(false);
+    setSuggestions([]);
+    setOriginalInput("");
   };
 
   const handleDeleteLink = (id: string) => {
@@ -179,6 +246,21 @@ export default function Home() {
       <div className="max-w-2xl mx-auto px-4 pt-6 space-y-6">
         {/* Input */}
         <LinkInput onSubmit={handleSubmitLink} isLoading={isLoading} />
+
+        {/* Loading suggestions indicator */}
+        <AnimatePresence>
+          {isFetchingSuggestions && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-500 text-sm flex items-center gap-3"
+            >
+              <div className="w-4 h-4 border-2 border-amber-500 border-t-transparent rounded-full animate-spin" />
+              Cerco domini simili...
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Error message */}
         <AnimatePresence>
@@ -278,6 +360,18 @@ export default function Home() {
           setError(null);
         }}
         onApiKeyChange={setApiKey}
+      />
+      
+      <SuggestionsModal
+        isOpen={showSuggestions}
+        originalInput={originalInput}
+        suggestions={suggestions}
+        onSelect={handleSelectSuggestion}
+        onClose={() => {
+          setShowSuggestions(false);
+          setSuggestions([]);
+        }}
+        onRetry={handleRetry}
       />
     </main>
   );
