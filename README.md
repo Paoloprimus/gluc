@@ -1,36 +1,76 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🔗 Gluc Link
 
-## Getting Started
+**links that stick**
 
-First, run the development server:
+Un'app PWA per salvare, taggare e condividere link con l'aiuto dell'AI.
+
+## ✨ Funzionalità
+
+- 🏷️ **Tag automatici** - L'AI analizza ogni link e genera tag rilevanti
+- 📝 **Descrizioni AI** - Sommari automatici del contenuto
+- 📤 **Condivisione social** - Genera post formattati per Twitter, LinkedIn, Facebook
+- 💾 **Export** - Esporta in JSON, CSV o HTML
+- 🔍 **Ricerca e filtri** - Trova rapidamente i tuoi link
+- 📱 **PWA** - Installabile come app nativa
+
+## 🚀 Quick Start
 
 ```bash
+# Installa dipendenze
+npm install
+
+# Avvia in development
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+
+# Build per production
+npm run build
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## ⚙️ Configurazione
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### API Key Claude
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+L'app richiede una API key di Anthropic per l'analisi AI dei link.
 
-## Learn More
+1. Vai su [console.anthropic.com](https://console.anthropic.com/settings/keys)
+2. Crea una nuova API key
+3. Inseriscila nelle impostazioni dell'app (icona ⚙️)
 
-To learn more about Next.js, take a look at the following resources:
+La key è salvata solo nel browser e non viene mai inviata a server terzi.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Supabase (opzionale)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Per sincronizzare i link tra dispositivi:
 
-## Deploy on Vercel
+1. Crea un progetto su [supabase.com](https://supabase.com)
+2. Copia URL e anon key
+3. Crea un file `.env.local`:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```env
+NEXT_PUBLIC_SUPABASE_URL=your_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_key
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 🎨 Tech Stack
+
+- **Next.js 16** - React framework
+- **Tailwind CSS 4** - Styling
+- **Framer Motion** - Animazioni
+- **Claude API** - AI analysis
+- **Supabase** - Database (opzionale)
+
+## 📱 PWA
+
+L'app è installabile come PWA:
+
+- **iOS**: Safari → Condividi → Aggiungi alla schermata Home
+- **Android**: Chrome → Menu → Installa app
+- **Desktop**: Chrome → Barra URL → Icona installa
+
+## 💜 Credits
+
+Un regalo per Giulia, Giusy e Lucia.
+
+---
+
+Made with 💜 and ✨ AI
