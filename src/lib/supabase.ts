@@ -1,16 +1,30 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+let supabaseInstance: SupabaseClient | null = null;
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+function getSupabase(): SupabaseClient {
+  if (supabaseInstance) return supabaseInstance;
+  
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  
+  if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error('Supabase environment variables are not set');
+  }
+  
+  supabaseInstance = createClient(supabaseUrl, supabaseAnonKey);
+  return supabaseInstance;
+}
+
+// Use getter in all functions instead of direct reference
+const supabase = { get client() { return getSupabase(); } };
 
 // =============================================
 // Auth / User Functions
 // =============================================
 
 export async function validateInviteToken(token: string): Promise<boolean> {
-  const { data, error } = await supabase
+  const { data, error } = await supabase.client
     .from('invite_tokens')
     .select('*')
     .eq('token', token.toUpperCase())
@@ -22,7 +36,7 @@ export async function validateInviteToken(token: string): Promise<boolean> {
 
 export async function registerUser(nickname: string, token: string): Promise<{ success: boolean; userId?: string; error?: string }> {
   // Check if nickname already exists
-  const { data: existingUser } = await supabase
+  const { data: existingUser } = await supabase.client
     .from('users')
     .select('id')
     .eq('nickname', nickname.toLowerCase())
@@ -33,7 +47,7 @@ export async function registerUser(nickname: string, token: string): Promise<{ s
   }
   
   // Validate token
-  const { data: tokenData, error: tokenError } = await supabase
+  const { data: tokenData, error: tokenError } = await supabase.client
     .from('invite_tokens')
     .select('*')
     .eq('token', token.toUpperCase())
@@ -45,7 +59,7 @@ export async function registerUser(nickname: string, token: string): Promise<{ s
   }
   
   // Create user
-  const { data: newUser, error: userError } = await supabase
+  const { data: newUser, error: userError } = await supabase.client
     .from('users')
     .insert({ nickname: nickname.toLowerCase() })
     .select()
@@ -56,7 +70,7 @@ export async function registerUser(nickname: string, token: string): Promise<{ s
   }
   
   // Mark token as used
-  await supabase
+  await supabase.client
     .from('invite_tokens')
     .update({ used: true, used_by: newUser.id, used_at: new Date().toISOString() })
     .eq('id', tokenData.id);
@@ -65,7 +79,7 @@ export async function registerUser(nickname: string, token: string): Promise<{ s
 }
 
 export async function loginUser(nickname: string): Promise<{ success: boolean; user?: { id: string; nickname: string; preferences: unknown }; error?: string }> {
-  const { data: user, error } = await supabase
+  const { data: user, error } = await supabase.client
     .from('users')
     .select('*')
     .eq('nickname', nickname.toLowerCase())
@@ -83,7 +97,7 @@ export async function loginUser(nickname: string): Promise<{ success: boolean; u
 // =============================================
 
 export async function updateUserPreferences(userId: string, preferences: Record<string, unknown>) {
-  const { error } = await supabase
+  const { error } = await supabase.client
     .from('users')
     .update({ preferences })
     .eq('id', userId);
@@ -96,7 +110,7 @@ export async function updateUserPreferences(userId: string, preferences: Record<
 // =============================================
 
 export async function getUserLinks(userId: string, sortOrder: 'newest' | 'oldest' | 'alpha' = 'newest') {
-  let query = supabase
+  let query = supabase.client
     .from('links')
     .select('*')
     .eq('user_id', userId);
@@ -124,7 +138,7 @@ export async function addLink(userId: string, link: {
   thumbnail: string | null;
   tags: string[];
 }) {
-  const { data, error } = await supabase
+  const { data, error } = await supabase.client
     .from('links')
     .insert({ ...link, user_id: userId })
     .select()
@@ -138,7 +152,7 @@ export async function updateLink(linkId: string, updates: {
   description?: string | null;
   tags?: string[];
 }) {
-  const { error } = await supabase
+  const { error } = await supabase.client
     .from('links')
     .update(updates)
     .eq('id', linkId);
@@ -147,7 +161,7 @@ export async function updateLink(linkId: string, updates: {
 }
 
 export async function deleteLink(linkId: string) {
-  const { error } = await supabase
+  const { error } = await supabase.client
     .from('links')
     .delete()
     .eq('id', linkId);
@@ -160,7 +174,7 @@ export async function deleteLink(linkId: string) {
 // =============================================
 
 export async function getUserStats(userId: string) {
-  const { data: links } = await supabase
+  const { data: links } = await supabase.client
     .from('links')
     .select('*')
     .eq('user_id', userId);
