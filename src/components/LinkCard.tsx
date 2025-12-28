@@ -174,7 +174,7 @@ export function LinkCard({ link, onDelete, onShare, onUpdate, index }: LinkCardP
         {/* Description */}
         {isEditing ? (
           <textarea
-            value={editDescription}
+            value={editDescription || ""}
             onChange={(e) => setEditDescription(e.target.value)}
             className="w-full bg-[var(--card-bg)] border border-[var(--card-border)] rounded-lg px-3 py-2 text-sm resize-none focus:border-[var(--accent-purple)] outline-none"
             rows={2}
