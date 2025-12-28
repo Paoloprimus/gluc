@@ -3,10 +3,10 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Download, FileJson, FileText, FileCode, Check } from "lucide-react";
-import type { GlucLink } from "@/types";
+import type { NunqLink } from "@/types";
 
 interface ExportModalProps {
-  links: GlucLink[];
+  links: NunqLink[];
   isOpen: boolean;
   onClose: () => void;
 }
@@ -47,7 +47,7 @@ export function ExportModal({ links, isOpen, onClose }: ExportModalProps) {
           `"${link.title.replace(/"/g, '""')}"`,
           `"${(link.description || "").replace(/"/g, '""')}"`,
           `"${link.tags.join(", ")}"`,
-          link.createdAt,
+          link.created_at,
         ]);
         return [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
       }
@@ -58,7 +58,7 @@ export function ExportModal({ links, isOpen, onClose }: ExportModalProps) {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>I miei link - Gluc Link</title>
+  <title>I miei link - Nunq</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -121,7 +121,7 @@ export function ExportModal({ links, isOpen, onClose }: ExportModalProps) {
     </div>`
       )
       .join("")}
-    <p class="footer">Esportato da Gluc Link • ${new Date().toLocaleDateString("it-IT")}</p>
+    <p class="footer">Esportato da Nunq • ${new Date().toLocaleDateString("it-IT")}</p>
   </div>
 </body>
 </html>`;
@@ -143,7 +143,7 @@ export function ExportModal({ links, isOpen, onClose }: ExportModalProps) {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `gluc-links-${new Date().toISOString().split("T")[0]}.${selectedFormat}`;
+    a.download = `nunq-links-${new Date().toISOString().split("T")[0]}.${selectedFormat}`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);

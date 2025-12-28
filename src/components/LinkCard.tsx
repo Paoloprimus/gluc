@@ -14,13 +14,13 @@ import {
   X,
   Plus
 } from "lucide-react";
-import type { GlucLink } from "@/types";
+import type { NunqLink } from "@/types";
 
 interface LinkCardProps {
-  link: GlucLink;
+  link: NunqLink;
   onDelete: (id: string) => void;
-  onShare: (link: GlucLink) => void;
-  onUpdate: (link: GlucLink) => void;
+  onShare: (link: NunqLink) => void;
+  onUpdate: (link: NunqLink) => void;
   index: number;
 }
 
@@ -54,7 +54,7 @@ export function LinkCard({ link, onDelete, onShare, onUpdate, index }: LinkCardP
   };
 
   const handleSaveEdit = () => {
-    const updatedLink: GlucLink = {
+    const updatedLink: NunqLink = {
       ...link,
       title: editTitle.trim() || link.title,
       description: editDescription.trim(),
@@ -153,7 +153,7 @@ export function LinkCard({ link, onDelete, onShare, onUpdate, index }: LinkCardP
               <Globe size={12} />
               {getDomain(link.url)}
               <span className="mx-1">•</span>
-              {formatDate(link.createdAt)}
+              {formatDate(link.created_at)}
             </p>
           </div>
 

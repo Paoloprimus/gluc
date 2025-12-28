@@ -1,66 +1,131 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Settings, Download, Sparkles } from "lucide-react";
+import { useState, useEffect, useMemo, useCallback } from "react";
+import { AnimatePresence } from "framer-motion";
+import { LoginPage } from "@/components/LoginPage";
+import { TopBar, ActivePage } from "@/components/TopBar";
 import { LinkInput } from "@/components/LinkInput";
 import { LinkCard } from "@/components/LinkCard";
 import { ShareModal } from "@/components/ShareModal";
 import { ExportModal } from "@/components/ExportModal";
-import { SettingsModal } from "@/components/SettingsModal";
 import { SuggestionsModal } from "@/components/SuggestionsModal";
 import { EmptyState } from "@/components/EmptyState";
 import { FilterBar } from "@/components/FilterBar";
-import { getLocalLinks, addLocalLink, removeLocalLink, updateLocalLink, getApiKey } from "@/lib/storage";
-import type { GlucLink } from "@/types";
+import { StatsPage } from "@/components/StatsPage";
+import { SettingsPage } from "@/components/SettingsPage";
+import { getSession, setSession, clearSession, applyTheme, initializeTheme } from "@/lib/session";
+import { getUserLinks, addLink, updateLink, deleteLink, updateUserPreferences } from "@/lib/supabase";
+import type { NunqLink, Session, UserPreferences } from "@/types";
 
 export default function Home() {
-  const [links, setLinks] = useState<GlucLink[]>([]);
+  // Auth state
+  const [session, setSessionState] = useState<Session | null>(null);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+
+  // App state
+  const [activePage, setActivePage] = useState<ActivePage>("links");
+  const [links, setLinks] = useState<NunqLink[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [apiKey, setApiKey] = useState<string | null>(null);
-  const [shareLink, setShareLink] = useState<GlucLink | null>(null);
+  const [shareLink, setShareLink] = useState<NunqLink | null>(null);
   const [showExport, setShowExport] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
-  
+
   // Suggestions modal state
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [originalInput, setOriginalInput] = useState("");
   const [isFetchingSuggestions, setIsFetchingSuggestions] = useState(false);
 
-  // State for URL from bookmarklet/share
+  // URL from bookmarklet/share
   const [initialUrl, setInitialUrl] = useState<string | null>(null);
 
-  // Load data on mount and check for URL parameter
+  // Check auth and load data on mount
   useEffect(() => {
-    setLinks(getLocalLinks());
-    setApiKey(getApiKey());
-    
-    // Check for URL in query params (from bookmarklet or share)
+    const existingSession = getSession();
+    if (existingSession) {
+      setSessionState(existingSession);
+      initializeTheme();
+    }
+    setIsCheckingAuth(false);
+
+    // Check for URL in query params
     const params = new URLSearchParams(window.location.search);
     let urlParam = params.get("url");
-    
-    // If no URL but text is provided (common in mobile share), try to extract URL from text
     if (!urlParam) {
       const textParam = params.get("text");
       if (textParam) {
-        // Try to find a URL in the shared text
         const urlMatch = textParam.match(/https?:\/\/[^\s]+/);
-        if (urlMatch) {
-          urlParam = urlMatch[0];
-        }
+        if (urlMatch) urlParam = urlMatch[0];
       }
     }
-    
     if (urlParam) {
       setInitialUrl(decodeURIComponent(urlParam));
-      // Clean up URL without reload
       window.history.replaceState({}, "", window.location.pathname);
     }
   }, []);
+
+  // Load links when session is set
+  useEffect(() => {
+    if (session) {
+      loadLinks();
+    }
+  }, [session]);
+
+  const loadLinks = async () => {
+    if (!session) return;
+    const data = await getUserLinks(session.userId, session.preferences.sort_order);
+    setLinks(data);
+  };
+
+  // Handle login
+  const handleLogin = async (userId: string, nickname: string) => {
+    const theme = initializeTheme();
+    const newSession: Session = {
+      userId,
+      nickname,
+      preferences: {
+        theme,
+        ai_suggestions: true,
+        sort_order: "newest",
+      },
+    };
+    setSession(newSession);
+    setSessionState(newSession);
+  };
+
+  // Handle logout
+  const handleLogout = () => {
+    clearSession();
+    setSessionState(null);
+    setLinks([]);
+  };
+
+  // Handle preferences update
+  const handleUpdatePreferences = async (updates: Partial<UserPreferences>) => {
+    if (!session) return;
+
+    const newPreferences = { ...session.preferences, ...updates };
+    const newSession = { ...session, preferences: newPreferences };
+    
+    setSession(newSession);
+    setSessionState(newSession);
+
+    // Apply theme immediately
+    if (updates.theme) {
+      applyTheme(updates.theme);
+    }
+
+    // Sync to database
+    await updateUserPreferences(session.userId, newPreferences);
+
+    // Reload links if sort order changed
+    if (updates.sort_order) {
+      const data = await getUserLinks(session.userId, updates.sort_order);
+      setLinks(data);
+    }
+  };
 
   // Get all unique tags
   const allTags = useMemo(() => {
@@ -72,7 +137,6 @@ export default function Home() {
   // Filter links
   const filteredLinks = useMemo(() => {
     return links.filter((link) => {
-      // Search filter
       if (searchQuery) {
         const query = searchQuery.toLowerCase();
         const matchesSearch =
@@ -82,18 +146,15 @@ export default function Home() {
           link.tags.some((tag) => tag.toLowerCase().includes(query));
         if (!matchesSearch) return false;
       }
-
-      // Tag filter
       if (selectedTags.length > 0) {
         const hasSelectedTag = selectedTags.some((tag) => link.tags.includes(tag));
         if (!hasSelectedTag) return false;
       }
-
       return true;
     });
   }, [links, searchQuery, selectedTags]);
 
-  // Extract domain from URL for suggestions
+  // Extract domain from URL
   const extractDomain = (url: string): string => {
     try {
       const urlObj = new URL(url.startsWith("http") ? url : `https://${url}`);
@@ -103,42 +164,36 @@ export default function Home() {
     }
   };
 
-  // Fetch domain suggestions from AI
-  const fetchSuggestions = async (input: string) => {
-    if (!apiKey) return;
-    
+  // Fetch domain suggestions
+  const fetchSuggestions = useCallback(async (input: string) => {
     setIsFetchingSuggestions(true);
     try {
       const response = await fetch("/api/suggest-domains", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ input, apiKey }),
+        body: JSON.stringify({ input }),
       });
-      
       if (response.ok) {
         const data = await response.json();
-        if (data.suggestions && data.suggestions.length > 0) {
+        if (data.suggestions?.length > 0) {
           setSuggestions(data.suggestions);
           setOriginalInput(input);
           setShowSuggestions(true);
         } else {
-          setError(`Dominio "${input}" non trovato e nessun suggerimento disponibile`);
+          setError(`Dominio "${input}" non trovato`);
         }
       }
     } catch {
-      setError("Errore durante la ricerca di suggerimenti");
+      setError("Errore durante la ricerca");
     } finally {
       setIsFetchingSuggestions(false);
       setIsLoading(false);
     }
-  };
+  }, []);
 
+  // Submit link
   const handleSubmitLink = async (url: string) => {
-    if (!apiKey) {
-      setShowSettings(true);
-      setError("Configura prima la tua API key nelle impostazioni");
-      return;
-    }
+    if (!session) return;
 
     setIsLoading(true);
     setError(null);
@@ -147,15 +202,13 @@ export default function Home() {
       const response = await fetch("/api/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url, apiKey }),
+        body: JSON.stringify({ url }),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        // Check if it's a domain not found error
         if (data.code === "DOMAIN_NOT_FOUND") {
-          // Extract domain and fetch suggestions
           const domain = extractDomain(url);
           await fetchSuggestions(domain);
           return;
@@ -163,18 +216,17 @@ export default function Home() {
         throw new Error(data.error || "Errore durante l'analisi");
       }
 
-      const newLink: GlucLink = {
-        id: crypto.randomUUID(),
+      const { data: newLink, error: dbError } = await addLink(session.userId, {
         url,
         title: data.title,
         description: data.description,
         thumbnail: data.thumbnail,
         tags: data.tags,
-        createdAt: new Date().toISOString(),
-      };
+      });
 
-      const updatedLinks = addLocalLink(newLink);
-      setLinks(updatedLinks);
+      if (dbError) throw new Error("Errore durante il salvataggio");
+
+      setLinks((prev) => [newLink, ...prev]);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Errore sconosciuto");
     } finally {
@@ -189,184 +241,140 @@ export default function Home() {
     handleSubmitLink(`https://${domain}`);
   };
 
-  // Handle retry (close modal and focus input)
-  const handleRetry = () => {
-    setShowSuggestions(false);
-    setSuggestions([]);
-    setOriginalInput("");
+  // Delete link
+  const handleDeleteLink = async (id: string) => {
+    const success = await deleteLink(id);
+    if (success) {
+      setLinks((prev) => prev.filter((link) => link.id !== id));
+    }
   };
 
-  const handleDeleteLink = (id: string) => {
-    const updatedLinks = removeLocalLink(id);
-    setLinks(updatedLinks);
+  // Update link
+  const handleUpdateLink = async (link: NunqLink) => {
+    const success = await updateLink(link.id, {
+      title: link.title,
+      description: link.description,
+      tags: link.tags,
+    });
+    if (success) {
+      setLinks((prev) => prev.map((l) => (l.id === link.id ? link : l)));
+    }
   };
 
-  const handleUpdateLink = (updatedLink: GlucLink) => {
-    const updatedLinks = updateLocalLink(updatedLink);
-    setLinks(updatedLinks);
-  };
-
+  // Toggle tag filter
   const handleTagToggle = (tag: string) => {
     setSelectedTags((prev) =>
       prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
     );
   };
 
+  // Show loading while checking auth
+  if (isCheckingAuth) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[var(--background)]">
+        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[var(--accent-purple)] to-[var(--accent-pink)] animate-pulse" />
+      </div>
+    );
+  }
+
+  // Show login if not authenticated
+  if (!session) {
+    return <LoginPage onLogin={handleLogin} />;
+  }
+
   return (
     <main className="min-h-screen pb-8">
-      {/* Header */}
-      <header className="sticky top-0 z-40 backdrop-blur-xl bg-[var(--background)]/80 border-b border-[var(--card-border)]">
-        <div className="max-w-2xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            {/* Logo */}
-            <div className="flex items-center gap-2">
-              <motion.div
-                className="w-10 h-10 rounded-xl bg-gradient-to-br from-[var(--accent-purple)] to-[var(--accent-pink)] flex items-center justify-center"
-                whileHover={{ scale: 1.05, rotate: 5 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <Sparkles size={20} className="text-white" />
-              </motion.div>
-              <div>
-                <h1 className="font-bold text-lg leading-none">Gluc Link</h1>
-                <p className="text-xs text-[var(--foreground-muted)]">links that stick</p>
-              </div>
-            </div>
+      <TopBar
+        nickname={session.nickname}
+        activePage={activePage}
+        onPageChange={setActivePage}
+        onExport={() => setShowExport(true)}
+        onLogout={handleLogout}
+      />
 
-            {/* Actions */}
-            <div className="flex items-center gap-2">
-              {links.length > 0 && (
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => setShowExport(true)}
-                  className="p-2.5 rounded-xl bg-[var(--card-bg)] border border-[var(--card-border)] hover:border-[var(--accent-purple)]/50 transition-colors"
-                  title="Esporta"
-                >
-                  <Download size={18} className="text-[var(--foreground-muted)]" />
-                </motion.button>
+      <div className="max-w-2xl mx-auto px-4 pt-6">
+        {activePage === "links" && (
+          <div className="space-y-6">
+            {/* Link Input */}
+            <LinkInput
+              onSubmit={handleSubmitLink}
+              isLoading={isLoading || isFetchingSuggestions}
+              initialUrl={initialUrl || undefined}
+              onClearInitialUrl={() => setInitialUrl(null)}
+            />
+
+            {/* Loading suggestions indicator */}
+            <AnimatePresence>
+              {isFetchingSuggestions && (
+                <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-500 text-sm flex items-center gap-3">
+                  <div className="w-4 h-4 border-2 border-amber-500 border-t-transparent rounded-full animate-spin" />
+                  Cerco domini simili...
+                </div>
               )}
-              
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => setShowSettings(true)}
-                className={`
-                  p-2.5 rounded-xl border transition-colors
-                  ${apiKey 
-                    ? "bg-[var(--card-bg)] border-[var(--card-border)] hover:border-[var(--accent-purple)]/50" 
-                    : "bg-[var(--accent-purple)]/20 border-[var(--accent-purple)]/50"
-                  }
-                `}
-                title="Impostazioni"
-              >
-                <Settings size={18} className={apiKey ? "text-[var(--foreground-muted)]" : "text-[var(--accent-purple)]"} />
-              </motion.button>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* Content */}
-      <div className="max-w-2xl mx-auto px-4 pt-6 space-y-6">
-        {/* Input */}
-        <LinkInput 
-          onSubmit={handleSubmitLink} 
-          isLoading={isLoading}
-          initialUrl={initialUrl || undefined}
-          onClearInitialUrl={() => setInitialUrl(null)}
-        />
-
-        {/* Loading suggestions indicator */}
-        <AnimatePresence>
-          {isFetchingSuggestions && (
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-500 text-sm flex items-center gap-3"
-            >
-              <div className="w-4 h-4 border-2 border-amber-500 border-t-transparent rounded-full animate-spin" />
-              Cerco domini simili...
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Error message */}
-        <AnimatePresence>
-          {error && (
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              className="p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-sm"
-            >
-              {error}
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* API Key reminder */}
-        {!apiKey && links.length === 0 && (
-          <motion.button
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            onClick={() => setShowSettings(true)}
-            className="w-full p-4 rounded-xl bg-[var(--accent-purple)]/10 border border-[var(--accent-purple)]/30 text-left hover:bg-[var(--accent-purple)]/20 transition-colors"
-          >
-            <p className="font-semibold text-[var(--accent-purple)]">👋 Benvenuto su Gluc!</p>
-            <p className="text-sm text-[var(--foreground-muted)] mt-1">
-              Per iniziare, configura la tua API key di Claude nelle impostazioni.
-            </p>
-          </motion.button>
-        )}
-
-        {/* Filter bar */}
-        {links.length > 0 && (
-          <FilterBar
-            searchQuery={searchQuery}
-            onSearchChange={setSearchQuery}
-            selectedTags={selectedTags}
-            onTagToggle={handleTagToggle}
-            allTags={allTags}
-          />
-        )}
-
-        {/* Links list */}
-        {links.length === 0 ? (
-          <EmptyState />
-        ) : filteredLinks.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-[var(--foreground-muted)]">Nessun link trovato con questi filtri</p>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            <AnimatePresence mode="popLayout">
-              {filteredLinks.map((link, index) => (
-                <LinkCard
-                  key={link.id}
-                  link={link}
-                  onDelete={handleDeleteLink}
-                  onShare={setShareLink}
-                  onUpdate={handleUpdateLink}
-                  index={index}
-                />
-              ))}
             </AnimatePresence>
+
+            {/* Error message */}
+            <AnimatePresence>
+              {error && (
+                <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-sm">
+                  {error}
+                </div>
+              )}
+            </AnimatePresence>
+
+            {/* Filter bar */}
+            {links.length > 0 && (
+              <FilterBar
+                searchQuery={searchQuery}
+                onSearchChange={setSearchQuery}
+                selectedTags={selectedTags}
+                onTagToggle={handleTagToggle}
+                allTags={allTags}
+              />
+            )}
+
+            {/* Links list */}
+            {links.length === 0 ? (
+              <EmptyState />
+            ) : filteredLinks.length === 0 ? (
+              <div className="text-center py-12">
+                <p className="text-[var(--foreground-muted)]">Nessun link trovato</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <AnimatePresence mode="popLayout">
+                  {filteredLinks.map((link, index) => (
+                    <LinkCard
+                      key={link.id}
+                      link={link}
+                      onDelete={handleDeleteLink}
+                      onShare={setShareLink}
+                      onUpdate={handleUpdateLink}
+                      index={index}
+                    />
+                  ))}
+                </AnimatePresence>
+              </div>
+            )}
+
+            {/* Stats */}
+            {links.length > 0 && (
+              <div className="text-center text-sm text-[var(--foreground-muted)] pt-4">
+                {filteredLinks.length === links.length
+                  ? `${links.length} link salvati`
+                  : `${filteredLinks.length} di ${links.length} link`}
+              </div>
+            )}
           </div>
         )}
 
-        {/* Stats */}
-        {links.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-center text-sm text-[var(--foreground-muted)] pt-4"
-          >
-            {filteredLinks.length === links.length
-              ? `${links.length} link salvati`
-              : `${filteredLinks.length} di ${links.length} link`}
-          </motion.div>
+        {activePage === "stats" && <StatsPage userId={session.userId} />}
+
+        {activePage === "settings" && (
+          <SettingsPage
+            preferences={session.preferences}
+            onUpdatePreferences={handleUpdatePreferences}
+          />
         )}
       </div>
 
@@ -376,22 +384,13 @@ export default function Home() {
         isOpen={!!shareLink}
         onClose={() => setShareLink(null)}
       />
-      
+
       <ExportModal
         links={links}
         isOpen={showExport}
         onClose={() => setShowExport(false)}
       />
-      
-      <SettingsModal
-        isOpen={showSettings}
-        onClose={() => {
-          setShowSettings(false);
-          setError(null);
-        }}
-        onApiKeyChange={setApiKey}
-      />
-      
+
       <SuggestionsModal
         isOpen={showSuggestions}
         originalInput={originalInput}
@@ -401,7 +400,10 @@ export default function Home() {
           setShowSuggestions(false);
           setSuggestions([]);
         }}
-        onRetry={handleRetry}
+        onRetry={() => {
+          setShowSuggestions(false);
+          setSuggestions([]);
+        }}
       />
     </main>
   );

@@ -3,6 +3,11 @@ import Anthropic from "@anthropic-ai/sdk";
 
 export const runtime = "edge";
 
+// Use server-side API key (not exposed to client)
+const anthropic = new Anthropic({
+  apiKey: process.env.ANTHROPIC_API_KEY!,
+});
+
 interface PageData {
   title: string;
   content: string;
@@ -14,7 +19,7 @@ async function fetchPageContent(url: string): Promise<PageData> {
   try {
     const response = await fetch(url, {
       headers: {
-        "User-Agent": "Mozilla/5.0 (compatible; GlucBot/1.0)",
+        "User-Agent": "Mozilla/5.0 (compatible; NunqBot/1.0)",
       },
     });
     
@@ -70,14 +75,10 @@ async function fetchPageContent(url: string): Promise<PageData> {
 
 export async function POST(request: NextRequest) {
   try {
-    const { url, apiKey } = await request.json();
+    const { url } = await request.json();
     
     if (!url) {
       return NextResponse.json({ error: "URL richiesto" }, { status: 400 });
-    }
-    
-    if (!apiKey) {
-      return NextResponse.json({ error: "API key richiesta" }, { status: 400 });
     }
     
     // Fetch page content
@@ -91,14 +92,9 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    // Initialize Anthropic client with user's API key
-    const anthropic = new Anthropic({
-      apiKey,
-    });
-    
-    // Analyze with Claude
+    // Analyze with Claude Haiku (faster and cheaper!)
     const message = await anthropic.messages.create({
-      model: "claude-sonnet-4-20250514",
+      model: "claude-3-haiku-20240307", // ~10x cheaper than Sonnet
       max_tokens: 500,
       messages: [
         {
@@ -147,4 +143,3 @@ Rispondi SOLO con il JSON, senza markdown o altro.`,
     );
   }
 }
-

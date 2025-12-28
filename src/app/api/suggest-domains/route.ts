@@ -3,26 +3,22 @@ import Anthropic from "@anthropic-ai/sdk";
 
 export const runtime = "edge";
 
+// Use server-side API key
+const anthropic = new Anthropic({
+  apiKey: process.env.ANTHROPIC_API_KEY!,
+});
+
 export async function POST(request: NextRequest) {
   try {
-    const { input, apiKey } = await request.json();
+    const { input } = await request.json();
     
     if (!input) {
       return NextResponse.json({ error: "Input richiesto" }, { status: 400 });
     }
     
-    if (!apiKey) {
-      return NextResponse.json({ error: "API key richiesta" }, { status: 400 });
-    }
-    
-    // Initialize Anthropic client
-    const anthropic = new Anthropic({
-      apiKey,
-    });
-    
-    // Ask Claude to suggest similar domains
+    // Ask Claude Haiku to suggest similar domains
     const message = await anthropic.messages.create({
-      model: "claude-sonnet-4-20250514",
+      model: "claude-3-haiku-20240307",
       max_tokens: 300,
       messages: [
         {
@@ -66,4 +62,3 @@ Se non riesci a trovare suggerimenti sensati, rispondi con un array vuoto: []`,
     );
   }
 }
-

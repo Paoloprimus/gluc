@@ -3,10 +3,10 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Copy, Check, Twitter, Linkedin, Facebook } from "lucide-react";
-import type { GlucLink } from "@/types";
+import type { NunqLink } from "@/types";
 
 interface ShareModalProps {
-  link: GlucLink | null;
+  link: NunqLink | null;
   isOpen: boolean;
   onClose: () => void;
 }
