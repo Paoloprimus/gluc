@@ -57,7 +57,7 @@ export function LinkCard({ link, onDelete, onShare, onUpdate, index }: LinkCardP
     const updatedLink: NunqLink = {
       ...link,
       title: editTitle.trim() || link.title,
-      description: editDescription.trim(),
+      description: editDescription?.trim() || null,
       tags: editTags,
     };
     onUpdate(updatedLink);
