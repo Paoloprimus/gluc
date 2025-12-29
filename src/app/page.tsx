@@ -245,6 +245,7 @@ export default function Home() {
               <LinkEditor
                 link={editingLink || undefined}
                 initialUrl={initialUrl || undefined}
+                userId={session.userId}
                 onSave={handleSaveLink}
                 onUpdate={handleUpdateLink}
                 onDelete={handleDeleteLink}

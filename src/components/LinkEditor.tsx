@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Link2, 
@@ -12,9 +12,12 @@ import {
   Save,
   Send,
   Eye,
-  ChevronLeft
+  ChevronLeft,
+  Upload,
+  Loader2
 } from "lucide-react";
 import type { NunqLink, NewLink, ThumbnailType } from "@/types";
+import { uploadThumbnail } from "@/lib/supabase";
 
 // Popular emoji for thumbnails
 const EMOJI_OPTIONS = ["🔥", "✨", "💡", "🎯", "🚀", "💎", "⭐", "❤️", "🎉", "👀", "💪", "🌟", "📌", "🔗", "💫", "🎨"];
@@ -22,6 +25,7 @@ const EMOJI_OPTIONS = ["🔥", "✨", "💡", "🎯", "🚀", "💎", "⭐", "�
 interface LinkEditorProps {
   link?: NunqLink;
   initialUrl?: string;
+  userId: string;
   onSave: (link: NewLink) => Promise<void>;
   onUpdate?: (link: NunqLink) => Promise<void>;
   onDelete?: (id: string) => Promise<void>;
@@ -31,7 +35,8 @@ interface LinkEditorProps {
 
 export function LinkEditor({ 
   link, 
-  initialUrl, 
+  initialUrl,
+  userId,
   onSave, 
   onUpdate, 
   onDelete, 
@@ -39,6 +44,7 @@ export function LinkEditor({
   isLoading 
 }: LinkEditorProps) {
   const isEditing = !!link;
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   // Form state
   const [url, setUrl] = useState(link?.url || initialUrl || "");
@@ -57,6 +63,7 @@ export function LinkEditor({
   const [showPreview, setShowPreview] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [fetchingMeta, setFetchingMeta] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   // Fetch metadata when URL changes
   useEffect(() => {
@@ -94,6 +101,43 @@ export function LinkEditor({
 
   const handleRemoveTag = (tagToRemove: string) => {
     setTags(tags.filter(t => t !== tagToRemove));
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      alert('Per favore seleziona un\'immagine');
+      return;
+    }
+    
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('L\'immagine deve essere inferiore a 5MB');
+      return;
+    }
+    
+    setUploadingImage(true);
+    try {
+      const uploadedUrl = await uploadThumbnail(file, userId);
+      if (uploadedUrl) {
+        setCustomThumbnail(uploadedUrl);
+        setThumbnailType("custom");
+      } else {
+        alert('Errore durante il caricamento');
+      }
+    } catch (error) {
+      console.error('Upload error:', error);
+      alert('Errore durante il caricamento');
+    } finally {
+      setUploadingImage(false);
+      // Reset input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
   };
 
   const getCurrentThumbnail = () => {
@@ -293,15 +337,20 @@ export function LinkEditor({
                   🌐 Originale
                 </button>
                 <button
-                  onClick={() => setThumbnailType("custom")}
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploadingImage}
                   className={`flex-1 p-2 rounded-lg text-sm font-medium transition-colors ${
                     thumbnailType === "custom"
                       ? "bg-[var(--accent-purple)] text-white"
                       : "bg-[var(--card-bg)] border border-[var(--card-border)]"
                   }`}
                 >
-                  <Image size={14} className="inline mr-1" />
-                  Immagine
+                  {uploadingImage ? (
+                    <Loader2 size={14} className="inline mr-1 animate-spin" />
+                  ) : (
+                    <Upload size={14} className="inline mr-1" />
+                  )}
+                  Carica
                 </button>
                 <button
                   onClick={() => {
@@ -319,8 +368,22 @@ export function LinkEditor({
                 </button>
               </div>
 
+              {/* Hidden file input */}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleFileUpload}
+                className="hidden"
+              />
+
               {/* Thumbnail Preview */}
-              <div className="w-full h-32 rounded-xl overflow-hidden bg-[var(--background-secondary)] flex items-center justify-center">
+              <div className="w-full h-32 rounded-xl overflow-hidden bg-[var(--background-secondary)] flex items-center justify-center relative">
+                {uploadingImage && (
+                  <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-10">
+                    <Loader2 size={32} className="animate-spin text-white" />
+                  </div>
+                )}
                 {thumbnailType === "emoji" ? (
                   <button 
                     onClick={() => setShowEmojiPicker(true)}
@@ -328,23 +391,29 @@ export function LinkEditor({
                   >
                     {selectedEmoji}
                   </button>
-                ) : thumbnailType === "custom" ? (
-                  <div className="text-center p-4">
-                    <input
-                      type="text"
-                      value={customThumbnail}
-                      onChange={(e) => setCustomThumbnail(e.target.value)}
-                      placeholder="URL immagine..."
-                      className="w-full p-2 rounded-lg bg-[var(--card-bg)] border border-[var(--card-border)] text-sm mb-2"
-                    />
-                    {customThumbnail && (
-                      <img src={customThumbnail} alt="" className="max-h-16 mx-auto rounded" />
-                    )}
+                ) : thumbnailType === "custom" && customThumbnail ? (
+                  <div className="relative w-full h-full">
+                    <img src={customThumbnail} alt="" className="w-full h-full object-cover" />
+                    <button
+                      onClick={() => {
+                        setCustomThumbnail("");
+                        setThumbnailType("original");
+                      }}
+                      className="absolute top-2 right-2 p-1.5 rounded-full bg-black/50 text-white hover:bg-red-500 transition-colors"
+                    >
+                      <X size={14} />
+                    </button>
                   </div>
                 ) : originalThumbnail ? (
                   <img src={originalThumbnail} alt="" className="w-full h-full object-cover" />
                 ) : (
-                  <span className="text-[var(--foreground-muted)]">Nessuna immagine</span>
+                  <button 
+                    onClick={() => fileInputRef.current?.click()}
+                    className="flex flex-col items-center gap-2 text-[var(--foreground-muted)] hover:text-[var(--accent-purple)] transition-colors"
+                  >
+                    <Upload size={24} />
+                    <span className="text-sm">Carica immagine</span>
+                  </button>
                 )}
               </div>
 

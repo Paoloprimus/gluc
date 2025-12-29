@@ -200,6 +200,49 @@ export async function incrementClickCount(linkId: string): Promise<boolean> {
 }
 
 // =============================================
+// Image Upload Functions
+// =============================================
+
+export async function uploadThumbnail(file: File, userId: string): Promise<string | null> {
+  const fileExt = file.name.split('.').pop();
+  const fileName = `${userId}/${Date.now()}.${fileExt}`;
+  
+  const { data, error } = await supabase.client
+    .storage
+    .from('thumbnails')
+    .upload(fileName, file, {
+      cacheControl: '3600',
+      upsert: false
+    });
+  
+  if (error) {
+    console.error('Upload error:', error);
+    return null;
+  }
+  
+  // Get public URL
+  const { data: urlData } = supabase.client
+    .storage
+    .from('thumbnails')
+    .getPublicUrl(data.path);
+  
+  return urlData.publicUrl;
+}
+
+export async function deleteThumbnail(url: string): Promise<boolean> {
+  // Extract path from URL
+  const match = url.match(/thumbnails\/(.+)$/);
+  if (!match) return false;
+  
+  const { error } = await supabase.client
+    .storage
+    .from('thumbnails')
+    .remove([match[1]]);
+  
+  return !error;
+}
+
+// =============================================
 // Stats Functions
 // =============================================
 
