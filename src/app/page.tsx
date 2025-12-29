@@ -74,16 +74,17 @@ export default function Home() {
 
   const loadLinks = async () => {
     if (!session) return;
-    const data = await getUserLinks(session.userId, session.preferences.sort_order, statusFilter === 'all' ? undefined : statusFilter);
+    // Always load ALL links, filter client-side
+    const data = await getUserLinks(session.userId, session.preferences.sort_order);
     setLinks(data);
   };
 
-  // Reload when filter changes
+  // Reload when sort order changes
   useEffect(() => {
     if (session) {
       loadLinks();
     }
-  }, [statusFilter, session?.preferences.sort_order]);
+  }, [session?.preferences.sort_order]);
 
   // Handle login
   const handleLogin = async (userId: string, nickname: string) => {
@@ -131,25 +132,32 @@ export default function Home() {
     return Array.from(tagSet).sort();
   }, [links]);
 
-  // Filter links
+  // Filter links (including status filter)
   const filteredLinks = useMemo(() => {
     return links.filter((link) => {
+      // Status filter
+      if (statusFilter !== 'all') {
+        if (statusFilter === 'published' && link.status !== 'published') return false;
+        if (statusFilter === 'draft' && link.status !== 'draft') return false;
+      }
+      // Search filter
       if (searchQuery) {
         const query = searchQuery.toLowerCase();
         const matchesSearch =
           link.title.toLowerCase().includes(query) ||
           link.description?.toLowerCase().includes(query) ||
-          link.url.toLowerCase().includes(query) ||
+          link.url?.toLowerCase().includes(query) ||
           link.tags.some((tag) => tag.toLowerCase().includes(query));
         if (!matchesSearch) return false;
       }
+      // Tags filter
       if (selectedTags.length > 0) {
         const hasSelectedTag = selectedTags.some((tag) => link.tags.includes(tag));
         if (!hasSelectedTag) return false;
       }
       return true;
     });
-  }, [links, searchQuery, selectedTags]);
+  }, [links, searchQuery, selectedTags, statusFilter]);
 
   // Save new link
   const handleSaveLink = async (linkData: NewLink) => {

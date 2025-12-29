@@ -26,10 +26,13 @@ export interface InviteToken {
 export type LinkStatus = 'draft' | 'published';
 export type ThumbnailType = 'original' | 'custom' | 'emoji';
 
+export type PostType = 'link' | 'image' | 'text';
+
 export interface NunqLink {
   id: string;
   user_id: string;
-  url: string;
+  post_type: PostType;
+  url: string | null;
   title: string;
   description: string | null;
   thumbnail: string | null;
@@ -44,7 +47,8 @@ export interface NunqLink {
 
 // For creating new links
 export interface NewLink {
-  url: string;
+  post_type: PostType;
+  url: string | null;
   title: string;
   description: string | null;
   thumbnail: string | null;

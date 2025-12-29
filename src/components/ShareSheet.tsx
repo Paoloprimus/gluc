@@ -18,21 +18,24 @@ export function ShareSheet({ link, isOpen, onClose, onClickTracked }: ShareSheet
 
   if (!link) return null;
 
+  const hasUrl = !!link.url;
+
   const formatPost = (platform: 'whatsapp' | 'telegram' | 'instagram' | 'tiktok') => {
     const tags = link.tags.slice(0, 5).map(t => `#${t}`).join(" ");
-    const emoji = link.thumbnail_type === "emoji" ? link.custom_thumbnail : "🔗";
+    const emoji = link.thumbnail_type === "emoji" ? link.custom_thumbnail : "✨";
+    const urlPart = hasUrl ? `\n\n👉 ${link.url}` : "";
     
     switch (platform) {
       case 'whatsapp':
       case 'telegram':
-        return `${emoji} *${link.title}*\n\n${link.description || ""}\n\n${tags}\n\n👉 ${link.url}`;
+        return `${emoji} *${link.title}*\n\n${link.description || ""}${tags ? `\n\n${tags}` : ""}${urlPart}`;
       
       case 'instagram':
       case 'tiktok':
-        return `${emoji} ${link.title}\n\n${link.description || ""}\n\n${tags}\n\n🔗 Link in bio`;
+        return `${emoji} ${link.title}\n\n${link.description || ""}${tags ? `\n\n${tags}` : ""}${hasUrl ? "\n\n🔗 Link in bio" : ""}`;
       
       default:
-        return `${link.title}\n\n${link.description || ""}\n\n${link.url}`;
+        return `${link.title}\n\n${link.description || ""}${urlPart}`;
     }
   };
 
@@ -45,7 +48,9 @@ export function ShareSheet({ link, isOpen, onClose, onClickTracked }: ShareSheet
 
   const handleTelegram = () => {
     const text = formatPost('telegram');
-    const url = `https://t.me/share/url?url=${encodeURIComponent(link.url)}&text=${encodeURIComponent(text)}`;
+    const url = hasUrl 
+      ? `https://t.me/share/url?url=${encodeURIComponent(link.url!)}&text=${encodeURIComponent(text)}`
+      : `https://t.me/share/url?text=${encodeURIComponent(text)}`;
     window.open(url, '_blank');
     onClickTracked?.();
   };
@@ -58,9 +63,11 @@ export function ShareSheet({ link, isOpen, onClose, onClickTracked }: ShareSheet
   };
 
   const handleCopyLink = async () => {
-    await navigator.clipboard.writeText(link.url);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    if (link.url) {
+      await navigator.clipboard.writeText(link.url);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
   };
 
   return (
@@ -119,7 +126,9 @@ export function ShareSheet({ link, isOpen, onClose, onClickTracked }: ShareSheet
                     </div>
                     <div className="flex-1 min-w-0">
                       <h3 className="font-semibold text-sm line-clamp-1">{link.title}</h3>
-                      <p className="text-xs text-[var(--foreground-muted)] line-clamp-1">{link.url}</p>
+                      <p className="text-xs text-[var(--foreground-muted)] line-clamp-1">
+                        {hasUrl ? link.url : (link.post_type === 'image' ? '🖼️ Post immagine' : '✏️ Post testo')}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -157,35 +166,39 @@ export function ShareSheet({ link, isOpen, onClose, onClickTracked }: ShareSheet
                   />
                 </div>
 
-                {/* Copy link */}
-                <button
-                  onClick={handleCopyLink}
-                  className="w-full p-4 rounded-xl bg-[var(--card-bg)] border border-[var(--card-border)] flex items-center justify-center gap-2 hover:border-[var(--accent-purple)] transition-colors"
-                >
-                  {copied ? (
-                    <>
-                      <Check size={20} className="text-green-500" />
-                      <span className="font-medium">Link copiato!</span>
-                    </>
-                  ) : (
-                    <>
-                      <Copy size={20} />
-                      <span className="font-medium">Copia solo link</span>
-                    </>
-                  )}
-                </button>
+                {/* Copy link - only for posts with URL */}
+                {hasUrl && (
+                  <>
+                    <button
+                      onClick={handleCopyLink}
+                      className="w-full p-4 rounded-xl bg-[var(--card-bg)] border border-[var(--card-border)] flex items-center justify-center gap-2 hover:border-[var(--accent-purple)] transition-colors"
+                    >
+                      {copied ? (
+                        <>
+                          <Check size={20} className="text-green-500" />
+                          <span className="font-medium">Link copiato!</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy size={20} />
+                          <span className="font-medium">Copia solo link</span>
+                        </>
+                      )}
+                    </button>
 
-                {/* Open original */}
-                <a
-                  href={link.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={onClickTracked}
-                  className="w-full p-3 rounded-xl text-center text-sm text-[var(--foreground-muted)] hover:text-[var(--accent-purple)] transition-colors flex items-center justify-center gap-2"
-                >
-                  <ExternalLink size={16} />
-                  Apri link originale
-                </a>
+                    {/* Open original */}
+                    <a
+                      href={link.url!}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={onClickTracked}
+                      className="w-full p-3 rounded-xl text-center text-sm text-[var(--foreground-muted)] hover:text-[var(--accent-purple)] transition-colors flex items-center justify-center gap-2"
+                    >
+                      <ExternalLink size={16} />
+                      Apri link originale
+                    </a>
+                  </>
+                )}
               </div>
             </div>
           </motion.div>

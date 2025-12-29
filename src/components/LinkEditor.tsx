@@ -16,7 +16,7 @@ import {
   Upload,
   Loader2
 } from "lucide-react";
-import type { NunqLink, NewLink, ThumbnailType } from "@/types";
+import type { NunqLink, NewLink, ThumbnailType, PostType } from "@/types";
 import { uploadThumbnail } from "@/lib/supabase";
 
 // Popular emoji for thumbnails
@@ -46,6 +46,9 @@ export function LinkEditor({
   const isEditing = !!link;
   const fileInputRef = useRef<HTMLInputElement>(null);
   
+  // Post type
+  const [postType, setPostType] = useState<PostType>(link?.post_type || (initialUrl ? 'link' : 'text'));
+  
   // Form state
   const [url, setUrl] = useState(link?.url || initialUrl || "");
   const [title, setTitle] = useState(link?.title || "");
@@ -64,6 +67,14 @@ export function LinkEditor({
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [fetchingMeta, setFetchingMeta] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
+
+  // Determine if content is valid for preview
+  const hasValidContent = () => {
+    if (postType === 'link') return url.trim() && title.trim();
+    if (postType === 'image') return (customThumbnail || thumbnailType === 'emoji') && title.trim();
+    if (postType === 'text') return title.trim() || description.trim();
+    return false;
+  };
 
   // Fetch metadata when URL changes
   useEffect(() => {
@@ -152,9 +163,16 @@ export function LinkEditor({
   };
 
   const handleSave = async (status: 'draft' | 'published') => {
+    // Build URL only for link type
+    let finalUrl: string | null = null;
+    if (postType === 'link' && url.trim()) {
+      finalUrl = url.startsWith("http") ? url : `https://${url}`;
+    }
+
     const linkData: NewLink = {
-      url: url.startsWith("http") ? url : `https://${url}`,
-      title: title.trim() || url,
+      post_type: postType,
+      url: finalUrl,
+      title: title.trim() || (postType === 'text' ? description.substring(0, 50) : 'Senza titolo'),
       description: description.trim() || null,
       thumbnail: originalThumbnail || null,
       custom_thumbnail: thumbnailType === "emoji" ? selectedEmoji : (thumbnailType === "custom" ? customThumbnail : null),
@@ -234,7 +252,9 @@ export function LinkEditor({
                 </div>
               )}
               
-              <p className="text-sm text-[var(--accent-purple)]">🔗 {url}</p>
+              {postType === 'link' && url && (
+                <p className="text-sm text-[var(--accent-purple)]">🔗 {url}</p>
+              )}
             </div>
 
             {/* Preview Actions */}
@@ -278,25 +298,66 @@ export function LinkEditor({
             exit={{ opacity: 0, x: 20 }}
             className="space-y-4"
           >
-            <h2 className="text-xl font-bold">{isEditing ? "Modifica Link" : "Nuovo Link"}</h2>
+            <h2 className="text-xl font-bold">{isEditing ? "Modifica Post" : "Nuovo Post"}</h2>
 
-            {/* URL Input */}
-            <div>
-              <label className="block text-sm font-medium mb-2">URL</label>
-              <div className="flex items-center gap-2 p-3 rounded-xl bg-[var(--card-bg)] border border-[var(--card-border)]">
-                <Link2 size={18} className="text-[var(--foreground-muted)]" />
-                <input
-                  type="text"
-                  value={url}
-                  onChange={(e) => setUrl(e.target.value)}
-                  placeholder="https://esempio.com"
-                  className="flex-1 bg-transparent outline-none"
-                />
-                {fetchingMeta && (
-                  <div className="w-4 h-4 border-2 border-[var(--accent-purple)] border-t-transparent rounded-full animate-spin" />
-                )}
-              </div>
+            {/* Post Type Selector */}
+            <div className="flex gap-2 p-1 rounded-xl bg-[var(--background-secondary)]">
+              <button
+                onClick={() => setPostType('link')}
+                className={`flex-1 p-2.5 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-2 ${
+                  postType === 'link'
+                    ? "bg-[var(--card-bg)] shadow-sm"
+                    : "text-[var(--foreground-muted)]"
+                }`}
+              >
+                <Link2 size={16} />
+                Link
+              </button>
+              <button
+                onClick={() => {
+                  setPostType('image');
+                  setThumbnailType('custom');
+                }}
+                className={`flex-1 p-2.5 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-2 ${
+                  postType === 'image'
+                    ? "bg-[var(--card-bg)] shadow-sm"
+                    : "text-[var(--foreground-muted)]"
+                }`}
+              >
+                <Image size={16} />
+                Immagine
+              </button>
+              <button
+                onClick={() => setPostType('text')}
+                className={`flex-1 p-2.5 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-2 ${
+                  postType === 'text'
+                    ? "bg-[var(--card-bg)] shadow-sm"
+                    : "text-[var(--foreground-muted)]"
+                }`}
+              >
+                ✏️ Testo
+              </button>
             </div>
+
+            {/* URL Input - Only for link type */}
+            {postType === 'link' && (
+              <div>
+                <label className="block text-sm font-medium mb-2">URL</label>
+                <div className="flex items-center gap-2 p-3 rounded-xl bg-[var(--card-bg)] border border-[var(--card-border)]">
+                  <Link2 size={18} className="text-[var(--foreground-muted)]" />
+                  <input
+                    type="text"
+                    value={url}
+                    onChange={(e) => setUrl(e.target.value)}
+                    placeholder="https://esempio.com"
+                    className="flex-1 bg-transparent outline-none"
+                  />
+                  {fetchingMeta && (
+                    <div className="w-4 h-4 border-2 border-[var(--accent-purple)] border-t-transparent rounded-full animate-spin" />
+                  )}
+                </div>
+              </div>
+            )}
 
             {/* Title */}
             <div>
@@ -322,20 +383,26 @@ export function LinkEditor({
               />
             </div>
 
-            {/* Thumbnail Selection */}
+            {/* Thumbnail Selection - Different for image vs link posts */}
             <div>
-              <label className="block text-sm font-medium mb-2">Thumbnail</label>
+              <label className="block text-sm font-medium mb-2">
+                {postType === 'image' ? 'Immagine *' : 'Thumbnail'}
+              </label>
+              
+              {/* Only show original option for link type */}
               <div className="flex gap-2 mb-3">
-                <button
-                  onClick={() => setThumbnailType("original")}
-                  className={`flex-1 p-2 rounded-lg text-sm font-medium transition-colors ${
-                    thumbnailType === "original"
-                      ? "bg-[var(--accent-purple)] text-white"
-                      : "bg-[var(--card-bg)] border border-[var(--card-border)]"
-                  }`}
-                >
-                  🌐 Originale
-                </button>
+                {postType === 'link' && (
+                  <button
+                    onClick={() => setThumbnailType("original")}
+                    className={`flex-1 p-2 rounded-lg text-sm font-medium transition-colors ${
+                      thumbnailType === "original"
+                        ? "bg-[var(--accent-purple)] text-white"
+                        : "bg-[var(--card-bg)] border border-[var(--card-border)]"
+                    }`}
+                  >
+                    🌐 Originale
+                  </button>
+                )}
                 <button
                   onClick={() => fileInputRef.current?.click()}
                   disabled={uploadingImage}
@@ -492,12 +559,21 @@ export function LinkEditor({
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => setShowPreview(true)}
-                disabled={!url.trim() || !title.trim()}
+                disabled={!hasValidContent()}
                 className="w-full p-4 rounded-xl bg-gradient-to-r from-[var(--accent-purple)] to-[var(--accent-pink)] text-white font-bold disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 <Eye size={20} />
                 Anteprima
               </motion.button>
+              
+              {/* Helper text */}
+              {!hasValidContent() && (
+                <p className="text-center text-sm text-[var(--foreground-muted)]">
+                  {postType === 'link' && "Inserisci URL e titolo"}
+                  {postType === 'image' && "Carica un'immagine e aggiungi un titolo"}
+                  {postType === 'text' && "Aggiungi un titolo o una descrizione"}
+                </p>
+              )}
             </div>
           </motion.div>
         )}

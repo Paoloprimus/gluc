@@ -30,15 +30,21 @@ export function LinkCard({ link, onDelete, onShare, onEdit, onClickTrack, index 
   const [imageError, setImageError] = useState(false);
 
   const handleCopyLink = async () => {
-    await navigator.clipboard.writeText(link.url);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    if (link.url) {
+      await navigator.clipboard.writeText(link.url);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
   };
 
   const handleOpenLink = () => {
-    onClickTrack(link.id);
-    window.open(link.url, '_blank');
+    if (link.url) {
+      onClickTrack(link.id);
+      window.open(link.url, '_blank');
+    }
   };
+
+  const hasUrl = !!link.url;
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -117,10 +123,16 @@ export function LinkCard({ link, onDelete, onShare, onEdit, onClickTrack, index 
             <h3 className="font-semibold text-[var(--foreground)] line-clamp-2 leading-tight">
               {link.title}
             </h3>
-            <p className="text-xs text-[var(--foreground-muted)] mt-1 flex items-center gap-1">
-              <Globe size={12} />
-              {getDomain(link.url)}
-            </p>
+            {hasUrl ? (
+              <p className="text-xs text-[var(--foreground-muted)] mt-1 flex items-center gap-1">
+                <Globe size={12} />
+                {getDomain(link.url!)}
+              </p>
+            ) : (
+              <p className="text-xs text-[var(--accent-purple)] mt-1">
+                {link.post_type === 'image' ? '🖼️ Immagine' : '✏️ Testo'}
+              </p>
+            )}
             <div className="flex items-center gap-3 mt-1 text-xs text-[var(--foreground-muted)]">
               <span className="flex items-center gap-1">
                 <Clock size={12} />
@@ -168,29 +180,34 @@ export function LinkCard({ link, onDelete, onShare, onEdit, onClickTrack, index 
         {/* Actions */}
         <div className="flex items-center justify-between pt-2 border-t border-[var(--card-border)]">
           <div className="flex items-center gap-1">
-            <motion.button
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-              onClick={handleCopyLink}
-              className="p-2 rounded-lg hover:bg-[var(--card-bg)] transition-colors"
-              title="Copia link"
-            >
-              {copied ? (
-                <Check size={18} className="text-green-500" />
-              ) : (
-                <Copy size={18} className="text-[var(--foreground-muted)]" />
-              )}
-            </motion.button>
+            {/* Copy/Open only for links */}
+            {hasUrl && (
+              <>
+                <motion.button
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  onClick={handleCopyLink}
+                  className="p-2 rounded-lg hover:bg-[var(--card-bg)] transition-colors"
+                  title="Copia link"
+                >
+                  {copied ? (
+                    <Check size={18} className="text-green-500" />
+                  ) : (
+                    <Copy size={18} className="text-[var(--foreground-muted)]" />
+                  )}
+                </motion.button>
 
-            <motion.button
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-              onClick={handleOpenLink}
-              className="p-2 rounded-lg hover:bg-[var(--card-bg)] transition-colors"
-              title="Apri link"
-            >
-              <ExternalLink size={18} className="text-[var(--foreground-muted)]" />
-            </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  onClick={handleOpenLink}
+                  className="p-2 rounded-lg hover:bg-[var(--card-bg)] transition-colors"
+                  title="Apri link"
+                >
+                  <ExternalLink size={18} className="text-[var(--foreground-muted)]" />
+                </motion.button>
+              </>
+            )}
 
             <motion.button
               whileHover={{ scale: 1.1 }}
