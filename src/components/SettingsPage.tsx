@@ -126,40 +126,47 @@ export function SettingsPage({ preferences, onUpdatePreferences }: SettingsPageP
             <p className="text-xs font-medium text-[var(--foreground-muted)] uppercase">
               Desktop: Bookmarklet
             </p>
-            <a
-              href={bookmarkletCode}
-              onClick={(e) => e.preventDefault()}
+            <div
               draggable="true"
+              onDragStart={(e) => {
+                e.dataTransfer.setData("text/uri-list", bookmarkletCode);
+                e.dataTransfer.setData("text/plain", bookmarkletCode);
+              }}
               className="
                 inline-flex items-center justify-center gap-2 px-6 py-3 
                 bg-gradient-to-r from-[var(--accent-purple)] to-[var(--accent-pink)] 
                 text-white font-bold rounded-xl cursor-grab active:cursor-grabbing
-                shadow-lg hover:shadow-xl transition-shadow
+                shadow-lg hover:shadow-xl transition-shadow select-none
               "
             >
               ✨ Salva in Nunq
-            </a>
-            
-            <div className="flex items-center gap-2 text-xs text-[var(--foreground-muted)]">
-              <span>👆 Trascina sulla barra preferiti</span>
-              <span className="text-[var(--card-border)]">|</span>
-              <button 
-                onClick={handleCopyBookmarklet}
-                className="flex items-center gap-1 hover:text-[var(--accent-purple)] transition-colors"
-              >
-                {copiedBookmarklet ? (
-                  <>
-                    <Check size={12} />
-                    <span>Copiato!</span>
-                  </>
-                ) : (
-                  <>
-                    <Copy size={12} />
-                    <span>Copia codice</span>
-                  </>
-                )}
-              </button>
             </div>
+            
+            <p className="text-xs text-[var(--foreground-muted)]">
+              👆 Trascina sulla barra preferiti
+            </p>
+            
+            <button 
+              onClick={handleCopyBookmarklet}
+              className="w-full p-3 rounded-lg bg-[var(--background-secondary)] border border-[var(--card-border)] hover:border-[var(--accent-purple)] transition-colors flex items-center justify-center gap-2"
+            >
+              {copiedBookmarklet ? (
+                <>
+                  <Check size={16} className="text-green-500" />
+                  <span className="text-sm font-medium">Codice copiato!</span>
+                </>
+              ) : (
+                <>
+                  <Copy size={16} />
+                  <span className="text-sm font-medium">Copia codice manualmente</span>
+                </>
+              )}
+            </button>
+            
+            <p className="text-xs text-[var(--foreground-muted)]">
+              💡 <strong>Se il trascinamento non funziona:</strong> copia il codice, 
+              poi in Chrome click destro sulla barra preferiti → &quot;Aggiungi pagina&quot; → incolla nel campo URL
+            </p>
           </div>
 
           {/* Mobile tip */}

@@ -333,7 +333,7 @@ export default function Home() {
             onUpdatePreferences={handleUpdatePreferences}
           />
         )}
-      </div>
+        </div>
 
       {/* FAB to add new link */}
       {activePage === "links" && viewMode === "list" && (
@@ -363,6 +363,6 @@ export default function Home() {
         isOpen={showExport}
         onClose={() => setShowExport(false)}
       />
-    </main>
+      </main>
   );
 }
