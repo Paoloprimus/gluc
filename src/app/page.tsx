@@ -1,21 +1,23 @@
 "use client";
 
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { AnimatePresence } from "framer-motion";
 import { LoginPage } from "@/components/LoginPage";
 import { TopBar, ActivePage } from "@/components/TopBar";
-import { LinkInput } from "@/components/LinkInput";
 import { LinkCard } from "@/components/LinkCard";
-import { ShareModal } from "@/components/ShareModal";
+import { LinkEditor } from "@/components/LinkEditor";
+import { ShareSheet } from "@/components/ShareSheet";
 import { ExportModal } from "@/components/ExportModal";
-import { SuggestionsModal } from "@/components/SuggestionsModal";
 import { EmptyState } from "@/components/EmptyState";
 import { FilterBar } from "@/components/FilterBar";
 import { StatsPage } from "@/components/StatsPage";
 import { SettingsPage } from "@/components/SettingsPage";
 import { getSession, setSession, clearSession, applyTheme, initializeTheme } from "@/lib/session";
-import { getUserLinks, addLink, updateLink, deleteLink, updateUserPreferences } from "@/lib/supabase";
-import type { NunqLink, Session, UserPreferences } from "@/types";
+import { getUserLinks, addLink, updateLink, deleteLink, updateUserPreferences, incrementClickCount } from "@/lib/supabase";
+import type { NunqLink, NewLink, Session, UserPreferences } from "@/types";
+import { Plus } from "lucide-react";
+
+type ViewMode = 'list' | 'editor';
 
 export default function Home() {
   // Auth state
@@ -24,19 +26,15 @@ export default function Home() {
 
   // App state
   const [activePage, setActivePage] = useState<ActivePage>("links");
+  const [viewMode, setViewMode] = useState<ViewMode>("list");
   const [links, setLinks] = useState<NunqLink[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [shareLink, setShareLink] = useState<NunqLink | null>(null);
+  const [editingLink, setEditingLink] = useState<NunqLink | null>(null);
   const [showExport, setShowExport] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [error, setError] = useState<string | null>(null);
-
-  // Suggestions modal state
-  const [showSuggestions, setShowSuggestions] = useState(false);
-  const [suggestions, setSuggestions] = useState<string[]>([]);
-  const [originalInput, setOriginalInput] = useState("");
-  const [isFetchingSuggestions, setIsFetchingSuggestions] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<'all' | 'draft' | 'published'>('all');
 
   // URL from bookmarklet/share
   const [initialUrl, setInitialUrl] = useState<string | null>(null);
@@ -62,6 +60,7 @@ export default function Home() {
     }
     if (urlParam) {
       setInitialUrl(decodeURIComponent(urlParam));
+      setViewMode("editor");
       window.history.replaceState({}, "", window.location.pathname);
     }
   }, []);
@@ -75,9 +74,16 @@ export default function Home() {
 
   const loadLinks = async () => {
     if (!session) return;
-    const data = await getUserLinks(session.userId, session.preferences.sort_order);
+    const data = await getUserLinks(session.userId, session.preferences.sort_order, statusFilter === 'all' ? undefined : statusFilter);
     setLinks(data);
   };
+
+  // Reload when filter changes
+  useEffect(() => {
+    if (session) {
+      loadLinks();
+    }
+  }, [statusFilter, session?.preferences.sort_order]);
 
   // Handle login
   const handleLogin = async (userId: string, nickname: string) => {
@@ -87,7 +93,6 @@ export default function Home() {
       nickname,
       preferences: {
         theme,
-        ai_suggestions: true,
         sort_order: "newest",
       },
     };
@@ -112,19 +117,11 @@ export default function Home() {
     setSession(newSession);
     setSessionState(newSession);
 
-    // Apply theme immediately
     if (updates.theme) {
       applyTheme(updates.theme);
     }
 
-    // Sync to database
     await updateUserPreferences(session.userId, newPreferences);
-
-    // Reload links if sort order changed
-    if (updates.sort_order) {
-      const data = await getUserLinks(session.userId, updates.sort_order);
-      setLinks(data);
-    }
   };
 
   // Get all unique tags
@@ -154,91 +151,32 @@ export default function Home() {
     });
   }, [links, searchQuery, selectedTags]);
 
-  // Extract domain from URL
-  const extractDomain = (url: string): string => {
-    try {
-      const urlObj = new URL(url.startsWith("http") ? url : `https://${url}`);
-      return urlObj.hostname.replace("www.", "");
-    } catch {
-      return url.replace(/^https?:\/\//, "").replace("www.", "").split("/")[0];
-    }
-  };
-
-  // Fetch domain suggestions
-  const fetchSuggestions = useCallback(async (input: string) => {
-    setIsFetchingSuggestions(true);
-    try {
-      const response = await fetch("/api/suggest-domains", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ input }),
-      });
-      if (response.ok) {
-        const data = await response.json();
-        if (data.suggestions?.length > 0) {
-          setSuggestions(data.suggestions);
-          setOriginalInput(input);
-          setShowSuggestions(true);
-        } else {
-          setError(`Dominio "${input}" non trovato`);
-        }
-      }
-    } catch {
-      setError("Errore durante la ricerca");
-    } finally {
-      setIsFetchingSuggestions(false);
-      setIsLoading(false);
-    }
-  }, []);
-
-  // Submit link
-  const handleSubmitLink = async (url: string) => {
+  // Save new link
+  const handleSaveLink = async (linkData: NewLink) => {
     if (!session) return;
-
     setIsLoading(true);
-    setError(null);
-
-    try {
-      const response = await fetch("/api/analyze", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        if (data.code === "DOMAIN_NOT_FOUND") {
-          const domain = extractDomain(url);
-          await fetchSuggestions(domain);
-          return;
-        }
-        throw new Error(data.error || "Errore durante l'analisi");
-      }
-
-      const { data: newLink, error: dbError } = await addLink(session.userId, {
-        url,
-        title: data.title,
-        description: data.description,
-        thumbnail: data.thumbnail,
-        tags: data.tags,
-      });
-
-      if (dbError) throw new Error("Errore durante il salvataggio");
-
+    
+    const { data: newLink } = await addLink(session.userId, linkData);
+    if (newLink) {
       setLinks((prev) => [newLink, ...prev]);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Errore sconosciuto");
-    } finally {
-      setIsLoading(false);
     }
+    
+    setIsLoading(false);
+    setViewMode("list");
+    setInitialUrl(null);
+    setEditingLink(null);
   };
 
-  // Handle suggestion selection
-  const handleSelectSuggestion = (domain: string) => {
-    setShowSuggestions(false);
-    setSuggestions([]);
-    handleSubmitLink(`https://${domain}`);
+  // Update existing link
+  const handleUpdateLink = async (updatedLink: NunqLink) => {
+    setIsLoading(true);
+    
+    await updateLink(updatedLink.id, updatedLink);
+    setLinks((prev) => prev.map((l) => (l.id === updatedLink.id ? updatedLink : l)));
+    
+    setIsLoading(false);
+    setViewMode("list");
+    setEditingLink(null);
   };
 
   // Delete link
@@ -246,19 +184,17 @@ export default function Home() {
     const success = await deleteLink(id);
     if (success) {
       setLinks((prev) => prev.filter((link) => link.id !== id));
+      setViewMode("list");
+      setEditingLink(null);
     }
   };
 
-  // Update link
-  const handleUpdateLink = async (link: NunqLink) => {
-    const success = await updateLink(link.id, {
-      title: link.title,
-      description: link.description,
-      tags: link.tags,
-    });
-    if (success) {
-      setLinks((prev) => prev.map((l) => (l.id === link.id ? link : l)));
-    }
+  // Track click
+  const handleClickTrack = async (id: string) => {
+    await incrementClickCount(id);
+    setLinks((prev) => prev.map((l) => 
+      l.id === id ? { ...l, click_count: l.click_count + 1 } : l
+    ));
   };
 
   // Toggle tag filter
@@ -266,6 +202,12 @@ export default function Home() {
     setSelectedTags((prev) =>
       prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
     );
+  };
+
+  // Start editing
+  const handleStartEdit = (link: NunqLink) => {
+    setEditingLink(link);
+    setViewMode("editor");
   };
 
   // Show loading while checking auth
@@ -283,89 +225,104 @@ export default function Home() {
   }
 
   return (
-    <main className="min-h-screen pb-8">
+    <main className="min-h-screen pb-24">
       <TopBar
         nickname={session.nickname}
         activePage={activePage}
-        onPageChange={setActivePage}
+        onPageChange={(page) => {
+          setActivePage(page);
+          setViewMode("list");
+          setEditingLink(null);
+        }}
         onExport={() => setShowExport(true)}
         onLogout={handleLogout}
       />
 
       <div className="max-w-2xl mx-auto px-4 pt-6">
         {activePage === "links" && (
-          <div className="space-y-6">
-            {/* Link Input */}
-            <LinkInput
-              onSubmit={handleSubmitLink}
-              isLoading={isLoading || isFetchingSuggestions}
-              initialUrl={initialUrl || undefined}
-              onClearInitialUrl={() => setInitialUrl(null)}
-            />
-
-            {/* Loading suggestions indicator */}
-            <AnimatePresence>
-              {isFetchingSuggestions && (
-                <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-500 text-sm flex items-center gap-3">
-                  <div className="w-4 h-4 border-2 border-amber-500 border-t-transparent rounded-full animate-spin" />
-                  Cerco domini simili...
-                </div>
-              )}
-            </AnimatePresence>
-
-            {/* Error message */}
-            <AnimatePresence>
-              {error && (
-                <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-sm">
-                  {error}
-                </div>
-              )}
-            </AnimatePresence>
-
-            {/* Filter bar */}
-            {links.length > 0 && (
-              <FilterBar
-                searchQuery={searchQuery}
-                onSearchChange={setSearchQuery}
-                selectedTags={selectedTags}
-                onTagToggle={handleTagToggle}
-                allTags={allTags}
+          <>
+            {viewMode === "editor" ? (
+              <LinkEditor
+                link={editingLink || undefined}
+                initialUrl={initialUrl || undefined}
+                onSave={handleSaveLink}
+                onUpdate={handleUpdateLink}
+                onDelete={handleDeleteLink}
+                onCancel={() => {
+                  setViewMode("list");
+                  setEditingLink(null);
+                  setInitialUrl(null);
+                }}
+                isLoading={isLoading}
               />
-            )}
-
-            {/* Links list */}
-            {links.length === 0 ? (
-              <EmptyState />
-            ) : filteredLinks.length === 0 ? (
-              <div className="text-center py-12">
-                <p className="text-[var(--foreground-muted)]">Nessun link trovato</p>
-              </div>
             ) : (
-              <div className="space-y-4">
-                <AnimatePresence mode="popLayout">
-                  {filteredLinks.map((link, index) => (
-                    <LinkCard
-                      key={link.id}
-                      link={link}
-                      onDelete={handleDeleteLink}
-                      onShare={setShareLink}
-                      onUpdate={handleUpdateLink}
-                      index={index}
+              <div className="space-y-6">
+                {/* Filter bar */}
+                {links.length > 0 && (
+                  <>
+                    <FilterBar
+                      searchQuery={searchQuery}
+                      onSearchChange={setSearchQuery}
+                      selectedTags={selectedTags}
+                      onTagToggle={handleTagToggle}
+                      allTags={allTags}
                     />
-                  ))}
-                </AnimatePresence>
-              </div>
-            )}
+                    
+                    {/* Status filter */}
+                    <div className="flex gap-2">
+                      {(['all', 'published', 'draft'] as const).map((status) => (
+                        <button
+                          key={status}
+                          onClick={() => setStatusFilter(status)}
+                          className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                            statusFilter === status
+                              ? "bg-[var(--accent-purple)] text-white"
+                              : "bg-[var(--card-bg)] text-[var(--foreground-muted)] hover:text-[var(--foreground)]"
+                          }`}
+                        >
+                          {status === 'all' ? 'Tutti' : status === 'published' ? 'Pubblicati' : 'Bozze'}
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                )}
 
-            {/* Stats */}
-            {links.length > 0 && (
-              <div className="text-center text-sm text-[var(--foreground-muted)] pt-4">
-                {filteredLinks.length === links.length
-                  ? `${links.length} link salvati`
-                  : `${filteredLinks.length} di ${links.length} link`}
+                {/* Links list */}
+                {links.length === 0 ? (
+                  <EmptyState />
+                ) : filteredLinks.length === 0 ? (
+                  <div className="text-center py-12">
+                    <p className="text-[var(--foreground-muted)]">Nessun link trovato</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <AnimatePresence mode="popLayout">
+                      {filteredLinks.map((link, index) => (
+                        <LinkCard
+                          key={link.id}
+                          link={link}
+                          onDelete={handleDeleteLink}
+                          onShare={setShareLink}
+                          onEdit={handleStartEdit}
+                          onClickTrack={handleClickTrack}
+                          index={index}
+                        />
+                      ))}
+                    </AnimatePresence>
+                  </div>
+                )}
+
+                {/* Stats */}
+                {links.length > 0 && (
+                  <div className="text-center text-sm text-[var(--foreground-muted)] pt-4">
+                    {filteredLinks.length === links.length
+                      ? `${links.length} link salvati`
+                      : `${filteredLinks.length} di ${links.length} link`}
+                  </div>
+                )}
               </div>
             )}
-          </div>
+          </>
         )}
 
         {activePage === "stats" && <StatsPage userId={session.userId} />}
@@ -378,32 +335,33 @@ export default function Home() {
         )}
       </div>
 
-      {/* Modals */}
-      <ShareModal
+      {/* FAB to add new link */}
+      {activePage === "links" && viewMode === "list" && (
+        <button
+          onClick={() => {
+            setEditingLink(null);
+            setInitialUrl(null);
+            setViewMode("editor");
+          }}
+          className="fixed bottom-6 right-6 w-14 h-14 rounded-full bg-gradient-to-r from-[var(--accent-purple)] to-[var(--accent-pink)] text-white shadow-lg flex items-center justify-center hover:shadow-xl transition-shadow"
+        >
+          <Plus size={24} />
+        </button>
+      )}
+
+      {/* Share Sheet */}
+      <ShareSheet
         link={shareLink}
         isOpen={!!shareLink}
         onClose={() => setShareLink(null)}
+        onClickTracked={() => shareLink && handleClickTrack(shareLink.id)}
       />
 
+      {/* Export Modal */}
       <ExportModal
         links={links}
         isOpen={showExport}
         onClose={() => setShowExport(false)}
-      />
-
-      <SuggestionsModal
-        isOpen={showSuggestions}
-        originalInput={originalInput}
-        suggestions={suggestions}
-        onSelect={handleSelectSuggestion}
-        onClose={() => {
-          setShowSuggestions(false);
-          setSuggestions([]);
-        }}
-        onRetry={() => {
-          setShowSuggestions(false);
-          setSuggestions([]);
-        }}
       />
     </main>
   );

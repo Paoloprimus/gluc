@@ -1,4 +1,5 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import type { NunqLink, NewLink, UserPreferences } from '@/types';
 
 let supabaseInstance: SupabaseClient | null = null;
 
@@ -16,7 +17,6 @@ function getSupabase(): SupabaseClient {
   return supabaseInstance;
 }
 
-// Use getter in all functions instead of direct reference
 const supabase = { get client() { return getSupabase(); } };
 
 // =============================================
@@ -35,7 +35,6 @@ export async function validateInviteToken(token: string): Promise<boolean> {
 }
 
 export async function registerUser(nickname: string, token: string): Promise<{ success: boolean; userId?: string; error?: string }> {
-  // Check if nickname already exists
   const { data: existingUser } = await supabase.client
     .from('users')
     .select('id')
@@ -46,7 +45,6 @@ export async function registerUser(nickname: string, token: string): Promise<{ s
     return { success: false, error: 'Nickname già in uso' };
   }
   
-  // Validate token
   const { data: tokenData, error: tokenError } = await supabase.client
     .from('invite_tokens')
     .select('*')
@@ -58,7 +56,6 @@ export async function registerUser(nickname: string, token: string): Promise<{ s
     return { success: false, error: 'Token non valido o già utilizzato' };
   }
   
-  // Create user
   const { data: newUser, error: userError } = await supabase.client
     .from('users')
     .insert({ nickname: nickname.toLowerCase() })
@@ -69,7 +66,6 @@ export async function registerUser(nickname: string, token: string): Promise<{ s
     return { success: false, error: 'Errore durante la registrazione' };
   }
   
-  // Mark token as used
   await supabase.client
     .from('invite_tokens')
     .update({ used: true, used_by: newUser.id, used_at: new Date().toISOString() })
@@ -78,7 +74,7 @@ export async function registerUser(nickname: string, token: string): Promise<{ s
   return { success: true, userId: newUser.id };
 }
 
-export async function loginUser(nickname: string): Promise<{ success: boolean; user?: { id: string; nickname: string; preferences: unknown }; error?: string }> {
+export async function loginUser(nickname: string): Promise<{ success: boolean; user?: { id: string; nickname: string; preferences: UserPreferences }; error?: string }> {
   const { data: user, error } = await supabase.client
     .from('users')
     .select('*')
@@ -96,7 +92,7 @@ export async function loginUser(nickname: string): Promise<{ success: boolean; u
 // User Preferences
 // =============================================
 
-export async function updateUserPreferences(userId: string, preferences: Record<string, unknown>) {
+export async function updateUserPreferences(userId: string, preferences: Partial<UserPreferences>) {
   const { error } = await supabase.client
     .from('users')
     .update({ preferences })
@@ -109,12 +105,22 @@ export async function updateUserPreferences(userId: string, preferences: Record<
 // Links Functions
 // =============================================
 
-export async function getUserLinks(userId: string, sortOrder: 'newest' | 'oldest' | 'alpha' = 'newest') {
+export async function getUserLinks(
+  userId: string, 
+  sortOrder: 'newest' | 'oldest' | 'clicks' | 'alpha' = 'newest',
+  statusFilter?: 'draft' | 'published' | 'all'
+): Promise<NunqLink[]> {
   let query = supabase.client
     .from('links')
     .select('*')
     .eq('user_id', userId);
   
+  // Filter by status
+  if (statusFilter && statusFilter !== 'all') {
+    query = query.eq('status', statusFilter);
+  }
+  
+  // Sort order
   switch (sortOrder) {
     case 'newest':
       query = query.order('created_at', { ascending: false });
@@ -122,36 +128,33 @@ export async function getUserLinks(userId: string, sortOrder: 'newest' | 'oldest
     case 'oldest':
       query = query.order('created_at', { ascending: true });
       break;
+    case 'clicks':
+      query = query.order('click_count', { ascending: false });
+      break;
     case 'alpha':
       query = query.order('title', { ascending: true });
       break;
   }
   
   const { data, error } = await query;
-  return error ? [] : data;
+  return error ? [] : (data as NunqLink[]);
 }
 
-export async function addLink(userId: string, link: {
-  url: string;
-  title: string;
-  description: string | null;
-  thumbnail: string | null;
-  tags: string[];
-}) {
+export async function addLink(userId: string, link: NewLink): Promise<{ data: NunqLink | null; error: Error | null }> {
   const { data, error } = await supabase.client
     .from('links')
-    .insert({ ...link, user_id: userId })
+    .insert({ 
+      ...link, 
+      user_id: userId,
+      click_count: 0,
+    })
     .select()
     .single();
   
-  return { data, error };
+  return { data: data as NunqLink | null, error: error as Error | null };
 }
 
-export async function updateLink(linkId: string, updates: {
-  title?: string;
-  description?: string | null;
-  tags?: string[];
-}) {
+export async function updateLink(linkId: string, updates: Partial<NunqLink>): Promise<boolean> {
   const { error } = await supabase.client
     .from('links')
     .update(updates)
@@ -160,13 +163,40 @@ export async function updateLink(linkId: string, updates: {
   return !error;
 }
 
-export async function deleteLink(linkId: string) {
+export async function deleteLink(linkId: string): Promise<boolean> {
   const { error } = await supabase.client
     .from('links')
     .delete()
     .eq('id', linkId);
   
   return !error;
+}
+
+// =============================================
+// Click Tracking
+// =============================================
+
+export async function incrementClickCount(linkId: string): Promise<boolean> {
+  const { error } = await supabase.client
+    .rpc('increment_click_count', { link_id: linkId });
+  
+  // Fallback if RPC doesn't exist
+  if (error) {
+    const { data: link } = await supabase.client
+      .from('links')
+      .select('click_count')
+      .eq('id', linkId)
+      .single();
+    
+    if (link) {
+      await supabase.client
+        .from('links')
+        .update({ click_count: (link.click_count || 0) + 1 })
+        .eq('id', linkId);
+    }
+  }
+  
+  return true;
 }
 
 // =============================================
@@ -182,11 +212,17 @@ export async function getUserStats(userId: string) {
   if (!links || links.length === 0) {
     return {
       totalLinks: 0,
-      totalTags: 0,
+      totalClicks: 0,
+      publishedLinks: 0,
+      draftLinks: 0,
       topTags: [],
       domainsCount: [],
     };
   }
+  
+  const totalClicks = links.reduce((sum, link) => sum + (link.click_count || 0), 0);
+  const publishedLinks = links.filter(l => l.status === 'published').length;
+  const draftLinks = links.filter(l => l.status === 'draft').length;
   
   // Count tags
   const tagCounts: Record<string, number> = {};
@@ -219,7 +255,9 @@ export async function getUserStats(userId: string) {
   
   return {
     totalLinks: links.length,
-    totalTags: Object.keys(tagCounts).length,
+    totalClicks,
+    publishedLinks,
+    draftLinks,
     topTags,
     domainsCount,
   };

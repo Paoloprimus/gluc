@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Link2, Tag, Globe, TrendingUp, Loader2 } from "lucide-react";
+import { Link2, Tag, Globe, TrendingUp, Loader2, MousePointer, FileEdit, Send } from "lucide-react";
 import { getUserStats } from "@/lib/supabase";
 
 interface StatsPageProps {
@@ -11,7 +11,9 @@ interface StatsPageProps {
 
 interface Stats {
   totalLinks: number;
-  totalTags: number;
+  totalClicks: number;
+  publishedLinks: number;
+  draftLinks: number;
   topTags: { tag: string; count: number }[];
   domainsCount: { domain: string; count: number }[];
 }
@@ -58,13 +60,25 @@ export function StatsPage({ userId }: StatsPageProps) {
         <StatCard
           icon={<Link2 size={24} />}
           value={stats.totalLinks}
-          label="Link salvati"
+          label="Link totali"
           color="purple"
         />
         <StatCard
-          icon={<Tag size={24} />}
-          value={stats.totalTags}
-          label="Tag unici"
+          icon={<MousePointer size={24} />}
+          value={stats.totalClicks}
+          label="Click totali"
+          color="pink"
+        />
+        <StatCard
+          icon={<Send size={24} />}
+          value={stats.publishedLinks}
+          label="Pubblicati"
+          color="purple"
+        />
+        <StatCard
+          icon={<FileEdit size={24} />}
+          value={stats.draftLinks}
+          label="Bozze"
           color="pink"
         />
       </div>
@@ -166,4 +180,3 @@ function StatCard({ icon, value, label, color }: StatCardProps) {
     </motion.div>
   );
 }
-

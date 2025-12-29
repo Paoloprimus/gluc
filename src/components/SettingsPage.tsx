@@ -4,14 +4,14 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Palette, 
-  Sparkles, 
   Bookmark, 
   ChevronDown, 
   Sun, 
   Moon,
   Check,
   Copy,
-  Smartphone
+  Smartphone,
+  SortAsc
 } from "lucide-react";
 import type { UserPreferences } from "@/types";
 
@@ -70,44 +70,41 @@ export function SettingsPage({ preferences, onUpdatePreferences }: SettingsPageP
         </div>
       </AccordionSection>
 
-      {/* AI Suggestions Section */}
+      {/* Sort Order Section */}
       <AccordionSection
-        id="ai"
-        title="Suggerimenti AI"
-        icon={<Sparkles size={20} />}
-        isOpen={openSection === "ai"}
-        onToggle={() => toggleSection("ai")}
+        id="sort"
+        title="Ordinamento"
+        icon={<SortAsc size={20} />}
+        isOpen={openSection === "sort"}
+        onToggle={() => toggleSection("sort")}
       >
         <div className="space-y-4">
           <p className="text-sm text-[var(--foreground-muted)]">
-            Configura come l&apos;AI analizza i tuoi link
+            Ordine predefinito dei link
           </p>
           
-          <label className="flex items-center justify-between p-3 rounded-xl bg-[var(--background-secondary)] cursor-pointer hover:bg-[var(--card-border)] transition-colors">
-            <span className="text-sm font-medium">Suggerimenti automatici</span>
-            <div className="relative">
-              <input
-                type="checkbox"
-                checked={preferences.ai_suggestions}
-                onChange={(e) => onUpdatePreferences({ ai_suggestions: e.target.checked })}
-                className="sr-only"
-              />
-              <div className={`
-                w-12 h-6 rounded-full transition-colors
-                ${preferences.ai_suggestions ? "bg-[var(--accent-purple)]" : "bg-[var(--card-border)]"}
-              `}>
-                <div className={`
-                  w-5 h-5 rounded-full bg-white shadow-sm transition-transform
-                  absolute top-0.5
-                  ${preferences.ai_suggestions ? "translate-x-6" : "translate-x-0.5"}
-                `} />
-              </div>
-            </div>
-          </label>
-          
-          <p className="text-xs text-[var(--foreground-muted)]">
-            Quando attivo, l&apos;AI genera automaticamente titolo, descrizione e tag per ogni link salvato.
-          </p>
+          <div className="grid grid-cols-2 gap-2">
+            {[
+              { value: 'newest', label: '📅 Più recenti' },
+              { value: 'oldest', label: '📅 Più vecchi' },
+              { value: 'clicks', label: '🖱️ Più cliccati' },
+              { value: 'alpha', label: '🔤 Alfabetico' },
+            ].map((option) => (
+              <button
+                key={option.value}
+                onClick={() => onUpdatePreferences({ sort_order: option.value as UserPreferences['sort_order'] })}
+                className={`
+                  p-3 rounded-xl text-sm font-medium transition-colors text-left
+                  ${preferences.sort_order === option.value
+                    ? "bg-[var(--accent-purple)] text-white"
+                    : "bg-[var(--card-bg)] border border-[var(--card-border)] hover:border-[var(--accent-purple)]"
+                  }
+                `}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
         </div>
       </AccordionSection>
 
@@ -253,4 +250,3 @@ function ThemeButton({ icon, label, isActive, onClick }: ThemeButtonProps) {
     </motion.button>
   );
 }
-
