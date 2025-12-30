@@ -98,7 +98,7 @@ export function LinkCard({ link, onDelete, onShare, onEdit, onClickTrack, index 
           </div>
         ) : (
           <div className="absolute top-2 right-2 px-2 py-1 rounded-full bg-green-500/20 text-green-500 text-xs font-medium">
-            ✓
+            📤 Inviato
           </div>
         )}
 

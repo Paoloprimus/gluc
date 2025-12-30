@@ -28,7 +28,7 @@ interface LinkEditorProps {
   link?: NunqLink;
   initialUrl?: string;
   userId: string;
-  onSave: (link: NewLink) => Promise<void>;
+  onSave: (link: NewLink) => Promise<NunqLink | null>;
   onUpdate?: (link: NunqLink) => Promise<void>;
   onDelete?: (id: string) => Promise<void>;
   onCancel: () => void;
@@ -95,12 +95,15 @@ export function LinkEditor({
     return text;
   };
 
-  const handleShareWhatsApp = () => {
+  const handleShareWhatsApp = async () => {
+    await ensureSaved();
     const text = formatShareText('whatsapp');
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+    await markAsSent();
   };
 
-  const handleShareTelegram = () => {
+  const handleShareTelegram = async () => {
+    await ensureSaved();
     const text = formatShareText('telegram');
     const finalUrl = postType === 'link' && url.trim() 
       ? (url.startsWith("http") ? url : `https://${url}`)
@@ -109,13 +112,16 @@ export function LinkEditor({
       ? `https://t.me/share/url?url=${encodeURIComponent(finalUrl)}&text=${encodeURIComponent(text)}`
       : `https://t.me/share/url?text=${encodeURIComponent(text)}`;
     window.open(telegramUrl, '_blank');
+    await markAsSent();
   };
 
   const handleCopyText = async () => {
+    await ensureSaved();
     const text = formatShareText('whatsapp').replace(/\*/g, ''); // Remove markdown
     await navigator.clipboard.writeText(text);
     setCopiedText(true);
     setTimeout(() => setCopiedText(false), 2000);
+    // Copy doesn't mark as sent - user might just be copying
   };
 
   // Fetch metadata when URL changes
@@ -204,14 +210,16 @@ export function LinkEditor({
     }
   };
 
-  const handleSave = async (status: 'draft' | 'published') => {
-    // Build URL only for link type
+  // State for saved post (to update status after sharing)
+  const [savedPost, setSavedPost] = useState<NunqLink | null>(link || null);
+
+  const buildLinkData = (status: 'draft' | 'sent'): NewLink => {
     let finalUrl: string | null = null;
     if (postType === 'link' && url.trim()) {
       finalUrl = url.startsWith("http") ? url : `https://${url}`;
     }
 
-    const linkData: NewLink = {
+    return {
       post_type: postType,
       url: finalUrl,
       title: title.trim() || (postType === 'text' ? description.substring(0, 50) : 'Senza titolo'),
@@ -222,11 +230,42 @@ export function LinkEditor({
       tags,
       status,
     };
+  };
+
+  const handleSave = async (status: 'draft' | 'sent') => {
+    const linkData = buildLinkData(status);
 
     if (isEditing && link && onUpdate) {
       await onUpdate({ ...link, ...linkData });
+    } else if (savedPost && onUpdate) {
+      // Already saved, just update
+      await onUpdate({ ...savedPost, ...linkData });
     } else {
-      await onSave(linkData);
+      const newPost = await onSave(linkData);
+      if (newPost) setSavedPost(newPost);
+    }
+  };
+
+  // Auto-save as draft before sharing
+  const ensureSaved = async (): Promise<boolean> => {
+    if (!savedPost && !isEditing) {
+      const linkData = buildLinkData('draft');
+      const newPost = await onSave(linkData);
+      if (newPost) {
+        setSavedPost(newPost);
+        return true;
+      }
+      return false;
+    }
+    return true;
+  };
+
+  // Mark as sent after sharing
+  const markAsSent = async () => {
+    const postToUpdate = savedPost || link;
+    if (postToUpdate && onUpdate && postToUpdate.status !== 'sent') {
+      await onUpdate({ ...postToUpdate, status: 'sent' });
+      setSavedPost({ ...postToUpdate, status: 'sent' });
     }
   };
 
@@ -340,7 +379,7 @@ export function LinkEditor({
             </div>
 
             {/* Preview Actions */}
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 gap-2">
               <button
                 onClick={() => setShowPreview(false)}
                 className="p-3 rounded-xl bg-[var(--card-bg)] border border-[var(--card-border)] font-medium hover:border-[var(--accent-purple)] transition-colors text-sm"
@@ -351,23 +390,20 @@ export function LinkEditor({
               <motion.button
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                onClick={() => handleSave('draft')}
+                onClick={async () => {
+                  await handleSave('draft');
+                  onCancel();
+                }}
                 disabled={isLoading}
-                className="p-3 rounded-xl bg-[var(--card-bg)] border border-amber-500/50 font-medium hover:border-amber-500 transition-colors flex items-center justify-center gap-1 text-sm"
+                className="p-3 rounded-xl bg-[var(--card-bg)] border border-[var(--card-border)] font-medium hover:border-[var(--accent-purple)] transition-colors flex items-center justify-center gap-1 text-sm"
               >
-                📝 Bozza
-              </motion.button>
-              
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => handleSave('published')}
-                disabled={isLoading || !title.trim()}
-                className="p-3 rounded-xl bg-gradient-to-r from-[var(--accent-purple)] to-[var(--accent-pink)] text-white font-medium disabled:opacity-50 flex items-center justify-center gap-1 text-sm"
-              >
-                ✅ Salva
+                💾 Salva per dopo
               </motion.button>
             </div>
+            
+            <p className="text-center text-xs text-[var(--foreground-muted)]">
+              Invia su WhatsApp o Telegram per salvare come "inviato"
+            </p>
           </motion.div>
         ) : (
           /* Edit Mode */

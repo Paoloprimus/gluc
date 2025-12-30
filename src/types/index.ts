@@ -23,7 +23,7 @@ export interface InviteToken {
   used_at: string | null;
 }
 
-export type LinkStatus = 'draft' | 'published';
+export type LinkStatus = 'draft' | 'sent';
 export type ThumbnailType = 'original' | 'custom' | 'emoji';
 
 export type PostType = 'link' | 'image' | 'text';

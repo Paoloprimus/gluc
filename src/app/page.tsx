@@ -34,7 +34,7 @@ export default function Home() {
   const [showExport, setShowExport] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [statusFilter, setStatusFilter] = useState<'all' | 'draft' | 'published'>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'draft' | 'sent'>('all');
 
   // URL from bookmarklet/share
   const [initialUrl, setInitialUrl] = useState<string | null>(null);
@@ -137,7 +137,7 @@ export default function Home() {
     return links.filter((link) => {
       // Status filter
       if (statusFilter !== 'all') {
-        if (statusFilter === 'published' && link.status !== 'published') return false;
+        if (statusFilter === 'sent' && link.status !== 'sent') return false;
         if (statusFilter === 'draft' && link.status !== 'draft') return false;
       }
       // Search filter
@@ -160,8 +160,8 @@ export default function Home() {
   }, [links, searchQuery, selectedTags, statusFilter]);
 
   // Save new link
-  const handleSaveLink = async (linkData: NewLink) => {
-    if (!session) return;
+  const handleSaveLink = async (linkData: NewLink): Promise<NunqLink | null> => {
+    if (!session) return null;
     setIsLoading(true);
     
     const { data: newLink } = await addLink(session.userId, linkData);
@@ -170,9 +170,7 @@ export default function Home() {
     }
     
     setIsLoading(false);
-    setViewMode("list");
-    setInitialUrl(null);
-    setEditingLink(null);
+    return newLink;
   };
 
   // Update existing link
@@ -279,7 +277,7 @@ export default function Home() {
                     
                     {/* Status filter */}
                     <div className="flex gap-2">
-                      {(['all', 'published', 'draft'] as const).map((status) => (
+                      {(['all', 'sent', 'draft'] as const).map((status) => (
                         <button
                           key={status}
                           onClick={() => setStatusFilter(status)}
@@ -289,7 +287,7 @@ export default function Home() {
                               : "bg-[var(--card-bg)] text-[var(--foreground-muted)] hover:text-[var(--foreground)]"
                           }`}
                         >
-                          {status === 'all' ? 'Tutti' : status === 'published' ? '✓ Salvati' : '📝 Bozze'}
+                          {status === 'all' ? 'Tutti' : status === 'sent' ? '📤 Inviati' : '📝 Bozze'}
                         </button>
                       ))}
                     </div>
