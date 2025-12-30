@@ -14,8 +14,8 @@ import { StatsPage } from "@/components/StatsPage";
 import { SettingsPage } from "@/components/SettingsPage";
 import { CollectionsPage } from "@/components/CollectionsPage";
 import { getSession, setSession, clearSession, applyTheme, initializeTheme } from "@/lib/session";
-import { getUserLinks, addLink, updateLink, deleteLink, updateUserPreferences, incrementClickCount } from "@/lib/supabase";
-import type { NunqLink, NewLink, Session, UserPreferences } from "@/types";
+import { getUserLinks, addLink, updateLink, deleteLink, updateUserPreferences, incrementClickCount, getUserCollections } from "@/lib/supabase";
+import type { NunqLink, NewLink, Session, UserPreferences, Collection } from "@/types";
 import { Plus } from "lucide-react";
 
 type ViewMode = 'list' | 'editor';
@@ -29,6 +29,7 @@ export default function Home() {
   const [activePage, setActivePage] = useState<ActivePage>("social");
   const [viewMode, setViewMode] = useState<ViewMode>("list");
   const [links, setLinks] = useState<NunqLink[]>([]);
+  const [collections, setCollections] = useState<Collection[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [shareLink, setShareLink] = useState<NunqLink | null>(null);
   const [editingLink, setEditingLink] = useState<NunqLink | null>(null);
@@ -66,10 +67,11 @@ export default function Home() {
     }
   }, []);
 
-  // Load links when session is set
+  // Load links and collections when session is set
   useEffect(() => {
     if (session) {
       loadLinks();
+      loadCollections();
     }
   }, [session]);
 
@@ -78,6 +80,12 @@ export default function Home() {
     // Always load ALL links, filter client-side
     const data = await getUserLinks(session.userId, session.preferences.sort_order);
     setLinks(data);
+  };
+
+  const loadCollections = async () => {
+    if (!session) return;
+    const data = await getUserCollections(session.userId);
+    setCollections(data);
   };
 
   // Reload when sort order changes
@@ -379,6 +387,7 @@ export default function Home() {
       {/* Export Modal */}
       <ExportModal
         links={links}
+        collections={collections}
         isOpen={showExport}
         onClose={() => setShowExport(false)}
       />
