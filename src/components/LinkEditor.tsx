@@ -14,7 +14,9 @@ import {
   Eye,
   ChevronLeft,
   Upload,
-  Loader2
+  Loader2,
+  MessageCircle,
+  Copy
 } from "lucide-react";
 import type { NunqLink, NewLink, ThumbnailType, PostType } from "@/types";
 import { uploadThumbnail } from "@/lib/supabase";
@@ -67,6 +69,7 @@ export function LinkEditor({
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [fetchingMeta, setFetchingMeta] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [copiedText, setCopiedText] = useState(false);
 
   // Determine if content is valid for preview
   const hasValidContent = () => {
@@ -74,6 +77,45 @@ export function LinkEditor({
     if (postType === 'image') return (customThumbnail || thumbnailType === 'emoji') && title.trim();
     if (postType === 'text') return title.trim() || description.trim();
     return false;
+  };
+
+  // Format post for sharing
+  const formatShareText = (platform: 'whatsapp' | 'telegram') => {
+    const tagsText = tags.slice(0, 5).map(t => `#${t}`).join(" ");
+    const emoji = thumbnailType === "emoji" ? selectedEmoji : "✨";
+    const finalUrl = postType === 'link' && url.trim() 
+      ? (url.startsWith("http") ? url : `https://${url}`)
+      : null;
+    
+    let text = `${emoji} *${title.trim() || "Post"}*`;
+    if (description.trim()) text += `\n\n${description.trim()}`;
+    if (tagsText) text += `\n\n${tagsText}`;
+    if (finalUrl) text += `\n\n👉 ${finalUrl}`;
+    
+    return text;
+  };
+
+  const handleShareWhatsApp = () => {
+    const text = formatShareText('whatsapp');
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+  };
+
+  const handleShareTelegram = () => {
+    const text = formatShareText('telegram');
+    const finalUrl = postType === 'link' && url.trim() 
+      ? (url.startsWith("http") ? url : `https://${url}`)
+      : null;
+    const telegramUrl = finalUrl 
+      ? `https://t.me/share/url?url=${encodeURIComponent(finalUrl)}&text=${encodeURIComponent(text)}`
+      : `https://t.me/share/url?text=${encodeURIComponent(text)}`;
+    window.open(telegramUrl, '_blank');
+  };
+
+  const handleCopyText = async () => {
+    const text = formatShareText('whatsapp').replace(/\*/g, ''); // Remove markdown
+    await navigator.clipboard.writeText(text);
+    setCopiedText(true);
+    setTimeout(() => setCopiedText(false), 2000);
   };
 
   // Fetch metadata when URL changes
@@ -255,6 +297,46 @@ export function LinkEditor({
               {postType === 'link' && url && (
                 <p className="text-sm text-[var(--accent-purple)]">🔗 {url}</p>
               )}
+            </div>
+
+            {/* Quick Share - Direct from preview */}
+            <div className="p-4 rounded-xl bg-[var(--background-secondary)] border border-[var(--card-border)]">
+              <p className="text-sm font-medium mb-3 text-center">📤 Condividi subito</p>
+              <div className="grid grid-cols-3 gap-2">
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={handleShareWhatsApp}
+                  className="p-3 rounded-xl bg-[#25D366] text-white font-semibold flex items-center justify-center gap-2"
+                >
+                  <MessageCircle size={18} />
+                  <span className="text-sm">WhatsApp</span>
+                </motion.button>
+                
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={handleShareTelegram}
+                  className="p-3 rounded-xl bg-[#0088cc] text-white font-semibold flex items-center justify-center gap-2"
+                >
+                  <Send size={18} />
+                  <span className="text-sm">Telegram</span>
+                </motion.button>
+                
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={handleCopyText}
+                  className="p-3 rounded-xl bg-[var(--card-bg)] border border-[var(--card-border)] font-semibold flex items-center justify-center gap-2"
+                >
+                  {copiedText ? (
+                    <Check size={18} className="text-green-500" />
+                  ) : (
+                    <Copy size={18} />
+                  )}
+                  <span className="text-sm">{copiedText ? "Copiato!" : "Copia"}</span>
+                </motion.button>
+              </div>
             </div>
 
             {/* Preview Actions */}
