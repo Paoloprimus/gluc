@@ -11,7 +11,7 @@ export interface User {
 
 export interface UserPreferences {
   theme: 'light' | 'dark';
-  sort_order: 'newest' | 'oldest' | 'clicks' | 'alpha';
+  sort_order: 'newest' | 'oldest' | 'alpha';
 }
 
 export interface InviteToken {

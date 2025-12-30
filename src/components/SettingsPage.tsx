@@ -83,12 +83,11 @@ export function SettingsPage({ preferences, onUpdatePreferences }: SettingsPageP
             Ordine predefinito dei link
           </p>
           
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-3 gap-2">
             {[
-              { value: 'newest', label: '📅 Più recenti' },
-              { value: 'oldest', label: '📅 Più vecchi' },
-              { value: 'clicks', label: '🖱️ Più cliccati' },
-              { value: 'alpha', label: '🔤 Alfabetico' },
+              { value: 'newest', label: '📅 Recenti' },
+              { value: 'oldest', label: '📅 Vecchi' },
+              { value: 'alpha', label: '🔤 A-Z' },
             ].map((option) => (
               <button
                 key={option.value}

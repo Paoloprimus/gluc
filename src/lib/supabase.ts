@@ -107,8 +107,8 @@ export async function updateUserPreferences(userId: string, preferences: Partial
 
 export async function getUserLinks(
   userId: string, 
-  sortOrder: 'newest' | 'oldest' | 'clicks' | 'alpha' = 'newest',
-  statusFilter?: 'draft' | 'published' | 'all'
+  sortOrder: 'newest' | 'oldest' | 'alpha' = 'newest',
+  statusFilter?: 'draft' | 'sent' | 'all'
 ): Promise<NunqLink[]> {
   let query = supabase.client
     .from('links')
@@ -127,9 +127,6 @@ export async function getUserLinks(
       break;
     case 'oldest':
       query = query.order('created_at', { ascending: true });
-      break;
-    case 'clicks':
-      query = query.order('click_count', { ascending: false });
       break;
     case 'alpha':
       query = query.order('title', { ascending: true });
