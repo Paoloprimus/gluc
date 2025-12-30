@@ -289,7 +289,7 @@ export default function Home() {
                               : "bg-[var(--card-bg)] text-[var(--foreground-muted)] hover:text-[var(--foreground)]"
                           }`}
                         >
-                          {status === 'all' ? 'Tutti' : status === 'published' ? 'Pubblicati' : 'Bozze'}
+                          {status === 'all' ? 'Tutti' : status === 'published' ? '✓ Salvati' : '📝 Bozze'}
                         </button>
                       ))}
                     </div>

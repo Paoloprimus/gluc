@@ -340,10 +340,10 @@ export function LinkEditor({
             </div>
 
             {/* Preview Actions */}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-3 gap-2">
               <button
                 onClick={() => setShowPreview(false)}
-                className="p-3 rounded-xl bg-[var(--card-bg)] border border-[var(--card-border)] font-medium hover:border-[var(--accent-purple)] transition-colors"
+                className="p-3 rounded-xl bg-[var(--card-bg)] border border-[var(--card-border)] font-medium hover:border-[var(--accent-purple)] transition-colors text-sm"
               >
                 ✏️ Modifica
               </button>
@@ -353,23 +353,21 @@ export function LinkEditor({
                 whileTap={{ scale: 0.98 }}
                 onClick={() => handleSave('draft')}
                 disabled={isLoading}
-                className="p-3 rounded-xl bg-[var(--card-bg)] border border-[var(--card-border)] font-medium hover:border-[var(--accent-purple)] transition-colors flex items-center justify-center gap-2"
+                className="p-3 rounded-xl bg-[var(--card-bg)] border border-amber-500/50 font-medium hover:border-amber-500 transition-colors flex items-center justify-center gap-1 text-sm"
               >
-                <Save size={18} />
-                Salva Bozza
+                📝 Bozza
+              </motion.button>
+              
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => handleSave('published')}
+                disabled={isLoading || !title.trim()}
+                className="p-3 rounded-xl bg-gradient-to-r from-[var(--accent-purple)] to-[var(--accent-pink)] text-white font-medium disabled:opacity-50 flex items-center justify-center gap-1 text-sm"
+              >
+                ✅ Salva
               </motion.button>
             </div>
-
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => handleSave('published')}
-              disabled={isLoading || !title.trim()}
-              className="w-full p-4 rounded-xl bg-gradient-to-r from-[var(--accent-purple)] to-[var(--accent-pink)] text-white font-bold disabled:opacity-50 flex items-center justify-center gap-2"
-            >
-              <Send size={20} />
-              Pubblica
-            </motion.button>
           </motion.div>
         ) : (
           /* Edit Mode */

@@ -90,11 +90,15 @@ export function LinkCard({ link, onDelete, onShare, onEdit, onClickTrack, index 
       className={`gradient-border group ${isDraft ? "opacity-70" : ""}`}
     >
       <div className="p-4 space-y-3 relative">
-        {/* Draft badge */}
-        {isDraft && (
+        {/* Status badge */}
+        {isDraft ? (
           <div className="absolute top-2 right-2 px-2 py-1 rounded-full bg-amber-500/20 text-amber-500 text-xs font-medium flex items-center gap-1">
             <FileEdit size={12} />
             Bozza
+          </div>
+        ) : (
+          <div className="absolute top-2 right-2 px-2 py-1 rounded-full bg-green-500/20 text-green-500 text-xs font-medium">
+            ✓
           </div>
         )}
 
