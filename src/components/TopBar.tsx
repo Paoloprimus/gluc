@@ -1,9 +1,9 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { List, Download, BarChart3, Settings, LogOut } from "lucide-react";
+import { Send, FolderOpen, Download, BarChart3, Settings, LogOut } from "lucide-react";
 
-export type ActivePage = "links" | "stats" | "settings";
+export type ActivePage = "social" | "collections" | "stats" | "settings";
 
 interface TopBarProps {
   nickname: string;
@@ -36,10 +36,16 @@ export function TopBar({ nickname, activePage, onPageChange, onExport, onLogout 
           {/* Navigation */}
           <nav className="flex items-center gap-1">
             <NavButton
-              icon={<List size={18} />}
-              label="Links"
-              isActive={activePage === "links"}
-              onClick={() => onPageChange("links")}
+              icon={<Send size={18} />}
+              label="Social"
+              isActive={activePage === "social"}
+              onClick={() => onPageChange("social")}
+            />
+            <NavButton
+              icon={<FolderOpen size={18} />}
+              label="Raccolte"
+              isActive={activePage === "collections"}
+              onClick={() => onPageChange("collections")}
             />
             <NavButton
               icon={<Download size={18} />}

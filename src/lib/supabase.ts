@@ -1,5 +1,5 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import type { NunqLink, NewLink, UserPreferences } from '@/types';
+import type { NunqLink, NewLink, UserPreferences, Collection, NewCollection } from '@/types';
 
 let supabaseInstance: SupabaseClient | null = null;
 
@@ -238,6 +238,115 @@ export async function deleteThumbnail(url: string): Promise<boolean> {
     .storage
     .from('thumbnails')
     .remove([match[1]]);
+  
+  return !error;
+}
+
+// =============================================
+// Collections Functions
+// =============================================
+
+export async function getUserCollections(userId: string): Promise<Collection[]> {
+  const { data, error } = await supabase.client
+    .from('collections')
+    .select('*')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false });
+  
+  if (error || !data) return [];
+  
+  // Get item counts for each collection
+  const collectionsWithCounts = await Promise.all(
+    data.map(async (collection) => {
+      const { count } = await supabase.client
+        .from('links')
+        .select('*', { count: 'exact', head: true })
+        .eq('collection_id', collection.id);
+      
+      return { ...collection, item_count: count || 0 };
+    })
+  );
+  
+  return collectionsWithCounts as Collection[];
+}
+
+export async function createCollection(userId: string, collection: NewCollection): Promise<Collection | null> {
+  const { data, error } = await supabase.client
+    .from('collections')
+    .insert({ ...collection, user_id: userId })
+    .select()
+    .single();
+  
+  return error ? null : (data as Collection);
+}
+
+export async function updateCollection(collectionId: string, updates: Partial<Collection>): Promise<boolean> {
+  const { error } = await supabase.client
+    .from('collections')
+    .update(updates)
+    .eq('id', collectionId);
+  
+  return !error;
+}
+
+export async function deleteCollection(collectionId: string): Promise<boolean> {
+  // First, remove collection_id from all links in this collection
+  await supabase.client
+    .from('links')
+    .update({ collection_id: null })
+    .eq('collection_id', collectionId);
+  
+  // Then delete the collection
+  const { error } = await supabase.client
+    .from('collections')
+    .delete()
+    .eq('id', collectionId);
+  
+  return !error;
+}
+
+export async function getCollectionItems(
+  collectionId: string,
+  sortOrder: 'newest' | 'oldest' | 'alpha' | 'random' = 'newest'
+): Promise<NunqLink[]> {
+  let query = supabase.client
+    .from('links')
+    .select('*')
+    .eq('collection_id', collectionId);
+  
+  switch (sortOrder) {
+    case 'newest':
+      query = query.order('created_at', { ascending: false });
+      break;
+    case 'oldest':
+      query = query.order('created_at', { ascending: true });
+      break;
+    case 'alpha':
+      query = query.order('title', { ascending: true });
+      break;
+    case 'random':
+      // Random will be handled client-side
+      query = query.order('created_at', { ascending: false });
+      break;
+  }
+  
+  const { data, error } = await query;
+  
+  if (error || !data) return [];
+  
+  // If random, shuffle the results
+  if (sortOrder === 'random') {
+    return (data as NunqLink[]).sort(() => Math.random() - 0.5);
+  }
+  
+  return data as NunqLink[];
+}
+
+export async function addToCollection(linkId: string, collectionId: string | null): Promise<boolean> {
+  const { error } = await supabase.client
+    .from('links')
+    .update({ collection_id: collectionId })
+    .eq('id', linkId);
   
   return !error;
 }

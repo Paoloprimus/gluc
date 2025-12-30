@@ -12,6 +12,7 @@ import { EmptyState } from "@/components/EmptyState";
 import { FilterBar } from "@/components/FilterBar";
 import { StatsPage } from "@/components/StatsPage";
 import { SettingsPage } from "@/components/SettingsPage";
+import { CollectionsPage } from "@/components/CollectionsPage";
 import { getSession, setSession, clearSession, applyTheme, initializeTheme } from "@/lib/session";
 import { getUserLinks, addLink, updateLink, deleteLink, updateUserPreferences, incrementClickCount } from "@/lib/supabase";
 import type { NunqLink, NewLink, Session, UserPreferences } from "@/types";
@@ -25,7 +26,7 @@ export default function Home() {
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
   // App state
-  const [activePage, setActivePage] = useState<ActivePage>("links");
+  const [activePage, setActivePage] = useState<ActivePage>("social");
   const [viewMode, setViewMode] = useState<ViewMode>("list");
   const [links, setLinks] = useState<NunqLink[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -245,7 +246,7 @@ export default function Home() {
       />
 
       <div className="max-w-2xl mx-auto px-4 pt-6">
-        {activePage === "links" && (
+        {activePage === "social" && (
           <>
             {viewMode === "editor" ? (
               <LinkEditor
@@ -332,6 +333,17 @@ export default function Home() {
           </>
         )}
 
+        {activePage === "collections" && (
+          <CollectionsPage 
+            userId={session.userId} 
+            onSelectItem={(link) => {
+              setEditingLink(link);
+              setActivePage("social");
+              setViewMode("editor");
+            }}
+          />
+        )}
+
         {activePage === "stats" && <StatsPage userId={session.userId} />}
 
         {activePage === "settings" && (
@@ -343,7 +355,7 @@ export default function Home() {
         </div>
 
       {/* FAB to add new link */}
-      {activePage === "links" && viewMode === "list" && (
+      {activePage === "social" && viewMode === "list" && (
         <button
           onClick={() => {
             setEditingLink(null);

@@ -31,6 +31,7 @@ export type PostType = 'link' | 'image' | 'text';
 export interface NunqLink {
   id: string;
   user_id: string;
+  collection_id: string | null;
   post_type: PostType;
   url: string | null;
   title: string;
@@ -47,6 +48,7 @@ export interface NunqLink {
 
 // For creating new links
 export interface NewLink {
+  collection_id?: string | null;
   post_type: PostType;
   url: string | null;
   title: string;
@@ -67,3 +69,24 @@ export interface Session {
 
 // Share platforms
 export type SharePlatform = 'whatsapp' | 'telegram' | 'instagram' | 'tiktok' | 'copy';
+
+// Collections
+export interface Collection {
+  id: string;
+  user_id: string;
+  name: string;
+  emoji: string;
+  color: string;
+  created_at: string;
+  updated_at: string;
+  item_count?: number;
+}
+
+export interface NewCollection {
+  name: string;
+  emoji: string;
+  color: string;
+}
+
+export type ViewMode = 'grid' | 'list';
+export type SortOrder = 'newest' | 'oldest' | 'alpha' | 'random';
