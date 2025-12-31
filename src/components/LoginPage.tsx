@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
+import { useTranslations } from "next-intl";
 import { User, Ticket, FileCheck, Loader2, ArrowRight } from "lucide-react";
 
 interface LoginPageProps {
@@ -9,6 +10,9 @@ interface LoginPageProps {
 }
 
 export function LoginPage({ onLogin }: LoginPageProps) {
+  const t = useTranslations('login');
+  const tCommon = useTranslations('common');
+  
   const [mode, setMode] = useState<"welcome" | "login" | "register">("welcome");
   const [nickname, setNickname] = useState("");
   const [token, setToken] = useState("");
@@ -29,10 +33,10 @@ export function LoginPage({ onLogin }: LoginPageProps) {
       if (result.success && result.userId) {
         onLogin(result.userId, nickname.trim().toLowerCase());
       } else {
-        setError(result.error || "Errore durante la registrazione");
+        setError(result.error || t('registrationError'));
       }
     } catch {
-      setError("Errore di connessione");
+      setError(t('connectionError'));
     } finally {
       setIsLoading(false);
     }
@@ -51,10 +55,10 @@ export function LoginPage({ onLogin }: LoginPageProps) {
       if (result.success && result.user) {
         onLogin(result.user.id, result.user.nickname);
       } else {
-        setError(result.error || "Utente non trovato");
+        setError(result.error || t('userNotFound'));
       }
     } catch {
-      setError("Errore di connessione");
+      setError(t('connectionError'));
     } finally {
       setIsLoading(false);
     }
@@ -73,10 +77,10 @@ export function LoginPage({ onLogin }: LoginPageProps) {
             className="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-[var(--accent-purple)] to-[var(--accent-pink)] flex items-center justify-center mb-4"
             whileHover={{ scale: 1.05, rotate: 5 }}
           >
-            <span className="text-4xl font-bold text-white">N</span>
+            <span className="text-4xl font-bold text-white">f</span>
           </motion.div>
-          <h1 className="text-2xl font-bold">Nunq</h1>
-          <p className="text-sm text-[var(--foreground-muted)]">links that stick</p>
+          <h1 className="text-2xl font-bold">{tCommon('appName')}</h1>
+          <p className="text-sm text-[var(--foreground-muted)]">{tCommon('tagline')}</p>
         </div>
 
         {mode === "welcome" && (
@@ -93,8 +97,8 @@ export function LoginPage({ onLogin }: LoginPageProps) {
             >
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="font-semibold">Ho già un account</p>
-                  <p className="text-sm text-[var(--foreground-muted)]">Accedi con il tuo nickname</p>
+                  <p className="font-semibold">{t('haveAccount')}</p>
+                  <p className="text-sm text-[var(--foreground-muted)]">{t('loginWithNickname')}</p>
                 </div>
                 <ArrowRight size={20} className="text-[var(--foreground-muted)]" />
               </div>
@@ -108,8 +112,8 @@ export function LoginPage({ onLogin }: LoginPageProps) {
             >
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="font-semibold">Primo accesso</p>
-                  <p className="text-sm opacity-80">Ho un token d&apos;invito</p>
+                  <p className="font-semibold">{t('firstAccess')}</p>
+                  <p className="text-sm opacity-80">{t('haveInviteToken')}</p>
                 </div>
                 <ArrowRight size={20} />
               </div>
@@ -127,20 +131,20 @@ export function LoginPage({ onLogin }: LoginPageProps) {
               onClick={() => setMode("welcome")}
               className="text-sm text-[var(--foreground-muted)] hover:text-[var(--foreground)] transition-colors"
             >
-              ← Indietro
+              ← {tCommon('back')}
             </button>
 
             <div className="space-y-3">
               <label className="block">
                 <span className="text-sm font-medium flex items-center gap-2 mb-2">
                   <User size={16} />
-                  Nickname
+                  {t('nickname')}
                 </span>
                 <input
                   type="text"
                   value={nickname}
                   onChange={(e) => setNickname(e.target.value)}
-                  placeholder="Il tuo nickname"
+                  placeholder={t('yourNickname')}
                   className="w-full p-3 rounded-xl bg-[var(--card-bg)] border border-[var(--card-border)] focus:border-[var(--accent-purple)] transition-colors"
                   autoFocus
                 />
@@ -162,7 +166,7 @@ export function LoginPage({ onLogin }: LoginPageProps) {
                 <Loader2 size={20} className="animate-spin" />
               ) : (
                 <>
-                  Accedi
+                  {t('login')}
                   <ArrowRight size={18} />
                 </>
               )}
@@ -180,20 +184,20 @@ export function LoginPage({ onLogin }: LoginPageProps) {
               onClick={() => setMode("welcome")}
               className="text-sm text-[var(--foreground-muted)] hover:text-[var(--foreground)] transition-colors"
             >
-              ← Indietro
+              ← {tCommon('back')}
             </button>
 
             <div className="space-y-3">
               <label className="block">
                 <span className="text-sm font-medium flex items-center gap-2 mb-2">
                   <User size={16} />
-                  Scegli un nickname
+                  {t('chooseNickname')}
                 </span>
                 <input
                   type="text"
                   value={nickname}
                   onChange={(e) => setNickname(e.target.value.slice(0, 20))}
-                  placeholder="es. giulia, giusy, lucia..."
+                  placeholder={t('nicknamePlaceholder')}
                   className="w-full p-3 rounded-xl bg-[var(--card-bg)] border border-[var(--card-border)] focus:border-[var(--accent-purple)] transition-colors"
                   autoFocus
                 />
@@ -202,13 +206,13 @@ export function LoginPage({ onLogin }: LoginPageProps) {
               <label className="block">
                 <span className="text-sm font-medium flex items-center gap-2 mb-2">
                   <Ticket size={16} />
-                  Token d&apos;invito
+                  {t('inviteToken')}
                 </span>
                 <input
                   type="text"
                   value={token}
                   onChange={(e) => setToken(e.target.value.toUpperCase())}
-                  placeholder="NUNQ-XXXX-XXXX"
+                  placeholder={t('tokenPlaceholder')}
                   className="w-full p-3 rounded-xl bg-[var(--card-bg)] border border-[var(--card-border)] focus:border-[var(--accent-purple)] transition-colors font-mono"
                 />
               </label>
@@ -222,13 +226,13 @@ export function LoginPage({ onLogin }: LoginPageProps) {
                 />
                 <span className="text-sm">
                   <FileCheck size={14} className="inline mr-1" />
-                  Accetto i{" "}
+                  {t('acceptTerms')}{" "}
                   <a href="#" className="text-[var(--accent-purple)] hover:underline">
-                    Termini di Servizio
+                    {t('termsOfService')}
                   </a>{" "}
-                  e la{" "}
+                  {t('and')}{" "}
                   <a href="#" className="text-[var(--accent-purple)] hover:underline">
-                    Privacy Policy
+                    {t('privacyPolicy')}
                   </a>
                 </span>
               </label>
@@ -249,7 +253,7 @@ export function LoginPage({ onLogin }: LoginPageProps) {
                 <Loader2 size={20} className="animate-spin" />
               ) : (
                 <>
-                  Inizia
+                  {t('start')}
                   <ArrowRight size={18} />
                 </>
               )}
@@ -260,4 +264,3 @@ export function LoginPage({ onLogin }: LoginPageProps) {
     </div>
   );
 }
-

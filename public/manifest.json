@@ -1,7 +1,7 @@
 {
-  "name": "Nunq",
-  "short_name": "Nunq",
-  "description": "links that stick - Salva, tagga e condividi i tuoi link con l'AI",
+  "name": "fliqk",
+  "short_name": "fliqk",
+  "description": "share in a flick ⚡",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0a0a0f",
@@ -21,7 +21,7 @@
       "purpose": "any maskable"
     }
   ],
-  "categories": ["productivity", "utilities"],
+  "categories": ["productivity", "social"],
   "lang": "it",
   "share_target": {
     "action": "/",

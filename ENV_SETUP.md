@@ -1,4 +1,4 @@
-# Nunq - Environment Setup
+# fliqk - Environment Setup
 
 ## Required Environment Variables
 

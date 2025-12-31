@@ -1,6 +1,6 @@
-import type { Session, UserPreferences } from "@/types";
+import type { Session, UserPreferences, Locale } from "@/types";
 
-const SESSION_KEY = "nunq_session";
+const SESSION_KEY = "fliqk_session";
 
 export function getSession(): Session | null {
   if (typeof window === "undefined") return null;
@@ -58,5 +58,30 @@ export function initializeTheme(): 'light' | 'dark' {
   const theme = prefersDark ? 'dark' : 'light';
   applyTheme(theme);
   return theme;
+}
+
+// Apply locale by setting cookie (for next-intl)
+export function applyLocale(locale: Locale): void {
+  if (typeof window === "undefined") return;
+  
+  // Set cookie for next-intl middleware
+  document.cookie = `NEXT_LOCALE=${locale};path=/;max-age=${60 * 60 * 24 * 365}`;
+  
+  // Reload to apply new locale
+  window.location.reload();
+}
+
+// Get current locale from cookie
+export function getCurrentLocale(): Locale {
+  if (typeof window === "undefined") return 'it';
+  
+  const match = document.cookie.match(/NEXT_LOCALE=([^;]+)/);
+  const locale = match?.[1];
+  
+  if (locale === 'de' || locale === 'it') {
+    return locale;
+  }
+  
+  return 'it';
 }
 

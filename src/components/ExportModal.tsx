@@ -3,10 +3,10 @@
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Download, Check, FolderOpen, Tag } from "lucide-react";
-import type { NunqLink, Collection } from "@/types";
+import type { FliqkLink, Collection } from "@/types";
 
 interface ExportModalProps {
-  links: NunqLink[];
+  links: FliqkLink[];
   collections: Collection[];
   isOpen: boolean;
   onClose: () => void;
@@ -60,7 +60,7 @@ export function ExportModal({ links, collections, isOpen, onClose }: ExportModal
     );
   };
 
-  const generateHTML = (linksToExport: NunqLink[]): string => {
+  const generateHTML = (linksToExport: FliqkLink[]): string => {
     // Group by collection if filtering by collections
     const groupByCollection = filterMode === "collections";
     
@@ -89,7 +89,7 @@ export function ExportModal({ links, collections, isOpen, onClose }: ExportModal
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>I miei contenuti - Nunq</title>
+  <title>I miei contenuti - fliqk</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -166,13 +166,13 @@ export function ExportModal({ links, collections, isOpen, onClose }: ExportModal
   <div class="container">
     <h1>✨ I miei contenuti</h1>
     ${content}
-    <p class="footer">Esportato da Nunq • ${new Date().toLocaleDateString("it-IT")}</p>
+    <p class="footer">Esportato da fliqk • ${new Date().toLocaleDateString("it-IT")}</p>
   </div>
 </body>
 </html>`;
   };
 
-  const generateLinkCard = (link: NunqLink): string => {
+  const generateLinkCard = (link: FliqkLink): string => {
     const thumbnail = link.thumbnail_type === "emoji" 
       ? `<span>${link.custom_thumbnail || "📎"}</span>`
       : (link.custom_thumbnail || link.thumbnail)
@@ -205,7 +205,7 @@ export function ExportModal({ links, collections, isOpen, onClose }: ExportModal
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `nunq-export-${new Date().toISOString().split("T")[0]}.html`;
+    a.download = `fliqk-export-${new Date().toISOString().split("T")[0]}.html`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);

@@ -14,13 +14,13 @@ import {
   Clock,
   FileEdit
 } from "lucide-react";
-import type { NunqLink } from "@/types";
+import type { FliqkLink } from "@/types";
 
 interface LinkCardProps {
-  link: NunqLink;
+  link: FliqkLink;
   onDelete: (id: string) => void;
-  onShare: (link: NunqLink) => void;
-  onEdit: (link: NunqLink) => void;
+  onShare: (link: FliqkLink) => void;
+  onEdit: (link: FliqkLink) => void;
   onClickTrack: (id: string) => void;
   index: number;
 }

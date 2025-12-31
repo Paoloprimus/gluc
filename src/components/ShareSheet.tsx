@@ -3,10 +3,10 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Copy, Check, Send, MessageCircle, ExternalLink } from "lucide-react";
-import type { NunqLink } from "@/types";
+import type { FliqkLink } from "@/types";
 
 interface ShareSheetProps {
-  link: NunqLink | null;
+  link: FliqkLink | null;
   isOpen: boolean;
   onClose: () => void;
   onClickTracked?: () => void;

@@ -15,7 +15,7 @@ import { SettingsPage } from "@/components/SettingsPage";
 import { CollectionsPage } from "@/components/CollectionsPage";
 import { getSession, setSession, clearSession, applyTheme, initializeTheme } from "@/lib/session";
 import { getUserLinks, addLink, updateLink, deleteLink, updateUserPreferences, incrementClickCount, getUserCollections } from "@/lib/supabase";
-import type { NunqLink, NewLink, Session, UserPreferences, Collection } from "@/types";
+import type { FliqkLink, NewLink, Session, UserPreferences, Collection } from "@/types";
 import { Plus } from "lucide-react";
 
 type ViewMode = 'list' | 'editor';
@@ -28,11 +28,11 @@ export default function Home() {
   // App state
   const [activePage, setActivePage] = useState<ActivePage>("social");
   const [viewMode, setViewMode] = useState<ViewMode>("list");
-  const [links, setLinks] = useState<NunqLink[]>([]);
+  const [links, setLinks] = useState<FliqkLink[]>([]);
   const [collections, setCollections] = useState<Collection[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [shareLink, setShareLink] = useState<NunqLink | null>(null);
-  const [editingLink, setEditingLink] = useState<NunqLink | null>(null);
+  const [shareLink, setShareLink] = useState<FliqkLink | null>(null);
+  const [editingLink, setEditingLink] = useState<FliqkLink | null>(null);
   const [showExport, setShowExport] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
@@ -98,12 +98,17 @@ export default function Home() {
   // Handle login
   const handleLogin = async (userId: string, nickname: string) => {
     const theme = initializeTheme();
+    // Get locale from cookie or default to 'it'
+    const localeCookie = document.cookie.match(/NEXT_LOCALE=([^;]+)/)?.[1];
+    const locale = (localeCookie === 'de' ? 'de' : 'it') as 'it' | 'de';
+    
     const newSession: Session = {
       userId,
       nickname,
       preferences: {
         theme,
         sort_order: "newest",
+        locale,
       },
     };
     setSession(newSession);
@@ -169,7 +174,7 @@ export default function Home() {
   }, [links, searchQuery, selectedTags, statusFilter]);
 
   // Save new link
-  const handleSaveLink = async (linkData: NewLink): Promise<NunqLink | null> => {
+  const handleSaveLink = async (linkData: NewLink): Promise<FliqkLink | null> => {
     if (!session) return null;
     setIsLoading(true);
     
@@ -183,7 +188,7 @@ export default function Home() {
   };
 
   // Update existing link
-  const handleUpdateLink = async (updatedLink: NunqLink) => {
+  const handleUpdateLink = async (updatedLink: FliqkLink) => {
     setIsLoading(true);
     
     await updateLink(updatedLink.id, updatedLink);
@@ -220,7 +225,7 @@ export default function Home() {
   };
 
   // Start editing
-  const handleStartEdit = (link: NunqLink) => {
+  const handleStartEdit = (link: FliqkLink) => {
     setEditingLink(link);
     setViewMode("editor");
   };

@@ -3,10 +3,10 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Copy, Check, Twitter, Linkedin, Facebook } from "lucide-react";
-import type { NunqLink } from "@/types";
+import type { FliqkLink } from "@/types";
 
 interface ShareModalProps {
-  link: NunqLink | null;
+  link: FliqkLink | null;
   isOpen: boolean;
   onClose: () => void;
 }

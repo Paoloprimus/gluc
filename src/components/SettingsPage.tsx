@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTranslations } from "next-intl";
 import { 
   Palette, 
   Bookmark, 
@@ -11,9 +12,11 @@ import {
   Check,
   Copy,
   Smartphone,
-  SortAsc
+  SortAsc,
+  Globe
 } from "lucide-react";
-import type { UserPreferences } from "@/types";
+import type { UserPreferences, Locale } from "@/types";
+import { applyLocale, getCurrentLocale } from "@/lib/session";
 
 interface SettingsPageProps {
   preferences: UserPreferences;
@@ -21,15 +24,22 @@ interface SettingsPageProps {
 }
 
 export function SettingsPage({ preferences, onUpdatePreferences }: SettingsPageProps) {
+  const t = useTranslations('settings');
   const [openSection, setOpenSection] = useState<string | null>("appearance");
   const [copiedBookmarklet, setCopiedBookmarklet] = useState(false);
+  const [currentLocale] = useState<Locale>(getCurrentLocale());
 
-  const bookmarkletCode = `javascript:(function(){window.open('${typeof window !== 'undefined' ? window.location.origin : 'https://nunq.app'}/?url='+encodeURIComponent(window.location.href),'_blank')})()`;
+  const bookmarkletCode = `javascript:(function(){window.open('${typeof window !== 'undefined' ? window.location.origin : 'https://fliqk.to'}/?url='+encodeURIComponent(window.location.href),'_blank')})()`;
 
   const handleCopyBookmarklet = () => {
     navigator.clipboard.writeText(bookmarkletCode);
     setCopiedBookmarklet(true);
     setTimeout(() => setCopiedBookmarklet(false), 2000);
+  };
+
+  const handleLocaleChange = (locale: Locale) => {
+    onUpdatePreferences({ locale });
+    applyLocale(locale);
   };
 
   const toggleSection = (section: string) => {
@@ -38,33 +48,63 @@ export function SettingsPage({ preferences, onUpdatePreferences }: SettingsPageP
 
   return (
     <div className="space-y-4">
-      <h2 className="text-xl font-bold">Impostazioni</h2>
+      <h2 className="text-xl font-bold">{t('title')}</h2>
 
       {/* Appearance Section */}
       <AccordionSection
         id="appearance"
-        title="Aspetto"
+        title={t('appearance')}
         icon={<Palette size={20} />}
         isOpen={openSection === "appearance"}
         onToggle={() => toggleSection("appearance")}
       >
         <div className="space-y-4">
           <p className="text-sm text-[var(--foreground-muted)]">
-            Scegli il tema dell&apos;interfaccia
+            {t('chooseTheme')}
           </p>
           
           <div className="grid grid-cols-2 gap-3">
             <ThemeButton
               icon={<Sun size={20} />}
-              label="Chiaro"
+              label={t('light')}
               isActive={preferences.theme === "light"}
               onClick={() => onUpdatePreferences({ theme: "light" })}
             />
             <ThemeButton
               icon={<Moon size={20} />}
-              label="Scuro"
+              label={t('dark')}
               isActive={preferences.theme === "dark"}
               onClick={() => onUpdatePreferences({ theme: "dark" })}
+            />
+          </div>
+        </div>
+      </AccordionSection>
+
+      {/* Language Section */}
+      <AccordionSection
+        id="language"
+        title={t('language')}
+        icon={<Globe size={20} />}
+        isOpen={openSection === "language"}
+        onToggle={() => toggleSection("language")}
+      >
+        <div className="space-y-4">
+          <p className="text-sm text-[var(--foreground-muted)]">
+            {t('chooseLanguage')}
+          </p>
+          
+          <div className="grid grid-cols-2 gap-3">
+            <LanguageButton
+              flag="🇮🇹"
+              label={t('italian')}
+              isActive={currentLocale === "it"}
+              onClick={() => handleLocaleChange("it")}
+            />
+            <LanguageButton
+              flag="🇩🇪"
+              label={t('german')}
+              isActive={currentLocale === "de"}
+              onClick={() => handleLocaleChange("de")}
             />
           </div>
         </div>
@@ -73,21 +113,21 @@ export function SettingsPage({ preferences, onUpdatePreferences }: SettingsPageP
       {/* Sort Order Section */}
       <AccordionSection
         id="sort"
-        title="Ordinamento"
+        title={t('sorting')}
         icon={<SortAsc size={20} />}
         isOpen={openSection === "sort"}
         onToggle={() => toggleSection("sort")}
       >
         <div className="space-y-4">
           <p className="text-sm text-[var(--foreground-muted)]">
-            Ordine predefinito dei link
+            {t('defaultOrder')}
           </p>
           
           <div className="grid grid-cols-3 gap-2">
             {[
-              { value: 'newest', label: '📅 Recenti' },
-              { value: 'oldest', label: '📅 Vecchi' },
-              { value: 'alpha', label: '🔤 A-Z' },
+              { value: 'newest', label: `📅 ${t('newest')}` },
+              { value: 'oldest', label: `📅 ${t('oldest')}` },
+              { value: 'alpha', label: `🔤 ${t('alphabetical')}` },
             ].map((option) => (
               <button
                 key={option.value}
@@ -110,20 +150,20 @@ export function SettingsPage({ preferences, onUpdatePreferences }: SettingsPageP
       {/* Browser Integration Section */}
       <AccordionSection
         id="browser"
-        title="Integrazione Browser"
+        title={t('browserIntegration')}
         icon={<Bookmark size={20} />}
         isOpen={openSection === "browser"}
         onToggle={() => toggleSection("browser")}
       >
         <div className="space-y-4">
           <p className="text-sm text-[var(--foreground-muted)]">
-            Salva link rapidamente mentre navighi
+            {t('saveLinksQuickly')}
           </p>
 
           {/* Bookmarklet */}
           <div className="space-y-3">
             <p className="text-xs font-medium text-[var(--foreground-muted)] uppercase">
-              Desktop: Bookmarklet
+              Desktop: {t('bookmarklet')}
             </p>
             <div
               draggable="true"
@@ -138,11 +178,11 @@ export function SettingsPage({ preferences, onUpdatePreferences }: SettingsPageP
                 shadow-lg hover:shadow-xl transition-shadow select-none
               "
             >
-              ✨ Salva in Nunq
+              ⚡ fliqk it!
             </div>
             
             <p className="text-xs text-[var(--foreground-muted)]">
-              👆 Trascina sulla barra preferiti
+              👆 {t('dragToBookmarks')}
             </p>
             
             <button 
@@ -152,19 +192,18 @@ export function SettingsPage({ preferences, onUpdatePreferences }: SettingsPageP
               {copiedBookmarklet ? (
                 <>
                   <Check size={16} className="text-green-500" />
-                  <span className="text-sm font-medium">Codice copiato!</span>
+                  <span className="text-sm font-medium">{t('codeCopied')}</span>
                 </>
               ) : (
                 <>
                   <Copy size={16} />
-                  <span className="text-sm font-medium">Copia codice manualmente</span>
+                  <span className="text-sm font-medium">{t('copyCodeManually')}</span>
                 </>
               )}
             </button>
             
             <p className="text-xs text-[var(--foreground-muted)]">
-              💡 <strong>Se il trascinamento non funziona:</strong> copia il codice, 
-              poi in Chrome click destro sulla barra preferiti → &quot;Aggiungi pagina&quot; → incolla nel campo URL
+              💡 <strong>{t('bookmarkletTip')}</strong>
             </p>
           </div>
 
@@ -172,7 +211,7 @@ export function SettingsPage({ preferences, onUpdatePreferences }: SettingsPageP
           <div className="flex items-start gap-2 p-3 rounded-lg bg-[var(--background-secondary)] border border-[var(--card-border)]">
             <Smartphone size={16} className="text-[var(--foreground-muted)] flex-shrink-0 mt-0.5" />
             <p className="text-xs text-[var(--foreground-muted)]">
-              <strong>Su mobile:</strong> Installa Nunq come app, poi usa &quot;Condividi&quot; → &quot;Nunq&quot;
+              <strong>{t('mobileTip')}</strong>
             </p>
           </div>
         </div>
@@ -249,6 +288,36 @@ function ThemeButton({ icon, label, isActive, onClick }: ThemeButtonProps) {
       `}
     >
       {icon}
+      <span className="text-sm font-medium">{label}</span>
+      {isActive && (
+        <Check size={16} className="text-[var(--accent-purple)]" />
+      )}
+    </motion.button>
+  );
+}
+
+interface LanguageButtonProps {
+  flag: string;
+  label: string;
+  isActive: boolean;
+  onClick: () => void;
+}
+
+function LanguageButton({ flag, label, isActive, onClick }: LanguageButtonProps) {
+  return (
+    <motion.button
+      whileHover={{ scale: 1.02 }}
+      whileTap={{ scale: 0.98 }}
+      onClick={onClick}
+      className={`
+        p-4 rounded-xl border-2 transition-colors flex flex-col items-center gap-2
+        ${isActive 
+          ? "border-[var(--accent-purple)] bg-[var(--accent-purple)]/10" 
+          : "border-[var(--card-border)] hover:border-[var(--accent-purple)]/50"
+        }
+      `}
+    >
+      <span className="text-2xl">{flag}</span>
       <span className="text-sm font-medium">{label}</span>
       {isActive && (
         <Check size={16} className="text-[var(--accent-purple)]" />

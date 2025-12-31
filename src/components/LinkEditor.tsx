@@ -18,18 +18,18 @@ import {
   MessageCircle,
   Copy
 } from "lucide-react";
-import type { NunqLink, NewLink, ThumbnailType, PostType } from "@/types";
+import type { FliqkLink, NewLink, ThumbnailType, PostType } from "@/types";
 import { uploadThumbnail } from "@/lib/supabase";
 
 // Popular emoji for thumbnails
 const EMOJI_OPTIONS = ["🔥", "✨", "💡", "🎯", "🚀", "💎", "⭐", "❤️", "🎉", "👀", "💪", "🌟", "📌", "🔗", "💫", "🎨"];
 
 interface LinkEditorProps {
-  link?: NunqLink;
+  link?: FliqkLink;
   initialUrl?: string;
   userId: string;
-  onSave: (link: NewLink) => Promise<NunqLink | null>;
-  onUpdate?: (link: NunqLink) => Promise<void>;
+  onSave: (link: NewLink) => Promise<FliqkLink | null>;
+  onUpdate?: (link: FliqkLink) => Promise<void>;
   onDelete?: (id: string) => Promise<void>;
   onCancel: () => void;
   isLoading?: boolean;
@@ -211,7 +211,7 @@ export function LinkEditor({
   };
 
   // State for saved post (to update status after sharing)
-  const [savedPost, setSavedPost] = useState<NunqLink | null>(link || null);
+  const [savedPost, setSavedPost] = useState<FliqkLink | null>(link || null);
 
   const buildLinkData = (status: 'draft' | 'sent'): NewLink => {
     let finalUrl: string | null = null;

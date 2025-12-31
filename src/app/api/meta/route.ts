@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
   try {
     const response = await fetch(url, {
       headers: {
-        "User-Agent": "Mozilla/5.0 (compatible; NunqBot/1.0)",
+        "User-Agent": "Mozilla/5.0 (compatible; FliqkBot/1.0)",
       },
     });
     

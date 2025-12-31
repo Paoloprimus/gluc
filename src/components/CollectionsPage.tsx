@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Plus, Grid, List, ChevronLeft, MoreVertical, Trash2, Edit2, X } from "lucide-react";
-import type { Collection, NunqLink, NewCollection, ViewMode, SortOrder } from "@/types";
+import type { Collection, FliqkLink, NewCollection, ViewMode, SortOrder } from "@/types";
 import { 
   getUserCollections, 
   createCollection, 
@@ -26,13 +26,13 @@ const EMOJIS = [
 
 interface CollectionsPageProps {
   userId: string;
-  onSelectItem: (link: NunqLink) => void;
+  onSelectItem: (link: FliqkLink) => void;
 }
 
 export function CollectionsPage({ userId, onSelectItem }: CollectionsPageProps) {
   const [collections, setCollections] = useState<Collection[]>([]);
   const [selectedCollection, setSelectedCollection] = useState<Collection | null>(null);
-  const [collectionItems, setCollectionItems] = useState<NunqLink[]>([]);
+  const [collectionItems, setCollectionItems] = useState<FliqkLink[]>([]);
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const [sortOrder, setSortOrder] = useState<SortOrder>("newest");
   const [isLoading, setIsLoading] = useState(true);

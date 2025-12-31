@@ -1,5 +1,5 @@
 // =============================================
-// NUNQ Types v2
+// fliqk Types v2
 // =============================================
 
 export interface User {
@@ -9,9 +9,12 @@ export interface User {
   preferences: UserPreferences;
 }
 
+export type Locale = 'it' | 'de';
+
 export interface UserPreferences {
   theme: 'light' | 'dark';
   sort_order: 'newest' | 'oldest' | 'alpha';
+  locale: Locale;
 }
 
 export interface InviteToken {
@@ -28,7 +31,7 @@ export type ThumbnailType = 'original' | 'custom' | 'emoji';
 
 export type PostType = 'link' | 'image' | 'text';
 
-export interface NunqLink {
+export interface FliqkLink {
   id: string;
   user_id: string;
   collection_id: string | null;

@@ -1,5 +1,5 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import type { NunqLink, NewLink, UserPreferences, Collection, NewCollection } from '@/types';
+import type { FliqkLink, NewLink, UserPreferences, Collection, NewCollection } from '@/types';
 
 let supabaseInstance: SupabaseClient | null = null;
 
@@ -109,7 +109,7 @@ export async function getUserLinks(
   userId: string, 
   sortOrder: 'newest' | 'oldest' | 'alpha' = 'newest',
   statusFilter?: 'draft' | 'sent' | 'all'
-): Promise<NunqLink[]> {
+): Promise<FliqkLink[]> {
   let query = supabase.client
     .from('links')
     .select('*')
@@ -134,10 +134,10 @@ export async function getUserLinks(
   }
   
   const { data, error } = await query;
-  return error ? [] : (data as NunqLink[]);
+  return error ? [] : (data as FliqkLink[]);
 }
 
-export async function addLink(userId: string, link: NewLink): Promise<{ data: NunqLink | null; error: Error | null }> {
+export async function addLink(userId: string, link: NewLink): Promise<{ data: FliqkLink | null; error: Error | null }> {
   const { data, error } = await supabase.client
     .from('links')
     .insert({ 
@@ -148,10 +148,10 @@ export async function addLink(userId: string, link: NewLink): Promise<{ data: Nu
     .select()
     .single();
   
-  return { data: data as NunqLink | null, error: error as Error | null };
+  return { data: data as FliqkLink | null, error: error as Error | null };
 }
 
-export async function updateLink(linkId: string, updates: Partial<NunqLink>): Promise<boolean> {
+export async function updateLink(linkId: string, updates: Partial<FliqkLink>): Promise<boolean> {
   const { error } = await supabase.client
     .from('links')
     .update(updates)
@@ -305,7 +305,7 @@ export async function deleteCollection(collectionId: string): Promise<boolean> {
 export async function getCollectionItems(
   collectionId: string,
   sortOrder: 'newest' | 'oldest' | 'alpha' | 'random' = 'newest'
-): Promise<NunqLink[]> {
+): Promise<FliqkLink[]> {
   let query = supabase.client
     .from('links')
     .select('*')
@@ -333,10 +333,10 @@ export async function getCollectionItems(
   
   // If random, shuffle the results
   if (sortOrder === 'random') {
-    return (data as NunqLink[]).sort(() => Math.random() - 0.5);
+    return (data as FliqkLink[]).sort(() => Math.random() - 0.5);
   }
   
-  return data as NunqLink[];
+  return data as FliqkLink[];
 }
 
 export async function addToCollection(linkId: string, collectionId: string | null): Promise<boolean> {
