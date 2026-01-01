@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, FormEvent } from "react";
 import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
 import { User, Ticket, FileCheck, Loader2, ArrowRight } from "lucide-react";
@@ -20,7 +20,8 @@ export function LoginPage({ onLogin }: LoginPageProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleRegister = async () => {
+  const handleRegister = async (e?: FormEvent) => {
+    e?.preventDefault();
     if (!nickname.trim() || !token.trim() || !acceptedTerms) return;
     
     setIsLoading(true);
@@ -42,7 +43,8 @@ export function LoginPage({ onLogin }: LoginPageProps) {
     }
   };
 
-  const handleLogin = async () => {
+  const handleLogin = async (e?: FormEvent) => {
+    e?.preventDefault();
     if (!nickname.trim()) return;
     
     setIsLoading(true);
@@ -71,34 +73,42 @@ export function LoginPage({ onLogin }: LoginPageProps) {
         animate={{ opacity: 1, y: 0 }}
         className="w-full max-w-sm"
       >
-        {/* Logo */}
-        <div className="text-center mb-8">
-          <motion.div
-            className="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-[var(--accent-purple)] to-[var(--accent-pink)] flex items-center justify-center mb-4"
-            whileHover={{ scale: 1.05, rotate: 5 }}
+        {/* Logo - minimal wordmark */}
+        <div className="text-center mb-10">
+          <motion.h1
+            className="text-5xl font-black tracking-tight"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.1 }}
           >
-            <span className="text-4xl font-bold text-white">f</span>
-          </motion.div>
-          <h1 className="text-2xl font-bold">{tCommon('appName')}</h1>
-          <p className="text-sm text-[var(--foreground-muted)]">{tCommon('tagline')}</p>
+            <span className="text-[var(--accent-primary)]">fliqk</span>
+          </motion.h1>
+          <motion.p 
+            className="text-sm text-[var(--foreground-muted)] mt-2 lowercase"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.2 }}
+          >
+            {tCommon('tagline')}
+          </motion.p>
         </div>
 
         {mode === "welcome" && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="space-y-4"
+            className="space-y-3"
           >
             <motion.button
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => setMode("login")}
-              className="w-full p-4 rounded-xl bg-[var(--card-bg)] border border-[var(--card-border)] hover:border-[var(--accent-purple)]/50 transition-colors text-left"
+              className="w-full p-4 rounded-xl bg-[var(--card-bg)] border border-[var(--card-border)] hover:border-[var(--accent-primary)]/50 transition-colors text-left"
             >
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="font-semibold">{t('haveAccount')}</p>
-                  <p className="text-sm text-[var(--foreground-muted)]">{t('loginWithNickname')}</p>
+                  <p className="font-semibold lowercase">{t('haveAccount')}</p>
+                  <p className="text-sm text-[var(--foreground-muted)] lowercase">{t('loginWithNickname')}</p>
                 </div>
                 <ArrowRight size={20} className="text-[var(--foreground-muted)]" />
               </div>
@@ -108,12 +118,12 @@ export function LoginPage({ onLogin }: LoginPageProps) {
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => setMode("register")}
-              className="w-full p-4 rounded-xl bg-gradient-to-r from-[var(--accent-purple)] to-[var(--accent-pink)] text-white text-left"
+              className="w-full p-4 rounded-xl bg-[var(--accent-primary)] text-black text-left font-bold"
             >
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="font-semibold">{t('firstAccess')}</p>
-                  <p className="text-sm opacity-80">{t('haveInviteToken')}</p>
+                  <p className="font-bold lowercase">{t('firstAccess')}</p>
+                  <p className="text-sm opacity-70 lowercase">{t('haveInviteToken')}</p>
                 </div>
                 <ArrowRight size={20} />
               </div>
@@ -122,12 +132,14 @@ export function LoginPage({ onLogin }: LoginPageProps) {
         )}
 
         {mode === "login" && (
-          <motion.div
+          <motion.form
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             className="space-y-4"
+            onSubmit={handleLogin}
           >
             <button
+              type="button"
               onClick={() => setMode("welcome")}
               className="text-sm text-[var(--foreground-muted)] hover:text-[var(--foreground)] transition-colors"
             >
@@ -136,7 +148,7 @@ export function LoginPage({ onLogin }: LoginPageProps) {
 
             <div className="space-y-3">
               <label className="block">
-                <span className="text-sm font-medium flex items-center gap-2 mb-2">
+                <span className="text-sm font-medium flex items-center gap-2 mb-2 lowercase">
                   <User size={16} />
                   {t('nickname')}
                 </span>
@@ -145,7 +157,7 @@ export function LoginPage({ onLogin }: LoginPageProps) {
                   value={nickname}
                   onChange={(e) => setNickname(e.target.value)}
                   placeholder={t('yourNickname')}
-                  className="w-full p-3 rounded-xl bg-[var(--card-bg)] border border-[var(--card-border)] focus:border-[var(--accent-purple)] transition-colors"
+                  className="w-full p-3 rounded-xl bg-[var(--card-bg)] border border-[var(--card-border)] focus:border-[var(--accent-primary)] transition-colors lowercase"
                   autoFocus
                 />
               </label>
@@ -156,11 +168,11 @@ export function LoginPage({ onLogin }: LoginPageProps) {
             )}
 
             <motion.button
+              type="submit"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              onClick={handleLogin}
               disabled={!nickname.trim() || isLoading}
-              className="w-full p-4 rounded-xl bg-gradient-to-r from-[var(--accent-purple)] to-[var(--accent-pink)] text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="w-full p-4 rounded-xl bg-[var(--accent-primary)] text-black font-bold disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 lowercase"
             >
               {isLoading ? (
                 <Loader2 size={20} className="animate-spin" />
@@ -171,16 +183,18 @@ export function LoginPage({ onLogin }: LoginPageProps) {
                 </>
               )}
             </motion.button>
-          </motion.div>
+          </motion.form>
         )}
 
         {mode === "register" && (
-          <motion.div
+          <motion.form
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             className="space-y-4"
+            onSubmit={handleRegister}
           >
             <button
+              type="button"
               onClick={() => setMode("welcome")}
               className="text-sm text-[var(--foreground-muted)] hover:text-[var(--foreground)] transition-colors"
             >
@@ -189,7 +203,7 @@ export function LoginPage({ onLogin }: LoginPageProps) {
 
             <div className="space-y-3">
               <label className="block">
-                <span className="text-sm font-medium flex items-center gap-2 mb-2">
+                <span className="text-sm font-medium flex items-center gap-2 mb-2 lowercase">
                   <User size={16} />
                   {t('chooseNickname')}
                 </span>
@@ -198,13 +212,13 @@ export function LoginPage({ onLogin }: LoginPageProps) {
                   value={nickname}
                   onChange={(e) => setNickname(e.target.value.slice(0, 20))}
                   placeholder={t('nicknamePlaceholder')}
-                  className="w-full p-3 rounded-xl bg-[var(--card-bg)] border border-[var(--card-border)] focus:border-[var(--accent-purple)] transition-colors"
+                  className="w-full p-3 rounded-xl bg-[var(--card-bg)] border border-[var(--card-border)] focus:border-[var(--accent-primary)] transition-colors lowercase"
                   autoFocus
                 />
               </label>
 
               <label className="block">
-                <span className="text-sm font-medium flex items-center gap-2 mb-2">
+                <span className="text-sm font-medium flex items-center gap-2 mb-2 lowercase">
                   <Ticket size={16} />
                   {t('inviteToken')}
                 </span>
@@ -213,25 +227,25 @@ export function LoginPage({ onLogin }: LoginPageProps) {
                   value={token}
                   onChange={(e) => setToken(e.target.value.toUpperCase())}
                   placeholder={t('tokenPlaceholder')}
-                  className="w-full p-3 rounded-xl bg-[var(--card-bg)] border border-[var(--card-border)] focus:border-[var(--accent-purple)] transition-colors font-mono"
+                  className="w-full p-3 rounded-xl bg-[var(--card-bg)] border border-[var(--card-border)] focus:border-[var(--accent-primary)] transition-colors font-mono"
                 />
               </label>
 
-              <label className="flex items-start gap-3 p-3 rounded-xl bg-[var(--card-bg)] border border-[var(--card-border)] cursor-pointer hover:border-[var(--accent-purple)]/50 transition-colors">
+              <label className="flex items-start gap-3 p-3 rounded-xl bg-[var(--card-bg)] border border-[var(--card-border)] cursor-pointer hover:border-[var(--accent-primary)]/50 transition-colors">
                 <input
                   type="checkbox"
                   checked={acceptedTerms}
                   onChange={(e) => setAcceptedTerms(e.target.checked)}
-                  className="mt-0.5 w-5 h-5 rounded accent-[var(--accent-purple)]"
+                  className="mt-0.5 w-5 h-5 rounded accent-[var(--accent-primary)]"
                 />
                 <span className="text-sm">
                   <FileCheck size={14} className="inline mr-1" />
                   {t('acceptTerms')}{" "}
-                  <a href="#" className="text-[var(--accent-purple)] hover:underline">
+                  <a href="#" className="text-[var(--accent-primary)] hover:underline">
                     {t('termsOfService')}
                   </a>{" "}
                   {t('and')}{" "}
-                  <a href="#" className="text-[var(--accent-purple)] hover:underline">
+                  <a href="#" className="text-[var(--accent-primary)] hover:underline">
                     {t('privacyPolicy')}
                   </a>
                 </span>
@@ -243,11 +257,11 @@ export function LoginPage({ onLogin }: LoginPageProps) {
             )}
 
             <motion.button
+              type="submit"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              onClick={handleRegister}
               disabled={!nickname.trim() || !token.trim() || !acceptedTerms || isLoading}
-              className="w-full p-4 rounded-xl bg-gradient-to-r from-[var(--accent-purple)] to-[var(--accent-pink)] text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="w-full p-4 rounded-xl bg-[var(--accent-primary)] text-black font-bold disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 lowercase"
             >
               {isLoading ? (
                 <Loader2 size={20} className="animate-spin" />
@@ -258,7 +272,7 @@ export function LoginPage({ onLogin }: LoginPageProps) {
                 </>
               )}
             </motion.button>
-          </motion.div>
+          </motion.form>
         )}
       </motion.div>
     </div>
