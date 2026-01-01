@@ -73,6 +73,7 @@ export interface Session {
   userId: string;
   nickname: string;
   preferences: UserPreferences;
+  role?: 'admin' | 'tester' | 'user';
 }
 
 // Share platforms

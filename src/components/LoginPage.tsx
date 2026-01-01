@@ -6,7 +6,7 @@ import { useTranslations } from "next-intl";
 import { User, Ticket, FileCheck, Loader2, ArrowRight, ArrowLeft } from "lucide-react";
 
 interface LoginPageProps {
-  onLogin: (userId: string, nickname: string) => void;
+  onLogin: (userId: string, nickname: string, role?: 'admin' | 'tester' | 'user') => void;
   onBack?: () => void;
 }
 
@@ -56,7 +56,7 @@ export function LoginPage({ onLogin, onBack }: LoginPageProps) {
       const result = await loginUser(nickname.trim());
       
       if (result.success && result.user) {
-        onLogin(result.user.id, result.user.nickname);
+        onLogin(result.user.id, result.user.nickname, result.user.role);
       } else {
         setError(result.error || t('userNotFound'));
       }

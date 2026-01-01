@@ -85,7 +85,7 @@ export async function registerUser(nickname: string, token: string): Promise<{ s
   return { success: true, userId: newUser.id };
 }
 
-export async function loginUser(nickname: string): Promise<{ success: boolean; user?: { id: string; nickname: string; preferences: UserPreferences }; error?: string }> {
+export async function loginUser(nickname: string): Promise<{ success: boolean; user?: { id: string; nickname: string; preferences: UserPreferences; role?: 'admin' | 'tester' | 'user' }; error?: string }> {
   const { data: user, error } = await supabase.client
     .from('users')
     .select('*')
@@ -95,8 +95,8 @@ export async function loginUser(nickname: string): Promise<{ success: boolean; u
   if (error || !user) {
     return { success: false, error: 'Utente non trovato' };
   }
-  
-  return { success: true, user };
+
+  return { success: true, user: { ...user, role: user.role || 'user' } };
 }
 
 // =============================================

@@ -101,7 +101,7 @@ export default function Home() {
   }, [session?.preferences.sort_order]);
 
   // Handle login
-  const handleLogin = async (userId: string, nickname: string) => {
+  const handleLogin = async (userId: string, nickname: string, role?: 'admin' | 'tester' | 'user') => {
     const theme = initializeTheme();
     // Get locale from cookie or default to 'it'
     const localeCookie = document.cookie.match(/NEXT_LOCALE=([^;]+)/)?.[1];
@@ -115,6 +115,7 @@ export default function Home() {
         sort_order: "newest",
         locale,
       },
+      role,
     };
     setSession(newSession);
     setSessionState(newSession);
@@ -371,6 +372,7 @@ export default function Home() {
           <SettingsPage
             preferences={session.preferences}
             onUpdatePreferences={handleUpdatePreferences}
+            isAdmin={session.role === 'admin'}
           />
         )}
         </div>

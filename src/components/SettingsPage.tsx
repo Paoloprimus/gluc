@@ -13,7 +13,8 @@ import {
   Copy,
   Smartphone,
   SortAsc,
-  Globe
+  Globe,
+  Shield
 } from "lucide-react";
 import type { UserPreferences, Locale } from "@/types";
 import { applyLocale, getCurrentLocale } from "@/lib/session";
@@ -21,9 +22,10 @@ import { applyLocale, getCurrentLocale } from "@/lib/session";
 interface SettingsPageProps {
   preferences: UserPreferences;
   onUpdatePreferences: (updates: Partial<UserPreferences>) => void;
+  isAdmin?: boolean;
 }
 
-export function SettingsPage({ preferences, onUpdatePreferences }: SettingsPageProps) {
+export function SettingsPage({ preferences, onUpdatePreferences, isAdmin }: SettingsPageProps) {
   const t = useTranslations('settings');
   const [openSection, setOpenSection] = useState<string | null>("appearance");
   const [copiedBookmarklet, setCopiedBookmarklet] = useState(false);
@@ -216,6 +218,24 @@ export function SettingsPage({ preferences, onUpdatePreferences }: SettingsPageP
           </div>
         </div>
       </AccordionSection>
+
+      {/* Admin Section - Only visible for admin users */}
+      {isAdmin && (
+        <motion.a
+          href="/admin"
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          className="block w-full p-4 rounded-xl bg-gradient-to-r from-red-500/20 to-orange-500/20 border border-red-500/30 hover:border-red-500/50 transition-colors"
+        >
+          <div className="flex items-center gap-3">
+            <Shield size={20} className="text-red-500" />
+            <div>
+              <span className="font-semibold text-red-500">Admin Dashboard</span>
+              <p className="text-xs text-[var(--foreground-muted)]">Gestione utenti e token</p>
+            </div>
+          </div>
+        </motion.a>
+      )}
     </div>
   );
 }
