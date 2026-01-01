@@ -138,46 +138,33 @@ export default function PrivacyPage() {
   const [lang, setLang] = useState<Lang>('it');
 
   useEffect(() => {
-    const browserLang = navigator.language.toLowerCase();
-    if (browserLang.startsWith('de')) {
+    // Use the same locale detection as next-intl
+    const localeCookie = document.cookie.match(/NEXT_LOCALE=([^;]+)/)?.[1];
+    if (localeCookie === 'de') {
       setLang('de');
+    } else if (!localeCookie) {
+      const browserLangs = navigator.languages || [navigator.language];
+      const isGerman = browserLangs.some(l => l.toLowerCase().startsWith('de'));
+      if (isGerman) {
+        setLang('de');
+      }
     }
   }, []);
 
   const t = content[lang];
 
   return (
-    <div className="min-h-screen bg-[#121212] text-[#e0e0e0]">
+    <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)]">
       {/* Header */}
-      <header className="border-b border-white/5">
+      <header className="border-b border-[var(--card-border)]">
         <div className="max-w-3xl mx-auto px-4 py-4 flex items-center justify-between">
           <a 
             href="/"
-            className="flex items-center gap-2 text-white/60 hover:text-white transition-colors"
+            className="flex items-center gap-2 text-[var(--foreground-muted)] hover:text-[var(--foreground)] transition-colors"
           >
             <ArrowLeft size={18} />
             <span className="text-sm">{t.back}</span>
           </a>
-          
-          {/* Language toggle */}
-          <div className="flex gap-1 bg-white/5 rounded-lg p-1">
-            <button
-              onClick={() => setLang('it')}
-              className={`px-2 py-1 rounded text-xs font-medium transition-colors ${
-                lang === 'it' ? 'bg-[#BEFF00] text-black' : 'text-white/60 hover:text-white'
-              }`}
-            >
-              IT
-            </button>
-            <button
-              onClick={() => setLang('de')}
-              className={`px-2 py-1 rounded text-xs font-medium transition-colors ${
-                lang === 'de' ? 'bg-[#BEFF00] text-black' : 'text-white/60 hover:text-white'
-              }`}
-            >
-              DE
-            </button>
-          </div>
         </div>
       </header>
 
@@ -185,16 +172,16 @@ export default function PrivacyPage() {
       <main className="max-w-3xl mx-auto px-4 py-12">
         <div className="mb-8">
           <h1 className="text-3xl font-black mb-2">{t.title}</h1>
-          <p className="text-sm text-white/40">{t.lastUpdate}</p>
+          <p className="text-sm text-[var(--foreground-muted)]">{t.lastUpdate}</p>
         </div>
 
         <div className="space-y-8">
           {t.sections.map((section, i) => (
             <section key={i}>
-              <h2 className="text-lg font-bold text-[#BEFF00] mb-3">{section.title}</h2>
-              <div className="text-white/70 whitespace-pre-line leading-relaxed text-sm">
+              <h2 className="text-lg font-bold text-[var(--accent-primary)] mb-3">{section.title}</h2>
+              <div className="text-[var(--foreground-muted)] whitespace-pre-line leading-relaxed text-sm">
                 {section.content.split('**').map((part, j) => 
-                  j % 2 === 1 ? <strong key={j} className="text-white">{part}</strong> : part
+                  j % 2 === 1 ? <strong key={j} className="text-[var(--foreground)]">{part}</strong> : part
                 )}
               </div>
             </section>
@@ -202,16 +189,15 @@ export default function PrivacyPage() {
         </div>
 
         {/* Footer */}
-        <div className="mt-16 pt-8 border-t border-white/5">
+        <div className="mt-16 pt-8 border-t border-[var(--card-border)]">
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded bg-[#BEFF00] flex items-center justify-center">
+            <div className="w-6 h-6 rounded bg-[var(--accent-primary)] flex items-center justify-center">
               <span className="text-black font-black text-xs">fl</span>
             </div>
-            <span className="font-bold text-[#BEFF00]">fliqk</span>
+            <span className="font-bold text-[var(--accent-primary)]">fliqk</span>
           </div>
         </div>
       </main>
     </div>
   );
 }
-
