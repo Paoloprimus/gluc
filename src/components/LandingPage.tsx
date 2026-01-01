@@ -8,7 +8,7 @@ type Lang = 'it' | 'de';
 
 const content = {
   it: {
-    hero: "Condividi ovunque,\nda un unico posto",
+    hero: "Scegli. Tieni. Distribuisci.",
     subtitle: "Raccogli link, immagini e pensieri e condividili, se vuoi.",
     watchVideo: "Guarda come funziona",
     getStarted: "Inizia ora",
@@ -21,7 +21,7 @@ const content = {
     footer: "© 2026 fliqk",
   },
   de: {
-    hero: "Teile überall,\nvon einem Ort aus",
+    hero: "Wähle. Behalte. Verteile.",
     subtitle: "Sammle Links, Bilder und Gedanken und teile sie, wenn du willst.",
     watchVideo: "Schau wie es funktioniert",
     getStarted: "Jetzt starten",
@@ -66,9 +66,9 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
         <div className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-[var(--accent-primary)] flex items-center justify-center">
-              <span className="text-black font-black text-sm" style={{ fontFamily: 'var(--font-sans)' }}>fl</span>
+              <span className="text-black font-black text-sm" style={{ fontFamily: 'Outfit, sans-serif' }}>fl</span>
             </div>
-            <span className="font-black text-xl text-[var(--accent-primary)]" style={{ fontFamily: 'var(--font-sans)' }}>fliqk</span>
+            <span className="font-black text-xl text-[var(--accent-primary)]" style={{ fontFamily: 'Outfit, sans-serif' }}>fliqk</span>
           </div>
           
           <button 
@@ -89,6 +89,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
               className="text-4xl md:text-6xl font-black leading-tight whitespace-pre-line mb-6"
+              style={{ fontFamily: 'Outfit, sans-serif' }}
             >
               {t.hero}
             </motion.h1>
