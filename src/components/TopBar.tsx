@@ -23,13 +23,14 @@ export function TopBar({ nickname, activePage, onPageChange, onExport, onLogout 
         <div className="flex items-center justify-between">
           {/* Logo + User */}
           <div className="flex items-center gap-3">
-            <motion.h1
+            <motion.button
               className="text-xl font-black tracking-tight"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
+              onClick={() => onPageChange("social")}
             >
               <span className="text-[var(--accent-primary)]">fliqk</span>
-            </motion.h1>
+            </motion.button>
             <span className="text-sm text-[var(--foreground-muted)] lowercase">@{nickname}</span>
           </div>
 

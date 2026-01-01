@@ -18,7 +18,7 @@ const content = {
       { icon: Share2, title: "Multi-piattaforma", desc: "Un post, tutti i tuoi social" },
       { icon: FolderOpen, title: "Organizzato", desc: "Raccolte e tag per trovare tutto" },
     ],
-    footer: "© 2025 fliqk",
+    footer: "© 2026 fliqk",
   },
   de: {
     hero: "Teile überall,\nvon einem Ort aus",
@@ -31,7 +31,7 @@ const content = {
       { icon: Share2, title: "Multi-Plattform", desc: "Ein Post, alle deine Socials" },
       { icon: FolderOpen, title: "Organisiert", desc: "Sammlungen und Tags um alles zu finden" },
     ],
-    footer: "© 2025 fliqk",
+    footer: "© 2026 fliqk",
   },
 };
 

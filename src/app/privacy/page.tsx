@@ -8,7 +8,7 @@ type Lang = 'it' | 'de';
 const content = {
   it: {
     title: "Privacy Policy",
-    lastUpdate: "Ultimo aggiornamento: Gennaio 2025",
+    lastUpdate: "Ultimo aggiornamento: Gennaio 2026",
     sections: [
       {
         title: "1. Cosa raccogliamo",
@@ -71,7 +71,7 @@ Non usiamo cookie di profilazione o di terze parti.`
   },
   de: {
     title: "Datenschutzerklärung",
-    lastUpdate: "Letzte Aktualisierung: Januar 2025",
+    lastUpdate: "Letzte Aktualisierung: Januar 2026",
     sections: [
       {
         title: "1. Was wir sammeln",
