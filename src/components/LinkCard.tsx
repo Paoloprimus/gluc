@@ -13,7 +13,10 @@ import {
   Pencil,
   MousePointer,
   Clock,
-  FileEdit
+  FileEdit,
+  Mic,
+  Video,
+  Play
 } from "lucide-react";
 import type { FliqkLink } from "@/types";
 
@@ -113,6 +116,14 @@ export function LinkCard({ link, onDelete, onShare, onEdit, onClickTrack, index 
           <div className="flex-shrink-0 w-16 h-16 rounded-xl overflow-hidden bg-[var(--card-bg)] flex items-center justify-center">
             {link.thumbnail_type === "emoji" ? (
               <span className="text-4xl">{link.custom_thumbnail || "🔗"}</span>
+            ) : link.post_type === 'audio' ? (
+              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[var(--accent-primary)]/20 to-[var(--accent-primary)]/30">
+                <Mic size={28} className="text-[var(--accent-primary)]" />
+              </div>
+            ) : link.post_type === 'video' && link.media_url ? (
+              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[var(--accent-primary)]/20 to-[var(--accent-primary)]/30 relative">
+                <Play size={28} className="text-[var(--accent-primary)]" />
+              </div>
             ) : getThumbnail() && !imageError ? (
               <img
                 src={getThumbnail()!}
@@ -138,8 +149,11 @@ export function LinkCard({ link, onDelete, onShare, onEdit, onClickTrack, index 
                 {getDomain(link.url!)}
               </p>
             ) : (
-              <p className="text-xs text-[var(--accent-primary)] mt-1">
-                {link.post_type === 'image' ? tEditor('imageType') : tEditor('textType')}
+              <p className="text-xs text-[var(--accent-primary)] mt-1 flex items-center gap-1">
+                {link.post_type === 'image' && tEditor('imageType')}
+                {link.post_type === 'audio' && <><Mic size={12} /> {tEditor('audioType')}</>}
+                {link.post_type === 'video' && <><Video size={12} /> {tEditor('videoType')}</>}
+                {link.post_type === 'text' && tEditor('textType')}
               </p>
             )}
             <div className="flex items-center gap-3 mt-1 text-xs text-[var(--foreground-muted)]">

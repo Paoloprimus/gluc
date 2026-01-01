@@ -16,10 +16,13 @@ import {
   Upload,
   Loader2,
   MessageCircle,
-  Copy
+  Copy,
+  Mic,
+  Video,
+  Share2
 } from "lucide-react";
 import type { FliqkLink, NewLink, ThumbnailType, PostType } from "@/types";
-import { uploadThumbnail } from "@/lib/supabase";
+import { uploadThumbnail, uploadMedia } from "@/lib/supabase";
 
 // Popular emoji for thumbnails
 const EMOJI_OPTIONS = ["🔥", "✨", "💡", "🎯", "🚀", "💎", "⭐", "❤️", "🎉", "👀", "💪", "🌟", "📌", "🔗", "💫", "🎨"];
@@ -50,9 +53,15 @@ export function LinkEditor({
   
   const isEditing = !!link;
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const mediaInputRef = useRef<HTMLInputElement>(null);
   
   // Post type
   const [postType, setPostType] = useState<PostType>(link?.post_type || (initialUrl ? 'link' : 'text'));
+  
+  // Media state (for audio/video)
+  const [mediaUrl, setMediaUrl] = useState<string | null>(link?.media_url || null);
+  const [mediaType, setMediaType] = useState<string | null>(link?.media_type || null);
+  const [uploadingMedia, setUploadingMedia] = useState(false);
   
   // Form state
   const [url, setUrl] = useState(link?.url || initialUrl || "");
@@ -79,6 +88,8 @@ export function LinkEditor({
     if (postType === 'link') return url.trim() && title.trim();
     if (postType === 'image') return (customThumbnail || thumbnailType === 'emoji') && title.trim();
     if (postType === 'text') return title.trim() || description.trim();
+    if (postType === 'audio') return mediaUrl && title.trim();
+    if (postType === 'video') return mediaUrl && title.trim();
     return false;
   };
 
@@ -202,6 +213,112 @@ export function LinkEditor({
     }
   };
 
+  const handleMediaUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    // Validate file type based on post type
+    const isAudio = file.type.startsWith('audio/');
+    const isVideo = file.type.startsWith('video/');
+    const isImage = file.type.startsWith('image/');
+    
+    if (postType === 'audio' && !isAudio) {
+      alert(t('selectAudioError'));
+      return;
+    }
+    if (postType === 'video' && !isVideo) {
+      alert(t('selectVideoError'));
+      return;
+    }
+    if (postType === 'image' && !isImage) {
+      alert(t('selectImageError'));
+      return;
+    }
+    
+    // Validate file size (max 50MB for video, 10MB for audio, 5MB for image)
+    const maxSize = isVideo ? 50 * 1024 * 1024 : isAudio ? 10 * 1024 * 1024 : 5 * 1024 * 1024;
+    if (file.size > maxSize) {
+      alert(t('fileTooLarge'));
+      return;
+    }
+    
+    setUploadingMedia(true);
+    try {
+      const result = await uploadMedia(file, userId);
+      if (result) {
+        setMediaUrl(result.url);
+        setMediaType(result.type);
+        // For images, also set as custom thumbnail
+        if (isImage) {
+          setCustomThumbnail(result.url);
+          setThumbnailType("custom");
+        }
+      } else {
+        alert(t('uploadError'));
+      }
+    } catch (error) {
+      console.error('Media upload error:', error);
+      alert(t('uploadError'));
+    } finally {
+      setUploadingMedia(false);
+      if (mediaInputRef.current) {
+        mediaInputRef.current.value = '';
+      }
+    }
+  };
+
+  // Web Share API - share with file
+  const handleNativeShare = async () => {
+    await ensureSaved();
+    
+    const text = formatShareText('whatsapp').replace(/\*/g, '');
+    
+    // Check if Web Share API is supported
+    if (!navigator.share) {
+      // Fallback to copy
+      await handleCopyText();
+      return;
+    }
+    
+    try {
+      // Prepare share data
+      const shareData: ShareData = {
+        title: title.trim() || tCommon('post'),
+        text: text,
+      };
+      
+      // If we have a media file, try to share it
+      if ((postType === 'image' || postType === 'audio' || postType === 'video') && mediaUrl) {
+        try {
+          const response = await fetch(mediaUrl);
+          const blob = await response.blob();
+          const fileName = `fliqk-${Date.now()}.${mediaType?.split('/')[1] || 'file'}`;
+          const file = new File([blob], fileName, { type: mediaType || 'application/octet-stream' });
+          
+          // Check if sharing files is supported
+          if (navigator.canShare && navigator.canShare({ files: [file] })) {
+            shareData.files = [file];
+          }
+        } catch (err) {
+          console.warn('Could not attach file to share:', err);
+        }
+      }
+      
+      // Add URL if it's a link post
+      if (postType === 'link' && url.trim()) {
+        shareData.url = url.startsWith("http") ? url : `https://${url}`;
+      }
+      
+      await navigator.share(shareData);
+      await markAsSent();
+    } catch (err) {
+      // User cancelled or error
+      if ((err as Error).name !== 'AbortError') {
+        console.error('Share error:', err);
+      }
+    }
+  };
+
   const getCurrentThumbnail = () => {
     switch (thumbnailType) {
       case "original":
@@ -230,6 +347,8 @@ export function LinkEditor({
       thumbnail: originalThumbnail || null,
       custom_thumbnail: thumbnailType === "emoji" ? selectedEmoji : (thumbnailType === "custom" ? customThumbnail : null),
       thumbnail_type: thumbnailType,
+      media_url: mediaUrl,
+      media_type: mediaType,
       tags,
       status,
     };
@@ -314,16 +433,39 @@ export function LinkEditor({
             
             {/* Preview Card */}
             <div className="p-4 rounded-2xl bg-[var(--card-bg)] border border-[var(--card-border)]">
-              {/* Thumbnail */}
-              <div className="w-full h-48 rounded-xl overflow-hidden bg-[var(--background-secondary)] mb-4 flex items-center justify-center">
-                {thumbnailType === "emoji" ? (
-                  <span className="text-8xl">{selectedEmoji}</span>
-                ) : getCurrentThumbnail() ? (
-                  <img src={getCurrentThumbnail()!} alt="" className="w-full h-full object-cover" />
-                ) : (
-                  <Link2 size={48} className="text-[var(--foreground-muted)]" />
-                )}
-              </div>
+              {/* Media Preview */}
+              {postType === 'audio' && mediaUrl ? (
+                <div className="mb-4 p-4 rounded-xl bg-[var(--background-secondary)]">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-16 h-16 rounded-lg bg-[var(--accent-primary)]/20 flex items-center justify-center">
+                      <Mic size={32} className="text-[var(--accent-primary)]" />
+                    </div>
+                    <div>
+                      <p className="font-medium">{t('audio')}</p>
+                      <p className="text-sm text-[var(--foreground-muted)]">{mediaType}</p>
+                    </div>
+                  </div>
+                  <audio src={mediaUrl} controls className="w-full" />
+                </div>
+              ) : postType === 'video' && mediaUrl ? (
+                <div className="mb-4 rounded-xl overflow-hidden bg-[var(--background-secondary)]">
+                  <video src={mediaUrl} controls className="w-full" />
+                </div>
+              ) : (
+                <div className="w-full h-48 rounded-xl overflow-hidden bg-[var(--background-secondary)] mb-4 flex items-center justify-center">
+                  {thumbnailType === "emoji" ? (
+                    <span className="text-8xl">{selectedEmoji}</span>
+                  ) : getCurrentThumbnail() ? (
+                    <img src={getCurrentThumbnail()!} alt="" className="w-full h-full object-cover" />
+                  ) : postType === 'audio' ? (
+                    <Mic size={48} className="text-[var(--foreground-muted)]" />
+                  ) : postType === 'video' ? (
+                    <Video size={48} className="text-[var(--foreground-muted)]" />
+                  ) : (
+                    <Link2 size={48} className="text-[var(--foreground-muted)]" />
+                  )}
+                </div>
+              )}
               
               <h3 className="font-bold text-lg mb-2">{title || t('titlePlaceholder')}</h3>
               {description && <p className="text-[var(--foreground-muted)] mb-3">{description}</p>}
@@ -344,6 +486,20 @@ export function LinkEditor({
             {/* Quick Share - Direct from preview */}
             <div className="p-4 rounded-xl bg-[var(--background-secondary)] border border-[var(--card-border)]">
               <p className="text-sm font-medium mb-3 text-center">{t('shareNow')}</p>
+              
+              {/* Native Share (with file support) - Show prominently for media posts */}
+              {(postType === 'image' || postType === 'audio' || postType === 'video') && typeof navigator !== 'undefined' && navigator.share && (
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={handleNativeShare}
+                  className="w-full p-4 rounded-xl bg-[var(--accent-primary)] text-black font-bold flex items-center justify-center gap-2 mb-3"
+                >
+                  <Share2 size={20} />
+                  <span>{t('shareWithFile')}</span>
+                </motion.button>
+              )}
+              
               <div className="grid grid-cols-3 gap-2">
                 <motion.button
                   whileHover={{ scale: 1.02 }}
@@ -379,6 +535,13 @@ export function LinkEditor({
                   <span className="text-sm">{copiedText ? tCommon('copied') : tCommon('copy')}</span>
                 </motion.button>
               </div>
+              
+              {/* Helper text for media posts */}
+              {(postType === 'image' || postType === 'audio' || postType === 'video') && (
+                <p className="text-xs text-center text-[var(--foreground-muted)] mt-2">
+                  {t('shareWithFileHint')}
+                </p>
+              )}
             </div>
 
             {/* Preview Actions */}
@@ -420,10 +583,10 @@ export function LinkEditor({
             <h2 className="text-xl font-bold">{isEditing ? t('editPost') : t('createPost')}</h2>
 
             {/* Post Type Selector */}
-            <div className="flex gap-2 p-1 rounded-xl bg-[var(--background-secondary)]">
+            <div className="grid grid-cols-5 gap-1 p-1 rounded-xl bg-[var(--background-secondary)]">
               <button
                 onClick={() => setPostType('link')}
-                className={`flex-1 p-2.5 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-2 ${
+                className={`p-2.5 rounded-lg text-xs font-medium transition-all flex flex-col items-center justify-center gap-1 ${
                   postType === 'link'
                     ? "bg-[var(--card-bg)] shadow-sm"
                     : "text-[var(--foreground-muted)]"
@@ -437,7 +600,7 @@ export function LinkEditor({
                   setPostType('image');
                   setThumbnailType('custom');
                 }}
-                className={`flex-1 p-2.5 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-2 ${
+                className={`p-2.5 rounded-lg text-xs font-medium transition-all flex flex-col items-center justify-center gap-1 ${
                   postType === 'image'
                     ? "bg-[var(--card-bg)] shadow-sm"
                     : "text-[var(--foreground-muted)]"
@@ -447,14 +610,37 @@ export function LinkEditor({
                 {t('image')}
               </button>
               <button
+                onClick={() => setPostType('audio')}
+                className={`p-2.5 rounded-lg text-xs font-medium transition-all flex flex-col items-center justify-center gap-1 ${
+                  postType === 'audio'
+                    ? "bg-[var(--card-bg)] shadow-sm"
+                    : "text-[var(--foreground-muted)]"
+                }`}
+              >
+                <Mic size={16} />
+                {t('audio')}
+              </button>
+              <button
+                onClick={() => setPostType('video')}
+                className={`p-2.5 rounded-lg text-xs font-medium transition-all flex flex-col items-center justify-center gap-1 ${
+                  postType === 'video'
+                    ? "bg-[var(--card-bg)] shadow-sm"
+                    : "text-[var(--foreground-muted)]"
+                }`}
+              >
+                <Video size={16} />
+                {t('video')}
+              </button>
+              <button
                 onClick={() => setPostType('text')}
-                className={`flex-1 p-2.5 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-2 ${
+                className={`p-2.5 rounded-lg text-xs font-medium transition-all flex flex-col items-center justify-center gap-1 ${
                   postType === 'text'
                     ? "bg-[var(--card-bg)] shadow-sm"
                     : "text-[var(--foreground-muted)]"
                 }`}
               >
-                ✏️ {t('text')}
+                ✏️
+                {t('text')}
               </button>
             </div>
 
@@ -475,6 +661,91 @@ export function LinkEditor({
                     <div className="w-4 h-4 border-2 border-[var(--accent-primary)] border-t-transparent rounded-full animate-spin" />
                   )}
                 </div>
+              </div>
+            )}
+
+            {/* Media Upload - For audio/video types */}
+            {(postType === 'audio' || postType === 'video') && (
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  {postType === 'audio' ? t('audioFile') : t('videoFile')}
+                </label>
+                
+                <input
+                  ref={mediaInputRef}
+                  type="file"
+                  accept={postType === 'audio' ? 'audio/*' : 'video/*'}
+                  onChange={handleMediaUpload}
+                  className="hidden"
+                />
+                
+                {mediaUrl ? (
+                  <div className="p-4 rounded-xl bg-[var(--card-bg)] border border-[var(--card-border)]">
+                    {postType === 'audio' ? (
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-3">
+                          <div className="w-12 h-12 rounded-lg bg-[var(--accent-primary)]/20 flex items-center justify-center">
+                            <Mic size={24} className="text-[var(--accent-primary)]" />
+                          </div>
+                          <div className="flex-1">
+                            <p className="font-medium">{t('audioReady')}</p>
+                            <p className="text-sm text-[var(--foreground-muted)]">{mediaType}</p>
+                          </div>
+                          <button
+                            onClick={() => {
+                              setMediaUrl(null);
+                              setMediaType(null);
+                            }}
+                            className="p-2 rounded-lg hover:bg-red-500/10 text-red-500"
+                          >
+                            <X size={18} />
+                          </button>
+                        </div>
+                        <audio src={mediaUrl} controls className="w-full" />
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <p className="font-medium">{t('videoReady')}</p>
+                          <button
+                            onClick={() => {
+                              setMediaUrl(null);
+                              setMediaType(null);
+                            }}
+                            className="p-2 rounded-lg hover:bg-red-500/10 text-red-500"
+                          >
+                            <X size={18} />
+                          </button>
+                        </div>
+                        <video src={mediaUrl} controls className="w-full rounded-lg" />
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => mediaInputRef.current?.click()}
+                    disabled={uploadingMedia}
+                    className="w-full p-8 rounded-xl border-2 border-dashed border-[var(--card-border)] hover:border-[var(--accent-primary)] transition-colors flex flex-col items-center gap-3"
+                  >
+                    {uploadingMedia ? (
+                      <Loader2 size={32} className="animate-spin text-[var(--accent-primary)]" />
+                    ) : (
+                      <>
+                        {postType === 'audio' ? (
+                          <Mic size={32} className="text-[var(--foreground-muted)]" />
+                        ) : (
+                          <Video size={32} className="text-[var(--foreground-muted)]" />
+                        )}
+                        <span className="text-[var(--foreground-muted)]">
+                          {postType === 'audio' ? t('uploadAudio') : t('uploadVideo')}
+                        </span>
+                        <span className="text-xs text-[var(--foreground-muted)]">
+                          {postType === 'audio' ? t('maxAudioSize') : t('maxVideoSize')}
+                        </span>
+                      </>
+                    )}
+                  </button>
+                )}
               </div>
             )}
 
@@ -691,6 +962,8 @@ export function LinkEditor({
                   {postType === 'link' && t('needUrlAndTitle')}
                   {postType === 'image' && t('needImageAndTitle')}
                   {postType === 'text' && t('needTitleOrDescription')}
+                  {postType === 'audio' && t('needAudioAndTitle')}
+                  {postType === 'video' && t('needVideoAndTitle')}
                 </p>
               )}
             </div>

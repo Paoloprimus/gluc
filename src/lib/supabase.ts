@@ -208,7 +208,7 @@ export async function incrementClickCount(linkId: string): Promise<boolean> {
 }
 
 // =============================================
-// Image Upload Functions
+// Media Upload Functions
 // =============================================
 
 export async function uploadThumbnail(file: File, userId: string): Promise<string | null> {
@@ -245,6 +245,52 @@ export async function deleteThumbnail(url: string): Promise<boolean> {
   const { error } = await supabase.client
     .storage
     .from('thumbnails')
+    .remove([match[1]]);
+  
+  return !error;
+}
+
+// Upload media files (images, audio, video)
+export async function uploadMedia(file: File, userId: string): Promise<{ url: string; type: string } | null> {
+  const fileExt = file.name.split('.').pop()?.toLowerCase();
+  const fileName = `${userId}/${Date.now()}.${fileExt}`;
+  
+  // Determine bucket based on file type
+  let bucket = 'media'; // Default bucket for all media
+  
+  const { data, error } = await supabase.client
+    .storage
+    .from(bucket)
+    .upload(fileName, file, {
+      cacheControl: '3600',
+      upsert: false
+    });
+  
+  if (error) {
+    console.error('Media upload error:', error);
+    return null;
+  }
+  
+  // Get public URL
+  const { data: urlData } = supabase.client
+    .storage
+    .from(bucket)
+    .getPublicUrl(data.path);
+  
+  return {
+    url: urlData.publicUrl,
+    type: file.type
+  };
+}
+
+export async function deleteMedia(url: string): Promise<boolean> {
+  // Extract path from URL
+  const match = url.match(/media\/(.+)$/);
+  if (!match) return false;
+  
+  const { error } = await supabase.client
+    .storage
+    .from('media')
     .remove([match[1]]);
   
   return !error;

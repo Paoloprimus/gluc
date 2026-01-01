@@ -29,7 +29,8 @@ export interface InviteToken {
 export type LinkStatus = 'draft' | 'sent';
 export type ThumbnailType = 'original' | 'custom' | 'emoji';
 
-export type PostType = 'link' | 'image' | 'text';
+export type PostType = 'link' | 'image' | 'text' | 'audio' | 'video';
+export type MediaType = 'image' | 'audio' | 'video';
 
 export interface FliqkLink {
   id: string;
@@ -42,6 +43,8 @@ export interface FliqkLink {
   thumbnail: string | null;
   custom_thumbnail: string | null;
   thumbnail_type: ThumbnailType;
+  media_url: string | null; // URL for audio/video files
+  media_type: string | null; // MIME type (audio/mp3, video/mp4, etc.)
   tags: string[];
   status: LinkStatus;
   click_count: number;
@@ -59,6 +62,8 @@ export interface NewLink {
   thumbnail: string | null;
   custom_thumbnail: string | null;
   thumbnail_type: ThumbnailType;
+  media_url: string | null;
+  media_type: string | null;
   tags: string[];
   status: LinkStatus;
 }
