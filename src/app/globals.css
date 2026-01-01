@@ -4,39 +4,39 @@
    fliqk - Theme Variables (Gen Z Style)
    ============================================= */
 
-/* Dark theme (default) */
+/* Dark theme (default) - soft dark, easier on eyes */
 :root, .dark {
-  --background: #000000;
-  --background-secondary: #0a0a0a;
-  --foreground: #ffffff;
-  --foreground-muted: #737373;
+  --background: #121212;
+  --background-secondary: #1a1a1a;
+  --foreground: #e8e8e8;
+  --foreground-muted: #888888;
   --accent-primary: #BEFF00;
   --accent-secondary: #00FF94;
   --accent-purple: #BEFF00;
   --accent-pink: #00FF94;
   --accent-coral: #BEFF00;
-  --card-bg: rgba(255, 255, 255, 0.03);
-  --card-border: rgba(255, 255, 255, 0.1);
+  --card-bg: rgba(255, 255, 255, 0.04);
+  --card-border: rgba(255, 255, 255, 0.08);
   --gradient-primary: linear-gradient(135deg, #BEFF00 0%, #00FF94 100%);
   --gradient-subtle: linear-gradient(135deg, rgba(190, 255, 0, 0.08) 0%, rgba(0, 255, 148, 0.08) 100%);
   color-scheme: dark;
 }
 
-/* Light theme */
+/* Light theme - warm off-white for better lime contrast */
 .light {
-  --background: #ffffff;
-  --background-secondary: #f5f5f5;
-  --foreground: #000000;
-  --foreground-muted: #525252;
-  --accent-primary: #84cc16;
-  --accent-secondary: #10b981;
-  --accent-purple: #84cc16;
-  --accent-pink: #10b981;
-  --accent-coral: #84cc16;
-  --card-bg: rgba(0, 0, 0, 0.02);
-  --card-border: rgba(0, 0, 0, 0.08);
-  --gradient-primary: linear-gradient(135deg, #84cc16 0%, #10b981 100%);
-  --gradient-subtle: linear-gradient(135deg, rgba(132, 204, 22, 0.08) 0%, rgba(16, 185, 129, 0.08) 100%);
+  --background: #f5f5f0;
+  --background-secondary: #eaeae5;
+  --foreground: #1a1a1a;
+  --foreground-muted: #666666;
+  --accent-primary: #7cb800;
+  --accent-secondary: #0fa06e;
+  --accent-purple: #7cb800;
+  --accent-pink: #0fa06e;
+  --accent-coral: #7cb800;
+  --card-bg: rgba(255, 255, 255, 0.6);
+  --card-border: rgba(0, 0, 0, 0.06);
+  --gradient-primary: linear-gradient(135deg, #7cb800 0%, #0fa06e 100%);
+  --gradient-subtle: linear-gradient(135deg, rgba(124, 184, 0, 0.08) 0%, rgba(15, 160, 110, 0.08) 100%);
   color-scheme: light;
 }
 

@@ -83,14 +83,6 @@ export function LoginPage({ onLogin }: LoginPageProps) {
           >
             <span className="text-[var(--accent-primary)]">fliqk</span>
           </motion.h1>
-          <motion.p 
-            className="text-sm text-[var(--foreground-muted)] mt-2 lowercase"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.2 }}
-          >
-            {tCommon('tagline')}
-          </motion.p>
         </div>
 
         {mode === "welcome" && (
