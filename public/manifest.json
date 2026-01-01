@@ -4,8 +4,8 @@
   "description": "share in a flick",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#121212",
-  "theme_color": "#121212",
+  "background_color": "#1e1e1e",
+  "theme_color": "#1e1e1e",
   "orientation": "portrait-primary",
   "icons": [
     {
