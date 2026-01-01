@@ -66,9 +66,9 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
         <div className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-[var(--accent-primary)] flex items-center justify-center">
-              <span className="text-black font-black text-sm">fl</span>
+              <span className="text-black font-black text-sm" style={{ fontFamily: 'var(--font-sans)' }}>fl</span>
             </div>
-            <span className="font-black text-xl text-[var(--accent-primary)]">fliqk</span>
+            <span className="font-black text-xl text-[var(--accent-primary)]" style={{ fontFamily: 'var(--font-sans)' }}>fliqk</span>
           </div>
           
           <button 
