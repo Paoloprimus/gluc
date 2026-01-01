@@ -135,7 +135,7 @@ export function SettingsPage({ preferences, onUpdatePreferences }: SettingsPageP
                 className={`
                   p-3 rounded-xl text-sm font-medium transition-colors text-left
                   ${preferences.sort_order === option.value
-                    ? "bg-[var(--accent-purple)] text-white"
+                    ? "bg-[var(--accent-purple)] text-black"
                     : "bg-[var(--card-bg)] border border-[var(--card-border)] hover:border-[var(--accent-purple)]"
                   }
                 `}

@@ -85,7 +85,7 @@ export function FilterBar({
                       px-3 py-1.5 rounded-full text-sm font-medium
                       transition-all duration-200
                       ${isSelected
-                        ? "bg-[var(--accent-purple)] text-white"
+                        ? "bg-[var(--accent-purple)] text-black"
                         : "bg-[var(--card-border)] text-[var(--foreground-muted)] hover:text-[var(--foreground)]"
                       }
                     `}

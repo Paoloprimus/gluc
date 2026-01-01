@@ -19,6 +19,11 @@ function getSupabase(): SupabaseClient {
 
 const supabase = { get client() { return getSupabase(); } };
 
+// Export for admin dashboard
+export function getSupabaseClient() {
+  return getSupabase();
+}
+
 // =============================================
 // Auth / User Functions
 // =============================================
@@ -56,9 +61,15 @@ export async function registerUser(nickname: string, token: string): Promise<{ s
     return { success: false, error: 'Token non valido o già utilizzato' };
   }
   
+  // Get role from token (default to 'tester' for backward compatibility)
+  const role = tokenData.grants_role || 'tester';
+  
   const { data: newUser, error: userError } = await supabase.client
     .from('users')
-    .insert({ nickname: nickname.toLowerCase() })
+    .insert({ 
+      nickname: nickname.toLowerCase(),
+      role: role
+    })
     .select()
     .single();
   
