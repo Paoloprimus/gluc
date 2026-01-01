@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTranslations } from "next-intl";
 import { 
   Link2, 
   Image, 
@@ -9,7 +10,6 @@ import {
   X, 
   Check, 
   Trash2,
-  Save,
   Send,
   Eye,
   ChevronLeft,
@@ -45,6 +45,9 @@ export function LinkEditor({
   onCancel,
   isLoading 
 }: LinkEditorProps) {
+  const t = useTranslations('editor');
+  const tCommon = useTranslations('common');
+  
   const isEditing = !!link;
   const fileInputRef = useRef<HTMLInputElement>(null);
   
@@ -87,7 +90,7 @@ export function LinkEditor({
       ? (url.startsWith("http") ? url : `https://${url}`)
       : null;
     
-    let text = `${emoji} *${title.trim() || "Post"}*`;
+    let text = `${emoji} *${title.trim() || tCommon('post')}*`;
     if (description.trim()) text += `\n\n${description.trim()}`;
     if (tagsText) text += `\n\n${tagsText}`;
     if (finalUrl) text += `\n\n👉 ${finalUrl}`;
@@ -168,13 +171,13 @@ export function LinkEditor({
     
     // Validate file type
     if (!file.type.startsWith('image/')) {
-      alert('Per favore seleziona un\'immagine');
+      alert(t('selectImageError'));
       return;
     }
     
     // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
-      alert('L\'immagine deve essere inferiore a 5MB');
+      alert(t('imageTooLarge'));
       return;
     }
     
@@ -185,11 +188,11 @@ export function LinkEditor({
         setCustomThumbnail(uploadedUrl);
         setThumbnailType("custom");
       } else {
-        alert('Errore durante il caricamento');
+        alert(t('uploadError'));
       }
     } catch (error) {
       console.error('Upload error:', error);
-      alert('Errore durante il caricamento');
+      alert(t('uploadError'));
     } finally {
       setUploadingImage(false);
       // Reset input
@@ -222,7 +225,7 @@ export function LinkEditor({
     return {
       post_type: postType,
       url: finalUrl,
-      title: title.trim() || (postType === 'text' ? description.substring(0, 50) : 'Senza titolo'),
+      title: title.trim() || (postType === 'text' ? description.substring(0, 50) : tCommon('noTitle')),
       description: description.trim() || null,
       thumbnail: originalThumbnail || null,
       custom_thumbnail: thumbnailType === "emoji" ? selectedEmoji : (thumbnailType === "custom" ? customThumbnail : null),
@@ -270,7 +273,7 @@ export function LinkEditor({
   };
 
   const handleDelete = async () => {
-    if (link && onDelete && confirm("Sei sicuro di voler eliminare questo link?")) {
+    if (link && onDelete && confirm(t('confirmDelete'))) {
       await onDelete(link.id);
     }
   };
@@ -284,7 +287,7 @@ export function LinkEditor({
           className="flex items-center gap-2 text-[var(--foreground-muted)] hover:text-[var(--foreground)] transition-colors"
         >
           <ChevronLeft size={20} />
-          <span>Indietro</span>
+          <span>{tCommon('back')}</span>
         </button>
         
         {isEditing && onDelete && (
@@ -307,7 +310,7 @@ export function LinkEditor({
             exit={{ opacity: 0, x: -20 }}
             className="space-y-4"
           >
-            <h2 className="text-xl font-bold">Anteprima Post</h2>
+            <h2 className="text-xl font-bold">{t('previewPost')}</h2>
             
             {/* Preview Card */}
             <div className="p-4 rounded-2xl bg-[var(--card-bg)] border border-[var(--card-border)]">
@@ -322,7 +325,7 @@ export function LinkEditor({
                 )}
               </div>
               
-              <h3 className="font-bold text-lg mb-2">{title || "Titolo del post"}</h3>
+              <h3 className="font-bold text-lg mb-2">{title || t('titlePlaceholder')}</h3>
               {description && <p className="text-[var(--foreground-muted)] mb-3">{description}</p>}
               
               {tags.length > 0 && (
@@ -334,13 +337,13 @@ export function LinkEditor({
               )}
               
               {postType === 'link' && url && (
-                <p className="text-sm text-[var(--accent-purple)]">🔗 {url}</p>
+                <p className="text-sm text-[var(--accent-primary)]">🔗 {url}</p>
               )}
             </div>
 
             {/* Quick Share - Direct from preview */}
             <div className="p-4 rounded-xl bg-[var(--background-secondary)] border border-[var(--card-border)]">
-              <p className="text-sm font-medium mb-3 text-center">📤 Condividi subito</p>
+              <p className="text-sm font-medium mb-3 text-center">{t('shareNow')}</p>
               <div className="grid grid-cols-3 gap-2">
                 <motion.button
                   whileHover={{ scale: 1.02 }}
@@ -349,7 +352,7 @@ export function LinkEditor({
                   className="p-3 rounded-xl bg-[#25D366] text-white font-semibold flex items-center justify-center gap-2"
                 >
                   <MessageCircle size={18} />
-                  <span className="text-sm">WhatsApp</span>
+                  <span className="text-sm">{t('whatsapp')}</span>
                 </motion.button>
                 
                 <motion.button
@@ -359,7 +362,7 @@ export function LinkEditor({
                   className="p-3 rounded-xl bg-[#0088cc] text-white font-semibold flex items-center justify-center gap-2"
                 >
                   <Send size={18} />
-                  <span className="text-sm">Telegram</span>
+                  <span className="text-sm">{t('telegram')}</span>
                 </motion.button>
                 
                 <motion.button
@@ -373,7 +376,7 @@ export function LinkEditor({
                   ) : (
                     <Copy size={18} />
                   )}
-                  <span className="text-sm">{copiedText ? "Copiato!" : "Copia"}</span>
+                  <span className="text-sm">{copiedText ? tCommon('copied') : tCommon('copy')}</span>
                 </motion.button>
               </div>
             </div>
@@ -382,9 +385,9 @@ export function LinkEditor({
             <div className="grid grid-cols-2 gap-2">
               <button
                 onClick={() => setShowPreview(false)}
-                className="p-3 rounded-xl bg-[var(--card-bg)] border border-[var(--card-border)] font-medium hover:border-[var(--accent-purple)] transition-colors text-sm"
+                className="p-3 rounded-xl bg-[var(--card-bg)] border border-[var(--card-border)] font-medium hover:border-[var(--accent-primary)] transition-colors text-sm"
               >
-                ✏️ Modifica
+                {t('editBtn')}
               </button>
               
               <motion.button
@@ -395,14 +398,14 @@ export function LinkEditor({
                   onCancel();
                 }}
                 disabled={isLoading}
-                className="p-3 rounded-xl bg-[var(--card-bg)] border border-[var(--card-border)] font-medium hover:border-[var(--accent-purple)] transition-colors flex items-center justify-center gap-1 text-sm"
+                className="p-3 rounded-xl bg-[var(--card-bg)] border border-[var(--card-border)] font-medium hover:border-[var(--accent-primary)] transition-colors flex items-center justify-center gap-1 text-sm"
               >
-                💾 Salva per dopo
+                {t('saveLater')}
               </motion.button>
             </div>
             
             <p className="text-center text-xs text-[var(--foreground-muted)]">
-              Invia su WhatsApp o Telegram per salvare come "inviato"
+              {t('shareToSave')}
             </p>
           </motion.div>
         ) : (
@@ -414,7 +417,7 @@ export function LinkEditor({
             exit={{ opacity: 0, x: 20 }}
             className="space-y-4"
           >
-            <h2 className="text-xl font-bold">{isEditing ? "Modifica Post" : "Nuovo Post"}</h2>
+            <h2 className="text-xl font-bold">{isEditing ? t('editPost') : t('createPost')}</h2>
 
             {/* Post Type Selector */}
             <div className="flex gap-2 p-1 rounded-xl bg-[var(--background-secondary)]">
@@ -427,7 +430,7 @@ export function LinkEditor({
                 }`}
               >
                 <Link2 size={16} />
-                Link
+                {t('link')}
               </button>
               <button
                 onClick={() => {
@@ -441,7 +444,7 @@ export function LinkEditor({
                 }`}
               >
                 <Image size={16} />
-                Immagine
+                {t('image')}
               </button>
               <button
                 onClick={() => setPostType('text')}
@@ -451,25 +454,25 @@ export function LinkEditor({
                     : "text-[var(--foreground-muted)]"
                 }`}
               >
-                ✏️ Testo
+                ✏️ {t('text')}
               </button>
             </div>
 
             {/* URL Input - Only for link type */}
             {postType === 'link' && (
               <div>
-                <label className="block text-sm font-medium mb-2">URL</label>
+                <label className="block text-sm font-medium mb-2">{t('url')}</label>
                 <div className="flex items-center gap-2 p-3 rounded-xl bg-[var(--card-bg)] border border-[var(--card-border)]">
                   <Link2 size={18} className="text-[var(--foreground-muted)]" />
                   <input
                     type="text"
                     value={url}
                     onChange={(e) => setUrl(e.target.value)}
-                    placeholder="https://esempio.com"
+                    placeholder={t('urlPlaceholder')}
                     className="flex-1 bg-transparent outline-none"
                   />
                   {fetchingMeta && (
-                    <div className="w-4 h-4 border-2 border-[var(--accent-purple)] border-t-transparent rounded-full animate-spin" />
+                    <div className="w-4 h-4 border-2 border-[var(--accent-primary)] border-t-transparent rounded-full animate-spin" />
                   )}
                 </div>
               </div>
@@ -477,32 +480,32 @@ export function LinkEditor({
 
             {/* Title */}
             <div>
-              <label className="block text-sm font-medium mb-2">Titolo</label>
+              <label className="block text-sm font-medium mb-2">{t('title')}</label>
               <input
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                placeholder="Il titolo del tuo post..."
-                className="w-full p-3 rounded-xl bg-[var(--card-bg)] border border-[var(--card-border)] outline-none focus:border-[var(--accent-purple)]"
+                placeholder={t('titlePlaceholder')}
+                className="w-full p-3 rounded-xl bg-[var(--card-bg)] border border-[var(--card-border)] outline-none focus:border-[var(--accent-primary)]"
               />
             </div>
 
             {/* Description with emoji */}
             <div>
-              <label className="block text-sm font-medium mb-2">Descrizione + Emoji</label>
+              <label className="block text-sm font-medium mb-2">{t('description')}</label>
               <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                placeholder="Scrivi una descrizione accattivante... 🔥✨"
+                placeholder={t('descriptionPlaceholder')}
                 rows={3}
-                className="w-full p-3 rounded-xl bg-[var(--card-bg)] border border-[var(--card-border)] outline-none focus:border-[var(--accent-purple)] resize-none"
+                className="w-full p-3 rounded-xl bg-[var(--card-bg)] border border-[var(--card-border)] outline-none focus:border-[var(--accent-primary)] resize-none"
               />
             </div>
 
             {/* Thumbnail Selection - Different for image vs link posts */}
             <div>
               <label className="block text-sm font-medium mb-2">
-                {postType === 'image' ? 'Immagine *' : 'Thumbnail'}
+                {postType === 'image' ? t('thumbnailRequired') : t('thumbnail')}
               </label>
               
               {/* Only show original option for link type */}
@@ -512,11 +515,11 @@ export function LinkEditor({
                     onClick={() => setThumbnailType("original")}
                     className={`flex-1 p-2 rounded-lg text-sm font-medium transition-colors ${
                       thumbnailType === "original"
-                        ? "bg-[var(--accent-purple)] text-white"
+                        ? "bg-[var(--accent-primary)] text-black"
                         : "bg-[var(--card-bg)] border border-[var(--card-border)]"
                     }`}
                   >
-                    🌐 Originale
+                    {t('originalThumbnail')}
                   </button>
                 )}
                 <button
@@ -524,7 +527,7 @@ export function LinkEditor({
                   disabled={uploadingImage}
                   className={`flex-1 p-2 rounded-lg text-sm font-medium transition-colors ${
                     thumbnailType === "custom"
-                      ? "bg-[var(--accent-purple)] text-white"
+                      ? "bg-[var(--accent-primary)] text-black"
                       : "bg-[var(--card-bg)] border border-[var(--card-border)]"
                   }`}
                 >
@@ -533,7 +536,7 @@ export function LinkEditor({
                   ) : (
                     <Upload size={14} className="inline mr-1" />
                   )}
-                  Carica
+                  {t('customThumbnail')}
                 </button>
                 <button
                   onClick={() => {
@@ -542,12 +545,12 @@ export function LinkEditor({
                   }}
                   className={`flex-1 p-2 rounded-lg text-sm font-medium transition-colors ${
                     thumbnailType === "emoji"
-                      ? "bg-[var(--accent-purple)] text-white"
+                      ? "bg-[var(--accent-primary)] text-black"
                       : "bg-[var(--card-bg)] border border-[var(--card-border)]"
                   }`}
                 >
                   <Smile size={14} className="inline mr-1" />
-                  Emoji
+                  {t('emojiThumbnail')}
                 </button>
               </div>
 
@@ -592,10 +595,10 @@ export function LinkEditor({
                 ) : (
                   <button 
                     onClick={() => fileInputRef.current?.click()}
-                    className="flex flex-col items-center gap-2 text-[var(--foreground-muted)] hover:text-[var(--accent-purple)] transition-colors"
+                    className="flex flex-col items-center gap-2 text-[var(--foreground-muted)] hover:text-[var(--accent-primary)] transition-colors"
                   >
                     <Upload size={24} />
-                    <span className="text-sm">Carica immagine</span>
+                    <span className="text-sm">{t('uploadImage')}</span>
                   </button>
                 )}
               </div>
@@ -610,7 +613,7 @@ export function LinkEditor({
                     className="mt-3 p-3 rounded-xl bg-[var(--card-bg)] border border-[var(--card-border)]"
                   >
                     <div className="flex justify-between items-center mb-2">
-                      <span className="text-sm font-medium">Scegli emoji</span>
+                      <span className="text-sm font-medium">{t('selectEmoji')}</span>
                       <button onClick={() => setShowEmojiPicker(false)}>
                         <X size={16} />
                       </button>
@@ -624,7 +627,7 @@ export function LinkEditor({
                             setShowEmojiPicker(false);
                           }}
                           className={`text-2xl p-2 rounded-lg hover:bg-[var(--background-secondary)] transition-colors ${
-                            selectedEmoji === emoji ? "bg-[var(--accent-purple)]/20" : ""
+                            selectedEmoji === emoji ? "bg-[var(--accent-primary)]/20" : ""
                           }`}
                         >
                           {emoji}
@@ -638,7 +641,7 @@ export function LinkEditor({
 
             {/* Tags */}
             <div>
-              <label className="block text-sm font-medium mb-2">Tags</label>
+              <label className="block text-sm font-medium mb-2">{t('tags')}</label>
               <div className="flex flex-wrap gap-2 mb-2">
                 {tags.map(tag => (
                   <span 
@@ -656,13 +659,13 @@ export function LinkEditor({
                   value={newTag}
                   onChange={(e) => setNewTag(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleAddTag())}
-                  placeholder="Aggiungi tag..."
-                  className="flex-1 p-3 rounded-xl bg-[var(--card-bg)] border border-[var(--card-border)] outline-none focus:border-[var(--accent-purple)]"
+                  placeholder={t('tagsPlaceholder')}
+                  className="flex-1 p-3 rounded-xl bg-[var(--card-bg)] border border-[var(--card-border)] outline-none focus:border-[var(--accent-primary)]"
                 />
                 <button
                   onClick={handleAddTag}
                   disabled={!newTag.trim()}
-                  className="px-4 rounded-xl bg-[var(--accent-purple)] text-white disabled:opacity-50"
+                  className="px-4 rounded-xl bg-[var(--accent-primary)] text-black disabled:opacity-50"
                 >
                   +
                 </button>
@@ -676,18 +679,18 @@ export function LinkEditor({
                 whileTap={{ scale: 0.98 }}
                 onClick={() => setShowPreview(true)}
                 disabled={!hasValidContent()}
-                className="w-full p-4 rounded-xl bg-gradient-to-r from-[var(--accent-purple)] to-[var(--accent-pink)] text-white font-bold disabled:opacity-50 flex items-center justify-center gap-2"
+                className="w-full p-4 rounded-xl bg-[var(--accent-primary)] text-black font-bold disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 <Eye size={20} />
-                Anteprima
+                {t('preview')}
               </motion.button>
               
               {/* Helper text */}
               {!hasValidContent() && (
                 <p className="text-center text-sm text-[var(--foreground-muted)]">
-                  {postType === 'link' && "Inserisci URL e titolo"}
-                  {postType === 'image' && "Carica un'immagine e aggiungi un titolo"}
-                  {postType === 'text' && "Aggiungi un titolo o una descrizione"}
+                  {postType === 'link' && t('needUrlAndTitle')}
+                  {postType === 'image' && t('needImageAndTitle')}
+                  {postType === 'text' && t('needTitleOrDescription')}
                 </p>
               )}
             </div>
@@ -697,4 +700,3 @@ export function LinkEditor({
     </div>
   );
 }
-

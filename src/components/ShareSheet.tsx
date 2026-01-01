@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTranslations } from "next-intl";
 import { X, Copy, Check, Send, MessageCircle, ExternalLink } from "lucide-react";
 import type { FliqkLink } from "@/types";
 
@@ -13,6 +14,11 @@ interface ShareSheetProps {
 }
 
 export function ShareSheet({ link, isOpen, onClose, onClickTracked }: ShareSheetProps) {
+  const t = useTranslations('share');
+  const tCommon = useTranslations('common');
+  const tEditor = useTranslations('editor');
+  const tCard = useTranslations('card');
+  
   const [copied, setCopied] = useState(false);
   const [copiedPlatform, setCopiedPlatform] = useState<string | null>(null);
 
@@ -98,7 +104,7 @@ export function ShareSheet({ link, isOpen, onClose, onClickTracked }: ShareSheet
 
               {/* Header */}
               <div className="flex items-center justify-between px-4 pb-4">
-                <h2 className="font-bold text-lg">Condividi</h2>
+                <h2 className="font-bold text-lg">{t('title')}</h2>
                 <button
                   onClick={onClose}
                   className="p-2 rounded-lg hover:bg-[var(--card-bg)] transition-colors"
@@ -127,7 +133,7 @@ export function ShareSheet({ link, isOpen, onClose, onClickTracked }: ShareSheet
                     <div className="flex-1 min-w-0">
                       <h3 className="font-semibold text-sm line-clamp-1">{link.title}</h3>
                       <p className="text-xs text-[var(--foreground-muted)] line-clamp-1">
-                        {hasUrl ? link.url : (link.post_type === 'image' ? '🖼️ Post immagine' : '✏️ Post testo')}
+                        {hasUrl ? link.url : (link.post_type === 'image' ? tEditor('imageType') : tEditor('textType'))}
                       </p>
                     </div>
                   </div>
@@ -140,13 +146,13 @@ export function ShareSheet({ link, isOpen, onClose, onClickTracked }: ShareSheet
                 <div className="grid grid-cols-2 gap-3">
                   <ShareButton
                     icon={<MessageCircle size={24} />}
-                    label="WhatsApp"
+                    label={tEditor('whatsapp')}
                     color="bg-[#25D366]"
                     onClick={handleWhatsApp}
                   />
                   <ShareButton
                     icon={<Send size={24} />}
-                    label="Telegram"
+                    label={tEditor('telegram')}
                     color="bg-[#0088cc]"
                     onClick={handleTelegram}
                   />
@@ -155,13 +161,15 @@ export function ShareSheet({ link, isOpen, onClose, onClickTracked }: ShareSheet
                 {/* Copy for platforms */}
                 <div className="grid grid-cols-2 gap-3">
                   <CopyButton
-                    label="📷 Copia per Instagram"
+                    label={tEditor('copyForInstagram')}
                     copied={copiedPlatform === 'instagram'}
+                    copiedText={tCommon('copied')}
                     onClick={() => handleCopyForPlatform('instagram')}
                   />
                   <CopyButton
-                    label="🎵 Copia per TikTok"
+                    label={tEditor('copyForTiktok')}
                     copied={copiedPlatform === 'tiktok'}
+                    copiedText={tCommon('copied')}
                     onClick={() => handleCopyForPlatform('tiktok')}
                   />
                 </div>
@@ -171,17 +179,17 @@ export function ShareSheet({ link, isOpen, onClose, onClickTracked }: ShareSheet
                   <>
                     <button
                       onClick={handleCopyLink}
-                      className="w-full p-4 rounded-xl bg-[var(--card-bg)] border border-[var(--card-border)] flex items-center justify-center gap-2 hover:border-[var(--accent-purple)] transition-colors"
+                      className="w-full p-4 rounded-xl bg-[var(--card-bg)] border border-[var(--card-border)] flex items-center justify-center gap-2 hover:border-[var(--accent-primary)] transition-colors"
                     >
                       {copied ? (
                         <>
                           <Check size={20} className="text-green-500" />
-                          <span className="font-medium">Link copiato!</span>
+                          <span className="font-medium">{tCommon('copied')}</span>
                         </>
                       ) : (
                         <>
                           <Copy size={20} />
-                          <span className="font-medium">Copia solo link</span>
+                          <span className="font-medium">{tCard('copyLink')}</span>
                         </>
                       )}
                     </button>
@@ -192,10 +200,10 @@ export function ShareSheet({ link, isOpen, onClose, onClickTracked }: ShareSheet
                       target="_blank"
                       rel="noopener noreferrer"
                       onClick={onClickTracked}
-                      className="w-full p-3 rounded-xl text-center text-sm text-[var(--foreground-muted)] hover:text-[var(--accent-purple)] transition-colors flex items-center justify-center gap-2"
+                      className="w-full p-3 rounded-xl text-center text-sm text-[var(--foreground-muted)] hover:text-[var(--accent-primary)] transition-colors flex items-center justify-center gap-2"
                     >
                       <ExternalLink size={16} />
-                      Apri link originale
+                      {tCard('open')}
                     </a>
                   </>
                 )}
@@ -234,11 +242,13 @@ function ShareButton({
 
 function CopyButton({ 
   label, 
-  copied, 
+  copied,
+  copiedText,
   onClick 
 }: { 
   label: string; 
-  copied: boolean; 
+  copied: boolean;
+  copiedText: string;
   onClick: () => void;
 }) {
   return (
@@ -246,12 +256,12 @@ function CopyButton({
       whileHover={{ scale: 1.02 }}
       whileTap={{ scale: 0.98 }}
       onClick={onClick}
-      className="p-4 rounded-xl bg-[var(--card-bg)] border border-[var(--card-border)] hover:border-[var(--accent-purple)] transition-colors"
+      className="p-4 rounded-xl bg-[var(--card-bg)] border border-[var(--card-border)] hover:border-[var(--accent-primary)] transition-colors"
     >
       {copied ? (
         <span className="flex items-center justify-center gap-2 text-green-500">
           <Check size={18} />
-          Copiato!
+          {copiedText}
         </span>
       ) : (
         <span className="text-sm font-medium">{label}</span>
@@ -259,4 +269,3 @@ function CopyButton({
     </motion.button>
   );
 }
-

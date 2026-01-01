@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
+import { useTranslations } from "next-intl";
 import { 
   ExternalLink, 
   Share2, 
@@ -26,6 +27,10 @@ interface LinkCardProps {
 }
 
 export function LinkCard({ link, onDelete, onShare, onEdit, onClickTrack, index }: LinkCardProps) {
+  const t = useTranslations('card');
+  const tCommon = useTranslations('common');
+  const tEditor = useTranslations('editor');
+  
   const [copied, setCopied] = useState(false);
   const [imageError, setImageError] = useState(false);
 
@@ -54,11 +59,11 @@ export function LinkCard({ link, onDelete, onShare, onEdit, onClickTrack, index 
     const diffHours = Math.floor(diffMs / 3600000);
     const diffDays = Math.floor(diffMs / 86400000);
 
-    if (diffMins < 1) return "ora";
-    if (diffMins < 60) return `${diffMins}m fa`;
-    if (diffHours < 24) return `${diffHours}h fa`;
-    if (diffDays < 7) return `${diffDays}g fa`;
-    return date.toLocaleDateString("it-IT", { day: "numeric", month: "short" });
+    if (diffMins < 1) return tCommon('now');
+    if (diffMins < 60) return tCommon('minutesAgo', { count: diffMins });
+    if (diffHours < 24) return tCommon('hoursAgo', { count: diffHours });
+    if (diffDays < 7) return tCommon('daysAgo', { count: diffDays });
+    return date.toLocaleDateString(undefined, { day: "numeric", month: "short" });
   };
 
   const getDomain = (url: string) => {
@@ -94,11 +99,11 @@ export function LinkCard({ link, onDelete, onShare, onEdit, onClickTrack, index 
         {isDraft ? (
           <div className="absolute top-2 right-2 px-2 py-1 rounded-full bg-amber-500/20 text-amber-500 text-xs font-medium flex items-center gap-1">
             <FileEdit size={12} />
-            Bozza
+            {t('draft')}
           </div>
         ) : (
           <div className="absolute top-2 right-2 px-2 py-1 rounded-full bg-green-500/20 text-green-500 text-xs font-medium">
-            📤 Inviato
+            {t('sentStatus')}
           </div>
         )}
 
@@ -116,7 +121,7 @@ export function LinkCard({ link, onDelete, onShare, onEdit, onClickTrack, index 
                 onError={() => setImageError(true)}
               />
             ) : (
-              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[var(--accent-purple)]/20 to-[var(--accent-pink)]/20">
+              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[var(--accent-primary)]/20 to-[var(--accent-secondary)]/20">
                 <Globe size={24} className="text-[var(--foreground-muted)]" />
               </div>
             )}
@@ -133,8 +138,8 @@ export function LinkCard({ link, onDelete, onShare, onEdit, onClickTrack, index 
                 {getDomain(link.url!)}
               </p>
             ) : (
-              <p className="text-xs text-[var(--accent-purple)] mt-1">
-                {link.post_type === 'image' ? '🖼️ Immagine' : '✏️ Testo'}
+              <p className="text-xs text-[var(--accent-primary)] mt-1">
+                {link.post_type === 'image' ? tEditor('imageType') : tEditor('textType')}
               </p>
             )}
             <div className="flex items-center gap-3 mt-1 text-xs text-[var(--foreground-muted)]">
@@ -145,7 +150,7 @@ export function LinkCard({ link, onDelete, onShare, onEdit, onClickTrack, index 
               {link.click_count > 0 && (
                 <span className="flex items-center gap-1">
                   <MousePointer size={12} />
-                  {link.click_count} click
+                  {link.click_count} {t('clicks')}
                 </span>
               )}
             </div>
@@ -157,7 +162,7 @@ export function LinkCard({ link, onDelete, onShare, onEdit, onClickTrack, index 
             whileTap={{ scale: 0.9 }}
             onClick={() => onEdit(link)}
             className="flex-shrink-0 p-2 rounded-lg hover:bg-[var(--card-bg)] transition-colors self-start"
-            title="Modifica"
+            title={t('edit')}
           >
             <Pencil size={16} className="text-[var(--foreground-muted)]" />
           </motion.button>
@@ -192,7 +197,7 @@ export function LinkCard({ link, onDelete, onShare, onEdit, onClickTrack, index 
                   whileTap={{ scale: 0.9 }}
                   onClick={handleCopyLink}
                   className="p-2 rounded-lg hover:bg-[var(--card-bg)] transition-colors"
-                  title="Copia link"
+                  title={t('copyLink')}
                 >
                   {copied ? (
                     <Check size={18} className="text-green-500" />
@@ -206,7 +211,7 @@ export function LinkCard({ link, onDelete, onShare, onEdit, onClickTrack, index 
                   whileTap={{ scale: 0.9 }}
                   onClick={handleOpenLink}
                   className="p-2 rounded-lg hover:bg-[var(--card-bg)] transition-colors"
-                  title="Apri link"
+                  title={t('open')}
                 >
                   <ExternalLink size={18} className="text-[var(--foreground-muted)]" />
                 </motion.button>
@@ -218,7 +223,7 @@ export function LinkCard({ link, onDelete, onShare, onEdit, onClickTrack, index 
               whileTap={{ scale: 0.9 }}
               onClick={() => onShare(link)}
               className="p-2 rounded-lg hover:bg-[var(--card-bg)] transition-colors"
-              title="Condividi"
+              title={t('share')}
             >
               <Share2 size={18} className="text-[var(--foreground-muted)]" />
             </motion.button>
@@ -229,7 +234,7 @@ export function LinkCard({ link, onDelete, onShare, onEdit, onClickTrack, index 
             whileTap={{ scale: 0.9 }}
             onClick={() => onDelete(link.id)}
             className="p-2 rounded-lg hover:bg-red-500/10 transition-colors group/delete"
-            title="Elimina"
+            title={t('delete')}
           >
             <Trash2 size={18} className="text-[var(--foreground-muted)] group-hover/delete:text-red-500 transition-colors" />
           </motion.button>

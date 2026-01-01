@@ -2,14 +2,14 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, Grid, List, ChevronLeft, MoreVertical, Trash2, Edit2, X } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { Plus, Grid, List, ChevronLeft, MoreVertical, Trash2, X } from "lucide-react";
 import type { Collection, FliqkLink, NewCollection, ViewMode, SortOrder } from "@/types";
 import { 
   getUserCollections, 
   createCollection, 
   deleteCollection, 
-  getCollectionItems,
-  addToCollection 
+  getCollectionItems
 } from "@/lib/supabase";
 
 // Color options for collections
@@ -30,6 +30,9 @@ interface CollectionsPageProps {
 }
 
 export function CollectionsPage({ userId, onSelectItem }: CollectionsPageProps) {
+  const t = useTranslations('collections');
+  const tCommon = useTranslations('common');
+  
   const [collections, setCollections] = useState<Collection[]>([]);
   const [selectedCollection, setSelectedCollection] = useState<Collection | null>(null);
   const [collectionItems, setCollectionItems] = useState<FliqkLink[]>([]);
@@ -37,7 +40,6 @@ export function CollectionsPage({ userId, onSelectItem }: CollectionsPageProps) 
   const [sortOrder, setSortOrder] = useState<SortOrder>("newest");
   const [isLoading, setIsLoading] = useState(true);
   const [showNewModal, setShowNewModal] = useState(false);
-  const [editingCollection, setEditingCollection] = useState<Collection | null>(null);
 
   // Load collections
   useEffect(() => {
@@ -73,7 +75,7 @@ export function CollectionsPage({ userId, onSelectItem }: CollectionsPageProps) 
   };
 
   const handleDeleteCollection = async (id: string) => {
-    if (confirm("Eliminare questa raccolta? I contenuti non verranno eliminati.")) {
+    if (confirm(t('confirmDelete'))) {
       const success = await deleteCollection(id);
       if (success) {
         setCollections(prev => prev.filter(c => c.id !== id));
@@ -96,7 +98,7 @@ export function CollectionsPage({ userId, onSelectItem }: CollectionsPageProps) 
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-bold">📚 Raccolte</h2>
+          <h2 className="text-xl font-bold">{t('title')}</h2>
           <div className="flex items-center gap-2">
             <button
               onClick={() => setViewMode(viewMode === "grid" ? "list" : "grid")}
@@ -109,7 +111,7 @@ export function CollectionsPage({ userId, onSelectItem }: CollectionsPageProps) 
 
         {isLoading ? (
           <div className="flex justify-center py-12">
-            <div className="w-8 h-8 border-2 border-[var(--accent-purple)] border-t-transparent rounded-full animate-spin" />
+            <div className="w-8 h-8 border-2 border-[var(--accent-primary)] border-t-transparent rounded-full animate-spin" />
           </div>
         ) : (
           <div className={viewMode === "grid" 
@@ -124,10 +126,10 @@ export function CollectionsPage({ userId, onSelectItem }: CollectionsPageProps) 
               className={`${viewMode === "grid" 
                 ? "aspect-square flex flex-col items-center justify-center gap-2" 
                 : "flex items-center gap-3 p-4"
-              } rounded-2xl border-2 border-dashed border-[var(--card-border)] hover:border-[var(--accent-purple)] transition-colors`}
+              } rounded-2xl border-2 border-dashed border-[var(--card-border)] hover:border-[var(--accent-primary)] transition-colors`}
             >
               <Plus size={24} className="text-[var(--foreground-muted)]" />
-              <span className="text-sm text-[var(--foreground-muted)]">Nuova</span>
+              <span className="text-sm text-[var(--foreground-muted)]">{tCommon('new')}</span>
             </motion.button>
 
             {/* Collections */}
@@ -139,6 +141,8 @@ export function CollectionsPage({ userId, onSelectItem }: CollectionsPageProps) 
                 index={index}
                 onClick={() => setSelectedCollection(collection)}
                 onDelete={() => handleDeleteCollection(collection.id)}
+                deleteLabel={tCommon('delete')}
+                itemsLabel={t('items')}
               />
             ))}
           </div>
@@ -147,8 +151,8 @@ export function CollectionsPage({ userId, onSelectItem }: CollectionsPageProps) 
         {collections.length === 0 && !isLoading && (
           <div className="text-center py-8 text-[var(--foreground-muted)]">
             <p className="text-4xl mb-2">📁</p>
-            <p>Nessuna raccolta ancora</p>
-            <p className="text-sm">Crea la tua prima raccolta!</p>
+            <p>{t('empty')}</p>
+            <p className="text-sm">{t('emptyDescription')}</p>
           </div>
         )}
 
@@ -189,16 +193,16 @@ export function CollectionsPage({ userId, onSelectItem }: CollectionsPageProps) 
       {/* Sort Options */}
       <div className="flex gap-2 flex-wrap">
         {[
-          { value: 'newest', label: 'Recenti' },
-          { value: 'oldest', label: 'Meno recenti' },
-          { value: 'alpha', label: 'A-Z' },
+          { value: 'newest', label: t('sortNewest') },
+          { value: 'oldest', label: t('sortOldest') },
+          { value: 'alpha', label: t('sortAlpha') },
         ].map((option) => (
           <button
             key={option.value}
             onClick={() => setSortOrder(option.value as SortOrder)}
             className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
               sortOrder === option.value
-                ? "bg-[var(--accent-purple)] text-white"
+                ? "bg-[var(--accent-primary)] text-black"
                 : "bg-[var(--card-bg)] text-[var(--foreground-muted)]"
             }`}
           >
@@ -209,9 +213,9 @@ export function CollectionsPage({ userId, onSelectItem }: CollectionsPageProps) 
         <button
           onClick={handleRandomPick}
           disabled={collectionItems.length === 0}
-          className="px-3 py-1.5 rounded-lg text-sm font-medium bg-[var(--card-bg)] text-[var(--foreground-muted)] hover:text-[var(--accent-purple)] disabled:opacity-50"
+          className="px-3 py-1.5 rounded-lg text-sm font-medium bg-[var(--card-bg)] text-[var(--foreground-muted)] hover:text-[var(--accent-primary)] disabled:opacity-50"
         >
-          🎲 Random
+          🎲 {tCommon('random')}
         </button>
       </div>
 
@@ -219,7 +223,7 @@ export function CollectionsPage({ userId, onSelectItem }: CollectionsPageProps) 
       {collectionItems.length === 0 ? (
         <div className="text-center py-12 text-[var(--foreground-muted)]">
           <p className="text-4xl mb-2">📭</p>
-          <p>Nessun contenuto in questa raccolta</p>
+          <p>{t('noContent')}</p>
         </div>
       ) : viewMode === "grid" ? (
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -230,11 +234,11 @@ export function CollectionsPage({ userId, onSelectItem }: CollectionsPageProps) 
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: index * 0.05 }}
               onClick={() => onSelectItem(item)}
-              className="aspect-square rounded-xl overflow-hidden bg-[var(--card-bg)] border border-[var(--card-border)] cursor-pointer hover:border-[var(--accent-purple)] transition-colors relative group"
+              className="aspect-square rounded-xl overflow-hidden bg-[var(--card-bg)] border border-[var(--card-border)] cursor-pointer hover:border-[var(--accent-primary)] transition-colors relative group"
             >
               {/* Thumbnail */}
               {item.thumbnail_type === "emoji" ? (
-                <div className="w-full h-full flex items-center justify-center text-4xl bg-gradient-to-br from-[var(--accent-purple)]/10 to-[var(--accent-pink)]/10">
+                <div className="w-full h-full flex items-center justify-center text-4xl bg-gradient-to-br from-[var(--accent-primary)]/10 to-[var(--accent-secondary)]/10">
                   {item.custom_thumbnail || "📎"}
                 </div>
               ) : (item.custom_thumbnail || item.thumbnail) ? (
@@ -244,7 +248,7 @@ export function CollectionsPage({ userId, onSelectItem }: CollectionsPageProps) 
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[var(--accent-purple)]/10 to-[var(--accent-pink)]/10">
+                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[var(--accent-primary)]/10 to-[var(--accent-secondary)]/10">
                   <span className="text-2xl">🔗</span>
                 </div>
               )}
@@ -265,7 +269,7 @@ export function CollectionsPage({ userId, onSelectItem }: CollectionsPageProps) 
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: index * 0.05 }}
               onClick={() => onSelectItem(item)}
-              className="flex items-center gap-3 p-3 rounded-xl bg-[var(--card-bg)] border border-[var(--card-border)] cursor-pointer hover:border-[var(--accent-purple)] transition-colors"
+              className="flex items-center gap-3 p-3 rounded-xl bg-[var(--card-bg)] border border-[var(--card-border)] cursor-pointer hover:border-[var(--accent-primary)] transition-colors"
             >
               {/* Thumbnail */}
               <div className="w-12 h-12 rounded-lg overflow-hidden bg-[var(--background-secondary)] flex-shrink-0">
@@ -299,7 +303,7 @@ export function CollectionsPage({ userId, onSelectItem }: CollectionsPageProps) 
       )}
 
       <p className="text-center text-sm text-[var(--foreground-muted)]">
-        {collectionItems.length} elementi
+        {collectionItems.length} {t('items')}
       </p>
     </div>
   );
@@ -311,13 +315,17 @@ function CollectionCard({
   viewMode, 
   index, 
   onClick, 
-  onDelete 
+  onDelete,
+  deleteLabel,
+  itemsLabel
 }: { 
   collection: Collection; 
   viewMode: ViewMode; 
   index: number; 
   onClick: () => void; 
   onDelete: () => void;
+  deleteLabel: string;
+  itemsLabel: string;
 }) {
   const [showMenu, setShowMenu] = useState(false);
 
@@ -364,7 +372,7 @@ function CollectionCard({
               className="flex items-center gap-2 px-3 py-2 text-sm text-red-500 hover:bg-red-500/10 w-full"
             >
               <Trash2 size={14} />
-              Elimina
+              {deleteLabel}
             </button>
           </div>
         )}
@@ -378,7 +386,7 @@ function CollectionCard({
       initial={{ opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ delay: index * 0.05 }}
-      className="flex items-center gap-3 p-4 rounded-xl bg-[var(--card-bg)] border border-[var(--card-border)] cursor-pointer hover:border-[var(--accent-purple)] transition-colors"
+      className="flex items-center gap-3 p-4 rounded-xl bg-[var(--card-bg)] border border-[var(--card-border)] cursor-pointer hover:border-[var(--accent-primary)] transition-colors"
       onClick={onClick}
     >
       <div 
@@ -389,7 +397,7 @@ function CollectionCard({
       </div>
       <div className="flex-1">
         <p className="font-semibold">{collection.name}</p>
-        <p className="text-sm text-[var(--foreground-muted)]">{collection.item_count || 0} elementi</p>
+        <p className="text-sm text-[var(--foreground-muted)]">{collection.item_count || 0} {itemsLabel}</p>
       </div>
       <button
         onClick={(e) => {
@@ -414,6 +422,7 @@ function NewCollectionModal({
   onClose: () => void; 
   onCreate: (collection: NewCollection) => void;
 }) {
+  const t = useTranslations('collections');
   const [name, setName] = useState("");
   const [emoji, setEmoji] = useState("📚");
   const [color, setColor] = useState(COLORS[0]);
@@ -445,7 +454,7 @@ function NewCollectionModal({
             className="fixed inset-x-4 top-1/2 -translate-y-1/2 max-w-md mx-auto bg-[var(--card-bg)] rounded-2xl border border-[var(--card-border)] z-50 p-6"
           >
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-bold">Nuova Raccolta</h3>
+              <h3 className="text-lg font-bold">{t('newCollection')}</h3>
               <button onClick={onClose}>
                 <X size={20} />
               </button>
@@ -464,21 +473,21 @@ function NewCollectionModal({
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Nome raccolta..."
-              className="w-full p-3 rounded-xl bg-[var(--background-secondary)] border border-[var(--card-border)] mb-4 outline-none focus:border-[var(--accent-purple)]"
+              placeholder={t('namePlaceholder')}
+              className="w-full p-3 rounded-xl bg-[var(--background-secondary)] border border-[var(--card-border)] mb-4 outline-none focus:border-[var(--accent-primary)]"
               autoFocus
             />
 
             {/* Emoji picker */}
             <div className="mb-4">
-              <p className="text-sm font-medium mb-2">Emoji</p>
+              <p className="text-sm font-medium mb-2">{t('emoji')}</p>
               <div className="flex flex-wrap gap-2">
                 {EMOJIS.map((e) => (
                   <button
                     key={e}
                     onClick={() => setEmoji(e)}
                     className={`w-10 h-10 rounded-lg flex items-center justify-center text-xl ${
-                      emoji === e ? "bg-[var(--accent-purple)]/20 ring-2 ring-[var(--accent-purple)]" : "bg-[var(--background-secondary)]"
+                      emoji === e ? "bg-[var(--accent-primary)]/20 ring-2 ring-[var(--accent-primary)]" : "bg-[var(--background-secondary)]"
                     }`}
                   >
                     {e}
@@ -489,14 +498,14 @@ function NewCollectionModal({
 
             {/* Color picker */}
             <div className="mb-6">
-              <p className="text-sm font-medium mb-2">Colore</p>
+              <p className="text-sm font-medium mb-2">{t('color')}</p>
               <div className="flex gap-2">
                 {COLORS.map((c) => (
                   <button
                     key={c}
                     onClick={() => setColor(c)}
                     className={`w-8 h-8 rounded-full ${
-                      color === c ? "ring-2 ring-offset-2 ring-[var(--accent-purple)]" : ""
+                      color === c ? "ring-2 ring-offset-2 ring-[var(--accent-primary)]" : ""
                     }`}
                     style={{ backgroundColor: c }}
                   />
@@ -508,9 +517,9 @@ function NewCollectionModal({
             <button
               onClick={handleSubmit}
               disabled={!name.trim()}
-              className="w-full p-4 rounded-xl bg-gradient-to-r from-[var(--accent-purple)] to-[var(--accent-pink)] text-white font-bold disabled:opacity-50"
+              className="w-full p-4 rounded-xl bg-[var(--accent-primary)] text-black font-bold disabled:opacity-50"
             >
-              Crea Raccolta
+              {t('createCollection')}
             </button>
           </motion.div>
         </>
@@ -518,4 +527,3 @@ function NewCollectionModal({
     </AnimatePresence>
   );
 }
-

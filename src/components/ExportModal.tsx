@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTranslations } from "next-intl";
 import { X, Download, Check, FolderOpen, Tag } from "lucide-react";
 import type { FliqkLink, Collection } from "@/types";
 
@@ -15,6 +16,11 @@ interface ExportModalProps {
 type FilterMode = "all" | "collections" | "tags";
 
 export function ExportModal({ links, collections, isOpen, onClose }: ExportModalProps) {
+  const t = useTranslations('export');
+  const tCollections = useTranslations('collections');
+  const tEditor = useTranslations('editor');
+  const tCommon = useTranslations('common');
+  
   const [filterMode, setFilterMode] = useState<FilterMode>("all");
   const [selectedCollections, setSelectedCollections] = useState<string[]>([]);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
@@ -85,16 +91,16 @@ export function ExportModal({ links, collections, isOpen, onClose }: ExportModal
     }
 
     return `<!DOCTYPE html>
-<html lang="it">
+<html>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>I miei contenuti - fliqk</title>
+  <title>fliqk export</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: linear-gradient(135deg, #0a0a0f 0%, #1a1a2e 100%);
+      background: #000;
       color: #fafafa;
       min-height: 100vh;
       padding: 2rem;
@@ -102,9 +108,7 @@ export function ExportModal({ links, collections, isOpen, onClose }: ExportModal
     h1 {
       text-align: center;
       margin-bottom: 2rem;
-      background: linear-gradient(135deg, #a855f7, #ec4899);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
+      color: #BEFF00;
     }
     .container { max-width: 800px; margin: 0 auto; }
     .section { margin-bottom: 2rem; }
@@ -115,7 +119,7 @@ export function ExportModal({ links, collections, isOpen, onClose }: ExportModal
       border-bottom: 1px solid rgba(255,255,255,0.1);
     }
     .card {
-      background: rgba(255,255,255,0.05);
+      background: rgba(255,255,255,0.03);
       border: 1px solid rgba(255,255,255,0.1);
       border-radius: 16px;
       padding: 1.5rem;
@@ -127,7 +131,7 @@ export function ExportModal({ links, collections, isOpen, onClose }: ExportModal
       width: 60px;
       height: 60px;
       border-radius: 12px;
-      background: rgba(168, 85, 247, 0.2);
+      background: rgba(190, 255, 0, 0.1);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -143,12 +147,12 @@ export function ExportModal({ links, collections, isOpen, onClose }: ExportModal
     .card-content { flex: 1; min-width: 0; }
     .card h3 { font-size: 1.1rem; margin-bottom: 0.5rem; }
     .card p { color: #a1a1aa; font-size: 0.9rem; margin-bottom: 0.75rem; }
-    .card a { color: #a855f7; text-decoration: none; font-size: 0.85rem; word-break: break-all; }
+    .card a { color: #BEFF00; text-decoration: none; font-size: 0.85rem; word-break: break-all; }
     .card a:hover { text-decoration: underline; }
     .tags { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.75rem; }
     .tag {
-      background: rgba(168, 85, 247, 0.2);
-      color: #a855f7;
+      background: rgba(190, 255, 0, 0.12);
+      color: #BEFF00;
       padding: 0.25rem 0.75rem;
       border-radius: 999px;
       font-size: 0.75rem;
@@ -164,9 +168,9 @@ export function ExportModal({ links, collections, isOpen, onClose }: ExportModal
 </head>
 <body>
   <div class="container">
-    <h1>✨ I miei contenuti</h1>
+    <h1>✨ fliqk</h1>
     ${content}
-    <p class="footer">Esportato da fliqk • ${new Date().toLocaleDateString("it-IT")}</p>
+    <p class="footer">fliqk • ${new Date().toLocaleDateString()}</p>
   </div>
 </body>
 </html>`;
@@ -187,7 +191,7 @@ export function ExportModal({ links, collections, isOpen, onClose }: ExportModal
         ${link.description ? `<p>${link.description}</p>` : ""}
         ${link.url 
           ? `<a href="${link.url}" target="_blank">${link.url}</a>`
-          : `<span class="no-link">${link.post_type === 'image' ? '🖼️ Immagine' : '✏️ Testo'}</span>`
+          : `<span class="no-link">${link.post_type === 'image' ? '🖼️' : '✏️'}</span>`
         }
         ${link.tags.length > 0
           ? `<div class="tags">${link.tags.map(t => `<span class="tag">#${t}</span>`).join("")}</div>`
@@ -236,7 +240,7 @@ export function ExportModal({ links, collections, isOpen, onClose }: ExportModal
             <div className="bg-[var(--background-secondary)] rounded-2xl border border-[var(--card-border)] overflow-hidden shadow-2xl flex flex-col max-h-full">
               {/* Header */}
               <div className="flex items-center justify-between p-4 border-b border-[var(--card-border)] flex-shrink-0">
-                <h2 className="font-bold text-lg">📥 Scarica</h2>
+                <h2 className="font-bold text-lg">📥 {t('title')}</h2>
                 <button
                   onClick={onClose}
                   className="p-2 rounded-lg hover:bg-[var(--card-bg)] transition-colors"
@@ -247,29 +251,29 @@ export function ExportModal({ links, collections, isOpen, onClose }: ExportModal
 
               {/* Filter Mode */}
               <div className="p-4 border-b border-[var(--card-border)] flex-shrink-0">
-                <p className="text-sm font-medium mb-3">Cosa vuoi scaricare?</p>
+                <p className="text-sm font-medium mb-3">{t('whatToDownload')}</p>
                 <div className="flex gap-2">
                   <button
                     onClick={() => setFilterMode("all")}
                     className={`flex-1 p-2.5 rounded-lg text-sm font-medium transition-colors ${
                       filterMode === "all"
-                        ? "bg-[var(--accent-purple)] text-white"
+                        ? "bg-[var(--accent-primary)] text-black"
                         : "bg-[var(--card-bg)] text-[var(--foreground-muted)]"
                     }`}
                   >
-                    Tutti
+                    {t('all')}
                   </button>
                   {collections.length > 0 && (
                     <button
                       onClick={() => setFilterMode("collections")}
                       className={`flex-1 p-2.5 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-1 ${
                         filterMode === "collections"
-                          ? "bg-[var(--accent-purple)] text-white"
+                          ? "bg-[var(--accent-primary)] text-black"
                           : "bg-[var(--card-bg)] text-[var(--foreground-muted)]"
                       }`}
                     >
                       <FolderOpen size={14} />
-                      Raccolte
+                      {t('byCollections')}
                     </button>
                   )}
                   {allTags.length > 0 && (
@@ -277,12 +281,12 @@ export function ExportModal({ links, collections, isOpen, onClose }: ExportModal
                       onClick={() => setFilterMode("tags")}
                       className={`flex-1 p-2.5 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-1 ${
                         filterMode === "tags"
-                          ? "bg-[var(--accent-purple)] text-white"
+                          ? "bg-[var(--accent-primary)] text-black"
                           : "bg-[var(--card-bg)] text-[var(--foreground-muted)]"
                       }`}
                     >
                       <Tag size={14} />
-                      Tag
+                      {t('byTags')}
                     </button>
                   )}
                 </div>
@@ -293,14 +297,14 @@ export function ExportModal({ links, collections, isOpen, onClose }: ExportModal
                 {filterMode === "all" && (
                   <div className="text-center py-8 text-[var(--foreground-muted)]">
                     <p className="text-4xl mb-2">📦</p>
-                    <p>Scaricherai tutti i {links.length} contenuti</p>
+                    <p>{links.length} {tCollections('items')}</p>
                   </div>
                 )}
 
                 {filterMode === "collections" && (
                   <div className="space-y-2">
                     <p className="text-sm text-[var(--foreground-muted)] mb-3">
-                      Seleziona le raccolte da scaricare:
+                      {t('selectCollections')}:
                     </p>
                     {collections.map(col => (
                       <button
@@ -308,7 +312,7 @@ export function ExportModal({ links, collections, isOpen, onClose }: ExportModal
                         onClick={() => toggleCollection(col.id)}
                         className={`w-full flex items-center gap-3 p-3 rounded-xl transition-colors ${
                           selectedCollections.includes(col.id)
-                            ? "bg-[var(--accent-purple)]/20 border border-[var(--accent-purple)]"
+                            ? "bg-[var(--accent-primary)]/20 border border-[var(--accent-primary)]"
                             : "bg-[var(--card-bg)] border border-transparent"
                         }`}
                       >
@@ -321,11 +325,11 @@ export function ExportModal({ links, collections, isOpen, onClose }: ExportModal
                         <div className="flex-1 text-left">
                           <p className="font-medium">{col.name}</p>
                           <p className="text-xs text-[var(--foreground-muted)]">
-                            {col.item_count || 0} elementi
+                            {col.item_count || 0} {tCollections('items')}
                           </p>
                         </div>
                         {selectedCollections.includes(col.id) && (
-                          <Check size={18} className="text-[var(--accent-purple)]" />
+                          <Check size={18} className="text-[var(--accent-primary)]" />
                         )}
                       </button>
                     ))}
@@ -335,7 +339,7 @@ export function ExportModal({ links, collections, isOpen, onClose }: ExportModal
                 {filterMode === "tags" && (
                   <div>
                     <p className="text-sm text-[var(--foreground-muted)] mb-3">
-                      Seleziona i tag da scaricare:
+                      {t('selectTags')}:
                     </p>
                     <div className="flex flex-wrap gap-2">
                       {allTags.map(tag => (
@@ -344,7 +348,7 @@ export function ExportModal({ links, collections, isOpen, onClose }: ExportModal
                           onClick={() => toggleTag(tag)}
                           className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
                             selectedTags.includes(tag)
-                              ? "bg-[var(--accent-purple)] text-white"
+                              ? "bg-[var(--accent-primary)] text-black"
                               : "bg-[var(--card-bg)] text-[var(--foreground-muted)]"
                           }`}
                         >
@@ -363,18 +367,20 @@ export function ExportModal({ links, collections, isOpen, onClose }: ExportModal
                   whileTap={{ scale: 0.98 }}
                   onClick={handleExport}
                   disabled={filteredLinks.length === 0}
-                  className="w-full flex items-center justify-center gap-2 p-4 rounded-xl font-semibold bg-gradient-to-r from-[var(--accent-purple)] to-[var(--accent-pink)] text-white disabled:opacity-50 transition-all"
+                  className="w-full flex items-center justify-center gap-2 p-4 rounded-xl font-bold bg-[var(--accent-primary)] text-black disabled:opacity-50 transition-all"
                 >
                   {exported ? (
                     <>
                       <Check size={20} />
-                      <span>Scaricato!</span>
+                      <span>{tCommon('copied')}</span>
                     </>
+                  ) : filteredLinks.length === 0 ? (
+                    <span>{t('noItems')}</span>
                   ) : (
                     <>
                       <Download size={20} />
                       <span>
-                        Scarica {filteredLinks.length} {filteredLinks.length === 1 ? 'elemento' : 'elementi'}
+                        {t('downloadItems', { count: filteredLinks.length })}
                       </span>
                     </>
                   )}
