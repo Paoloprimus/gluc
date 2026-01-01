@@ -488,7 +488,7 @@ export function LinkEditor({
               <p className="text-sm font-medium mb-3 text-center">{t('shareNow')}</p>
               
               {/* Native Share (with file support) - Show prominently for media posts */}
-              {(postType === 'image' || postType === 'audio' || postType === 'video') && typeof navigator !== 'undefined' && navigator.share && (
+              {(postType === 'image' || postType === 'audio' || postType === 'video') && typeof navigator !== 'undefined' && 'share' in navigator && (
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
