@@ -137,11 +137,9 @@ export default function AdminPage() {
       const { getSupabaseClient } = await import("@/lib/supabase");
       const supabase = getSupabaseClient();
 
-      // Generate token: FLIQK-XXXX-XXXX
-      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-      const part1 = Array.from({ length: 4 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
-      const part2 = Array.from({ length: 4 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
-      const token = `FLIQK-${part1}-${part2}`;
+      // Generate token: 6 random characters (letters, numbers, special chars)
+      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789!@#$%&*';
+      const token = Array.from({ length: 6 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
 
       const { error } = await supabase
         .from('invite_tokens')

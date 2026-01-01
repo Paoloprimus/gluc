@@ -229,9 +229,10 @@ export function LoginPage({ onLogin, onBack }: LoginPageProps) {
                 <input
                   type="text"
                   value={token}
-                  onChange={(e) => setToken(e.target.value.toUpperCase())}
-                  placeholder={t('tokenPlaceholder')}
-                  className="w-full p-3 rounded-xl bg-[var(--card-bg)] border border-[var(--card-border)] focus:border-[var(--accent-primary)] transition-colors font-mono"
+                  onChange={(e) => setToken(e.target.value)}
+                  placeholder="Ab3!xZ"
+                  maxLength={6}
+                  className="w-full p-3 rounded-xl bg-[var(--card-bg)] border border-[var(--card-border)] focus:border-[var(--accent-primary)] transition-colors font-mono text-center text-xl tracking-widest"
                 />
               </label>
 

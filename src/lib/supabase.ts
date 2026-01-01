@@ -32,7 +32,7 @@ export async function validateInviteToken(token: string): Promise<boolean> {
   const { data, error } = await supabase.client
     .from('invite_tokens')
     .select('*')
-    .eq('token', token.toUpperCase())
+    .eq('token', token)
     .eq('used', false)
     .single();
   
@@ -53,7 +53,7 @@ export async function registerUser(nickname: string, token: string): Promise<{ s
   const { data: tokenData, error: tokenError } = await supabase.client
     .from('invite_tokens')
     .select('*')
-    .eq('token', token.toUpperCase())
+    .eq('token', token)
     .eq('used', false)
     .single();
   
