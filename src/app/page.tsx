@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo } from "react";
 import { AnimatePresence } from "framer-motion";
 import { useTranslations } from "next-intl";
 import { LoginPage } from "@/components/LoginPage";
+import { LandingPage } from "@/components/LandingPage";
 import { TopBar, ActivePage } from "@/components/TopBar";
 import { LinkCard } from "@/components/LinkCard";
 import { LinkEditor } from "@/components/LinkEditor";
@@ -27,6 +28,7 @@ export default function Home() {
   // Auth state
   const [session, setSessionState] = useState<Session | null>(null);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+  const [showLogin, setShowLogin] = useState(false);
 
   // App state
   const [activePage, setActivePage] = useState<ActivePage>("social");
@@ -242,9 +244,12 @@ export default function Home() {
     );
   }
 
-  // Show login if not authenticated
+  // Show landing or login if not authenticated
   if (!session) {
-    return <LoginPage onLogin={handleLogin} />;
+    if (showLogin) {
+      return <LoginPage onLogin={handleLogin} onBack={() => setShowLogin(false)} />;
+    }
+    return <LandingPage onGetStarted={() => setShowLogin(true)} />;
   }
 
   return (

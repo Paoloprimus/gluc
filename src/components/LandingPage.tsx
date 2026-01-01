@@ -12,8 +12,8 @@ const content = {
     hero: "Condividi ovunque,\nda un unico posto",
     subtitle: "Raccogli link, immagini e pensieri. Condividili su WhatsApp, Telegram, Instagram e TikTok con un tap.",
     watchVideo: "Guarda come funziona",
-    comingSoon: "Coming soon",
-    notifyMe: "Avvisami al lancio",
+    getStarted: "Inizia ora",
+    haveToken: "Ho un token d'invito",
     features: [
       { icon: Zap, title: "Veloce", desc: "Salva da qualsiasi pagina con un click" },
       { icon: Share2, title: "Multi-piattaforma", desc: "Un post, tutti i tuoi social" },
@@ -26,8 +26,8 @@ const content = {
     hero: "Teile überall,\nvon einem Ort aus",
     subtitle: "Sammle Links, Bilder und Gedanken. Teile sie auf WhatsApp, Telegram, Instagram und TikTok mit einem Tap.",
     watchVideo: "Schau wie es funktioniert",
-    comingSoon: "Demnächst verfügbar",
-    notifyMe: "Benachrichtige mich",
+    getStarted: "Jetzt starten",
+    haveToken: "Ich habe einen Einladungscode",
     features: [
       { icon: Zap, title: "Schnell", desc: "Speichere von jeder Seite mit einem Klick" },
       { icon: Share2, title: "Multi-Plattform", desc: "Ein Post, alle deine Socials" },
@@ -37,10 +37,12 @@ const content = {
   },
 };
 
-export default function LandingPage() {
+interface LandingPageProps {
+  onGetStarted: () => void;
+}
+
+export function LandingPage({ onGetStarted }: LandingPageProps) {
   const [lang, setLang] = useState<Lang>('it');
-  const [email, setEmail] = useState('');
-  const [submitted, setSubmitted] = useState(false);
 
   useEffect(() => {
     // Detect browser language
@@ -51,12 +53,6 @@ export default function LandingPage() {
   }, []);
 
   const t = content[lang];
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // TODO: Save email to waitlist
-    setSubmitted(true);
-  };
 
   return (
     <div className="min-h-screen bg-[#121212] text-[#e0e0e0]">
@@ -91,12 +87,12 @@ export default function LandingPage() {
               </button>
             </div>
             
-            <a 
-              href="/"
+            <button 
+              onClick={onGetStarted}
               className="text-sm font-medium text-white/60 hover:text-white transition-colors"
             >
               Login →
-            </a>
+            </button>
           </div>
         </div>
       </header>
@@ -148,40 +144,21 @@ export default function LandingPage() {
               </div>
             </motion.div>
 
-            {/* Coming Soon / Waitlist */}
+            {/* CTA */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4 }}
-              className="max-w-md mx-auto"
+              className="flex flex-col sm:flex-row items-center justify-center gap-4"
             >
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#BEFF00]/10 text-[#BEFF00] text-sm font-medium mb-6">
-                <Sparkles size={16} />
-                {t.comingSoon}
-              </div>
-
-              {!submitted ? (
-                <form onSubmit={handleSubmit} className="flex gap-2">
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="email@esempio.com"
-                    required
-                    className="flex-1 px-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:border-[#BEFF00]/50 focus:outline-none text-white placeholder:text-white/30"
-                  />
-                  <button
-                    type="submit"
-                    className="px-6 py-3 rounded-xl bg-[#BEFF00] text-black font-bold hover:bg-[#BEFF00]/90 transition-colors"
-                  >
-                    {t.notifyMe}
-                  </button>
-                </form>
-              ) : (
-                <div className="p-4 rounded-xl bg-[#BEFF00]/10 border border-[#BEFF00]/30">
-                  <p className="text-[#BEFF00] font-medium">✓ {lang === 'it' ? 'Ti avviseremo!' : 'Wir benachrichtigen dich!'}</p>
-                </div>
-              )}
+              <button
+                onClick={onGetStarted}
+                className="flex items-center gap-2 px-8 py-4 rounded-xl bg-[#BEFF00] text-black font-bold text-lg hover:bg-[#BEFF00]/90 transition-colors"
+              >
+                <Sparkles size={20} />
+                {t.getStarted}
+              </button>
+              <p className="text-sm text-white/40">{t.haveToken}</p>
             </motion.div>
           </div>
 

@@ -3,13 +3,14 @@
 import { useState, FormEvent } from "react";
 import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
-import { User, Ticket, FileCheck, Loader2, ArrowRight } from "lucide-react";
+import { User, Ticket, FileCheck, Loader2, ArrowRight, ArrowLeft } from "lucide-react";
 
 interface LoginPageProps {
   onLogin: (userId: string, nickname: string) => void;
+  onBack?: () => void;
 }
 
-export function LoginPage({ onLogin }: LoginPageProps) {
+export function LoginPage({ onLogin, onBack }: LoginPageProps) {
   const t = useTranslations('login');
   const tCommon = useTranslations('common');
   
@@ -68,6 +69,17 @@ export function LoginPage({ onLogin }: LoginPageProps) {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-[var(--background)]">
+      {/* Back to landing button */}
+      {onBack && (
+        <button
+          onClick={onBack}
+          className="fixed top-4 left-4 flex items-center gap-2 text-sm text-[var(--foreground-muted)] hover:text-[var(--foreground)] transition-colors"
+        >
+          <ArrowLeft size={18} />
+          <span className="hidden sm:inline">{tCommon('back')}</span>
+        </button>
+      )}
+      
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
