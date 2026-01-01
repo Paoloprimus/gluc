@@ -151,12 +151,17 @@
     "title": "Herunterladen",
     "whatToDownload": "Was möchtest du herunterladen?",
     "all": "Alle",
-    "byCollections": "Nach Sammlungen",
-    "byTags": "Nach Tags",
-    "selectCollections": "Sammlungen auswählen",
-    "selectTags": "Tags auswählen",
+    "criteria": "Kriterien",
+    "period": "Zeitraum",
+    "allTime": "Alle Zeit",
+    "last7days": "7 Tage",
+    "last30days": "30 Tage",
+    "last90days": "90 Tage",
+    "selectCollections": "Sammlungen",
+    "selectTags": "Tags",
     "downloadItems": "{count} Elemente herunterladen",
-    "noItems": "Keine Elemente zum Herunterladen"
+    "noItems": "Keine Elemente zum Herunterladen",
+    "downloaded": "Heruntergeladen!"
   },
   "stats": {
     "title": "Deine Statistiken",

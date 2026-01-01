@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslations } from "next-intl";
-import { X, Download, Check, FolderOpen, Tag } from "lucide-react";
+import { X, Download, Check, FolderOpen, Tag, Calendar, Filter } from "lucide-react";
 import type { FliqkLink, Collection } from "@/types";
 
 interface ExportModalProps {
@@ -13,17 +13,17 @@ interface ExportModalProps {
   onClose: () => void;
 }
 
-type FilterMode = "all" | "collections" | "tags";
+type FilterMode = "all" | "criteria";
+type PeriodFilter = "all" | "7days" | "30days" | "90days";
 
 export function ExportModal({ links, collections, isOpen, onClose }: ExportModalProps) {
   const t = useTranslations('export');
   const tCollections = useTranslations('collections');
-  const tEditor = useTranslations('editor');
-  const tCommon = useTranslations('common');
   
   const [filterMode, setFilterMode] = useState<FilterMode>("all");
   const [selectedCollections, setSelectedCollections] = useState<string[]>([]);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [periodFilter, setPeriodFilter] = useState<PeriodFilter>("all");
   const [exported, setExported] = useState(false);
 
   // Get all unique tags
@@ -35,24 +35,33 @@ export function ExportModal({ links, collections, isOpen, onClose }: ExportModal
 
   // Filter links based on selection
   const filteredLinks = useMemo(() => {
-    if (filterMode === "all") return links;
+    let result = links;
     
-    if (filterMode === "collections") {
-      if (selectedCollections.length === 0) return [];
-      return links.filter(link => 
+    // Filter by period
+    if (periodFilter !== "all") {
+      const now = new Date();
+      const daysMap = { "7days": 7, "30days": 30, "90days": 90 };
+      const days = daysMap[periodFilter];
+      const cutoff = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
+      result = result.filter(link => new Date(link.created_at) >= cutoff);
+    }
+    
+    // Filter by collections
+    if (selectedCollections.length > 0) {
+      result = result.filter(link => 
         link.collection_id && selectedCollections.includes(link.collection_id)
       );
     }
     
-    if (filterMode === "tags") {
-      if (selectedTags.length === 0) return [];
-      return links.filter(link => 
+    // Filter by tags
+    if (selectedTags.length > 0) {
+      result = result.filter(link => 
         link.tags.some(tag => selectedTags.includes(tag))
       );
     }
     
-    return links;
-  }, [links, filterMode, selectedCollections, selectedTags]);
+    return result;
+  }, [links, periodFilter, selectedCollections, selectedTags]);
 
   const toggleCollection = (id: string) => {
     setSelectedCollections(prev => 
@@ -68,7 +77,7 @@ export function ExportModal({ links, collections, isOpen, onClose }: ExportModal
 
   const generateHTML = (linksToExport: FliqkLink[]): string => {
     // Group by collection if filtering by collections
-    const groupByCollection = filterMode === "collections";
+    const groupByCollection = selectedCollections.length > 0;
     
     let content = "";
     
@@ -100,8 +109,8 @@ export function ExportModal({ links, collections, isOpen, onClose }: ExportModal
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: #000;
-      color: #fafafa;
+      background: #1e1e1e;
+      color: #e0e0e0;
       min-height: 100vh;
       padding: 2rem;
     }
@@ -119,8 +128,8 @@ export function ExportModal({ links, collections, isOpen, onClose }: ExportModal
       border-bottom: 1px solid rgba(255,255,255,0.1);
     }
     .card {
-      background: rgba(255,255,255,0.03);
-      border: 1px solid rgba(255,255,255,0.1);
+      background: #2d2d2d;
+      border: 1px solid rgba(255,255,255,0.08);
       border-radius: 16px;
       padding: 1.5rem;
       margin-bottom: 1rem;
@@ -146,7 +155,7 @@ export function ExportModal({ links, collections, isOpen, onClose }: ExportModal
     }
     .card-content { flex: 1; min-width: 0; }
     .card h3 { font-size: 1.1rem; margin-bottom: 0.5rem; }
-    .card p { color: #a1a1aa; font-size: 0.9rem; margin-bottom: 0.75rem; }
+    .card p { color: #858585; font-size: 0.9rem; margin-bottom: 0.75rem; }
     .card a { color: #BEFF00; text-decoration: none; font-size: 0.85rem; word-break: break-all; }
     .card a:hover { text-decoration: underline; }
     .tags { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.75rem; }
@@ -160,7 +169,7 @@ export function ExportModal({ links, collections, isOpen, onClose }: ExportModal
     .footer {
       text-align: center;
       margin-top: 3rem;
-      color: #a1a1aa;
+      color: #858585;
       font-size: 0.85rem;
     }
     .no-link { color: #10b981; font-size: 0.85rem; }
@@ -219,6 +228,12 @@ export function ExportModal({ links, collections, isOpen, onClose }: ExportModal
     setTimeout(() => setExported(false), 2000);
   };
 
+  const resetFilters = () => {
+    setSelectedCollections([]);
+    setSelectedTags([]);
+    setPeriodFilter("all");
+  };
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -254,7 +269,10 @@ export function ExportModal({ links, collections, isOpen, onClose }: ExportModal
                 <p className="text-sm font-medium mb-3">{t('whatToDownload')}</p>
                 <div className="flex gap-2">
                   <button
-                    onClick={() => setFilterMode("all")}
+                    onClick={() => {
+                      setFilterMode("all");
+                      resetFilters();
+                    }}
                     className={`flex-1 p-2.5 rounded-lg text-sm font-medium transition-colors ${
                       filterMode === "all"
                         ? "bg-[var(--accent-primary)] text-black"
@@ -263,32 +281,17 @@ export function ExportModal({ links, collections, isOpen, onClose }: ExportModal
                   >
                     {t('all')}
                   </button>
-                  {collections.length > 0 && (
-                    <button
-                      onClick={() => setFilterMode("collections")}
-                      className={`flex-1 p-2.5 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-1 ${
-                        filterMode === "collections"
-                          ? "bg-[var(--accent-primary)] text-black"
-                          : "bg-[var(--card-bg)] text-[var(--foreground-muted)]"
-                      }`}
-                    >
-                      <FolderOpen size={14} />
-                      {t('byCollections')}
-                    </button>
-                  )}
-                  {allTags.length > 0 && (
-                    <button
-                      onClick={() => setFilterMode("tags")}
-                      className={`flex-1 p-2.5 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-1 ${
-                        filterMode === "tags"
-                          ? "bg-[var(--accent-primary)] text-black"
-                          : "bg-[var(--card-bg)] text-[var(--foreground-muted)]"
-                      }`}
-                    >
-                      <Tag size={14} />
-                      {t('byTags')}
-                    </button>
-                  )}
+                  <button
+                    onClick={() => setFilterMode("criteria")}
+                    className={`flex-1 p-2.5 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-1 ${
+                      filterMode === "criteria"
+                        ? "bg-[var(--accent-primary)] text-black"
+                        : "bg-[var(--card-bg)] text-[var(--foreground-muted)]"
+                    }`}
+                  >
+                    <Filter size={14} />
+                    {t('criteria')}
+                  </button>
                 </div>
               </div>
 
@@ -301,60 +304,87 @@ export function ExportModal({ links, collections, isOpen, onClose }: ExportModal
                   </div>
                 )}
 
-                {filterMode === "collections" && (
-                  <div className="space-y-2">
-                    <p className="text-sm text-[var(--foreground-muted)] mb-3">
-                      {t('selectCollections')}:
-                    </p>
-                    {collections.map(col => (
-                      <button
-                        key={col.id}
-                        onClick={() => toggleCollection(col.id)}
-                        className={`w-full flex items-center gap-3 p-3 rounded-xl transition-colors ${
-                          selectedCollections.includes(col.id)
-                            ? "bg-[var(--accent-primary)]/20 border border-[var(--accent-primary)]"
-                            : "bg-[var(--card-bg)] border border-transparent"
-                        }`}
-                      >
-                        <div 
-                          className="w-10 h-10 rounded-lg flex items-center justify-center text-xl"
-                          style={{ backgroundColor: `${col.color}20` }}
-                        >
-                          {col.emoji}
-                        </div>
-                        <div className="flex-1 text-left">
-                          <p className="font-medium">{col.name}</p>
-                          <p className="text-xs text-[var(--foreground-muted)]">
-                            {col.item_count || 0} {tCollections('items')}
-                          </p>
-                        </div>
-                        {selectedCollections.includes(col.id) && (
-                          <Check size={18} className="text-[var(--accent-primary)]" />
-                        )}
-                      </button>
-                    ))}
-                  </div>
-                )}
+                {filterMode === "criteria" && (
+                  <div className="space-y-6">
+                    {/* Period filter */}
+                    <div>
+                      <p className="text-sm font-medium flex items-center gap-2 mb-3">
+                        <Calendar size={14} />
+                        {t('period')}
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {(['all', '7days', '30days', '90days'] as const).map(period => (
+                          <button
+                            key={period}
+                            onClick={() => setPeriodFilter(period)}
+                            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                              periodFilter === period
+                                ? "bg-[var(--accent-primary)] text-black"
+                                : "bg-[var(--card-bg)] text-[var(--foreground-muted)]"
+                            }`}
+                          >
+                            {period === 'all' ? t('allTime') : 
+                             period === '7days' ? t('last7days') :
+                             period === '30days' ? t('last30days') : t('last90days')}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
 
-                {filterMode === "tags" && (
-                  <div>
-                    <p className="text-sm text-[var(--foreground-muted)] mb-3">
-                      {t('selectTags')}:
-                    </p>
-                    <div className="flex flex-wrap gap-2">
-                      {allTags.map(tag => (
-                        <button
-                          key={tag}
-                          onClick={() => toggleTag(tag)}
-                          className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
-                            selectedTags.includes(tag)
-                              ? "bg-[var(--accent-primary)] text-black"
-                              : "bg-[var(--card-bg)] text-[var(--foreground-muted)]"
-                          }`}
-                        >
-                          #{tag}
-                        </button>
-                      ))}
+                    {/* Collections filter */}
+                    {collections.length > 0 && (
+                      <div>
+                        <p className="text-sm font-medium flex items-center gap-2 mb-3">
+                          <FolderOpen size={14} />
+                          {t('selectCollections')}
+                        </p>
+                        <div className="flex flex-wrap gap-2">
+                          {collections.map(col => (
+                            <button
+                              key={col.id}
+                              onClick={() => toggleCollection(col.id)}
+                              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors flex items-center gap-1 ${
+                                selectedCollections.includes(col.id)
+                                  ? "bg-[var(--accent-primary)] text-black"
+                                  : "bg-[var(--card-bg)] text-[var(--foreground-muted)]"
+                              }`}
+                            >
+                              {col.emoji} {col.name}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Tags filter */}
+                    {allTags.length > 0 && (
+                      <div>
+                        <p className="text-sm font-medium flex items-center gap-2 mb-3">
+                          <Tag size={14} />
+                          {t('selectTags')}
+                        </p>
+                        <div className="flex flex-wrap gap-2">
+                          {allTags.map(tag => (
+                            <button
+                              key={tag}
+                              onClick={() => toggleTag(tag)}
+                              className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                                selectedTags.includes(tag)
+                                  ? "bg-[var(--accent-primary)] text-black"
+                                  : "bg-[var(--card-bg)] text-[var(--foreground-muted)]"
+                              }`}
+                            >
+                              #{tag}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Preview count */}
+                    <div className="text-center py-4 text-[var(--foreground-muted)] border-t border-[var(--card-border)]">
+                      <p className="text-2xl mb-1">{filteredLinks.length}</p>
+                      <p className="text-sm">{tCollections('items')}</p>
                     </div>
                   </div>
                 )}
@@ -372,7 +402,7 @@ export function ExportModal({ links, collections, isOpen, onClose }: ExportModal
                   {exported ? (
                     <>
                       <Check size={20} />
-                      <span>{tCommon('copied')}</span>
+                      <span>{t('downloaded')}</span>
                     </>
                   ) : filteredLinks.length === 0 ? (
                     <span>{t('noItems')}</span>

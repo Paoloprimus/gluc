@@ -151,12 +151,17 @@
     "title": "Scarica",
     "whatToDownload": "Cosa vuoi scaricare?",
     "all": "Tutti",
-    "byCollections": "Per raccolte",
-    "byTags": "Per tag",
-    "selectCollections": "Seleziona raccolte",
-    "selectTags": "Seleziona tag",
+    "criteria": "Criteri",
+    "period": "Periodo",
+    "allTime": "Sempre",
+    "last7days": "7 giorni",
+    "last30days": "30 giorni",
+    "last90days": "90 giorni",
+    "selectCollections": "Raccolte",
+    "selectTags": "Tag",
     "downloadItems": "Scarica {count} elementi",
-    "noItems": "Nessun elemento da scaricare"
+    "noItems": "Nessun elemento da scaricare",
+    "downloaded": "Scaricato!"
   },
   "stats": {
     "title": "Le tue statistiche",

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { AnimatePresence } from "framer-motion";
+import { useTranslations } from "next-intl";
 import { LoginPage } from "@/components/LoginPage";
 import { TopBar, ActivePage } from "@/components/TopBar";
 import { LinkCard } from "@/components/LinkCard";
@@ -21,6 +22,8 @@ import { Plus } from "lucide-react";
 type ViewMode = 'list' | 'editor';
 
 export default function Home() {
+  const t = useTranslations('list');
+  
   // Auth state
   const [session, setSessionState] = useState<Session | null>(null);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
@@ -297,11 +300,11 @@ export default function Home() {
                           onClick={() => setStatusFilter(status)}
                           className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                             statusFilter === status
-                              ? "bg-[var(--accent-purple)] text-white"
+                              ? "bg-[var(--accent-purple)] text-black"
                               : "bg-[var(--card-bg)] text-[var(--foreground-muted)] hover:text-[var(--foreground)]"
                           }`}
                         >
-                          {status === 'all' ? 'Tutti' : status === 'sent' ? '📤 Inviati' : '📝 Bozze'}
+                          {status === 'all' ? t('all') : status === 'sent' ? t('sent') : t('drafts')}
                         </button>
                       ))}
                     </div>
@@ -375,9 +378,9 @@ export default function Home() {
             setInitialUrl(null);
             setViewMode("editor");
           }}
-          className="fixed bottom-6 right-6 w-14 h-14 rounded-full bg-gradient-to-r from-[var(--accent-purple)] to-[var(--accent-pink)] text-white shadow-lg flex items-center justify-center hover:shadow-xl transition-shadow"
+          className="fixed bottom-6 right-6 w-14 h-14 rounded-full bg-[var(--accent-purple)] text-black shadow-lg flex items-center justify-center hover:shadow-xl transition-shadow"
         >
-          <Plus size={24} />
+          <Plus size={24} strokeWidth={3} />
         </button>
       )}
 
