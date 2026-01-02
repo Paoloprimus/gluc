@@ -1,9 +1,11 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { useTranslations } from "next-intl";
 import { Link2, Sparkles, Zap } from "lucide-react";
 
 export function EmptyState() {
+  const t = useTranslations('list');
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -52,10 +54,10 @@ export function EmptyState() {
 
       {/* Text */}
       <h2 className="text-2xl font-bold mb-2">
-        Nessun contenuto
+        {t('noLinks')}
       </h2>
       <p className="text-[var(--foreground-muted)] max-w-sm">
-        Tap sul + per creare il tuo primo post
+        {t('noLinksDescription')}
       </p>
     </motion.div>
   );
