@@ -47,7 +47,7 @@ export async function registerUser(nickname: string, token: string): Promise<{ s
     .single();
   
   if (existingUser) {
-    return { success: false, error: 'Nickname già in uso' };
+    return { success: false, error: 'nicknameInUse' };
   }
   
   const { data: tokenData, error: tokenError } = await supabase.client
@@ -58,7 +58,7 @@ export async function registerUser(nickname: string, token: string): Promise<{ s
     .single();
   
   if (tokenError || !tokenData) {
-    return { success: false, error: 'Token non valido o già utilizzato' };
+    return { success: false, error: 'invalidToken' };
   }
   
   // Get role from token (default to 'tester' for backward compatibility)

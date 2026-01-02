@@ -35,7 +35,10 @@ export function LoginPage({ onLogin, onBack }: LoginPageProps) {
       if (result.success && result.userId) {
         onLogin(result.userId, nickname.trim().toLowerCase());
       } else {
-        setError(result.error || t('registrationError'));
+        // Translate error codes
+        const errorKey = result.error || 'registrationError';
+        const translatedError = t(errorKey as 'nicknameInUse' | 'invalidToken' | 'registrationError');
+        setError(translatedError);
       }
     } catch {
       setError(t('connectionError'));

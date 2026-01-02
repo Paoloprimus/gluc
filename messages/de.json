@@ -46,7 +46,9 @@
     "start": "Starten",
     "userNotFound": "Benutzer nicht gefunden",
     "connectionError": "Verbindungsfehler",
-    "registrationError": "Fehler bei der Registrierung"
+    "registrationError": "Fehler bei der Registrierung",
+    "nicknameInUse": "Nickname bereits vergeben",
+    "invalidToken": "Token ungültig oder bereits verwendet"
   },
   "nav": {
     "social": "Social",
