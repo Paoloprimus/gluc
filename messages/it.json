@@ -133,7 +133,10 @@
     "noLinksDescription": "Tap sul + per creare il tuo primo post",
     "createFirst": "Crea il primo",
     "searchPlaceholder": "Cerca...",
-    "filterByTag": "Filtra per tag"
+    "filterByTag": "Filtra per tag",
+    "clearFilters": "Pulisci filtri",
+    "tagsSelected": "{count} tag selezionati",
+    "searchFor": "Ricerca: \"{query}\""
   },
   "card": {
     "open": "Apri",
@@ -218,7 +221,8 @@
     "copyCodeManually": "Copia codice manualmente",
     "codeCopied": "Codice copiato!",
     "bookmarkletTip": "Se il trascinamento non funziona: copia il codice, poi in Chrome click destro sulla barra preferiti → \"Aggiungi pagina\" → incolla nel campo URL",
-    "mobileTip": "Su mobile: Installa fliqk come app, poi usa \"Condividi\" → \"fliqk\""
+    "mobileTip": "Su mobile: Installa fliqk come app, poi usa \"Condividi\" → \"fliqk\"",
+    "adminDescription": "Gestione utenti e token"
   },
   "share": {
     "title": "Condividi",

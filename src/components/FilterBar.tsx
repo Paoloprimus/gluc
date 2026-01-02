@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTranslations } from "next-intl";
 import { Search, X, SlidersHorizontal } from "lucide-react";
 
 interface FilterBarProps {
@@ -19,6 +20,7 @@ export function FilterBar({
   onTagToggle,
   allTags,
 }: FilterBarProps) {
+  const t = useTranslations('list');
   const [showFilters, setShowFilters] = useState(false);
 
   if (allTags.length === 0 && !searchQuery) {
@@ -35,7 +37,7 @@ export function FilterBar({
             type="text"
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
-            placeholder="Cerca nei link..."
+            placeholder={t('searchPlaceholder')}
             className="flex-1 bg-transparent text-sm outline-none placeholder:text-[var(--foreground-muted)]"
           />
           {searchQuery && (
@@ -100,7 +102,7 @@ export function FilterBar({
                   onClick={() => selectedTags.forEach(onTagToggle)}
                   className="px-3 py-1.5 rounded-full text-sm text-[var(--foreground-muted)] hover:text-red-500 transition-colors"
                 >
-                  Pulisci filtri
+                  {t('clearFilters')}
                 </button>
               )}
             </div>
@@ -115,9 +117,9 @@ export function FilterBar({
           animate={{ opacity: 1 }}
           className="text-xs text-[var(--foreground-muted)]"
         >
-          {selectedTags.length > 0 && `${selectedTags.length} tag selezionati`}
+          {selectedTags.length > 0 && t('tagsSelected', { count: selectedTags.length })}
           {selectedTags.length > 0 && searchQuery && " • "}
-          {searchQuery && `Ricerca: "${searchQuery}"`}
+          {searchQuery && t('searchFor', { query: searchQuery })}
         </motion.p>
       )}
     </div>

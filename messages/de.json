@@ -133,7 +133,10 @@
     "noLinksDescription": "Tippe auf + um deinen ersten Post zu erstellen",
     "createFirst": "Ersten erstellen",
     "searchPlaceholder": "Suchen...",
-    "filterByTag": "Nach Tag filtern"
+    "filterByTag": "Nach Tag filtern",
+    "clearFilters": "Filter löschen",
+    "tagsSelected": "{count} Tags ausgewählt",
+    "searchFor": "Suche: \"{query}\""
   },
   "card": {
     "open": "Öffnen",
@@ -218,7 +221,8 @@
     "copyCodeManually": "Code manuell kopieren",
     "codeCopied": "Code kopiert!",
     "bookmarkletTip": "Falls das Ziehen nicht funktioniert: Code kopieren, dann in Chrome Rechtsklick auf Lesezeichenleiste → \"Seite hinzufügen\" → im URL-Feld einfügen",
-    "mobileTip": "Auf Mobilgeräten: Installiere fliqk als App, dann nutze \"Teilen\" → \"fliqk\""
+    "mobileTip": "Auf Mobilgeräten: Installiere fliqk als App, dann nutze \"Teilen\" → \"fliqk\"",
+    "adminDescription": "Benutzer- und Token-Verwaltung"
   },
   "share": {
     "title": "Teilen",

@@ -231,7 +231,7 @@ export function SettingsPage({ preferences, onUpdatePreferences, isAdmin }: Sett
             <Shield size={20} className="text-red-500" />
             <div>
               <span className="font-semibold text-red-500">Admin Dashboard</span>
-              <p className="text-xs text-[var(--foreground-muted)]">Gestione utenti e token</p>
+              <p className="text-xs text-[var(--foreground-muted)]">{t('adminDescription')}</p>
             </div>
           </div>
         </motion.a>
