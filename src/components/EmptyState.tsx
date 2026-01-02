@@ -52,31 +52,11 @@ export function EmptyState() {
 
       {/* Text */}
       <h2 className="text-2xl font-bold mb-2">
-        Nessun link ancora
+        Nessun contenuto
       </h2>
-      <p className="text-[var(--foreground-muted)] max-w-sm mb-8">
-        Incolla il tuo primo link qui sopra e l&apos;AI lo analizzerà automaticamente con tag e descrizione
+      <p className="text-[var(--foreground-muted)] max-w-sm">
+        Tap sul + per creare il tuo primo post
       </p>
-
-      {/* Feature hints */}
-      <div className="flex flex-wrap justify-center gap-3">
-        {[
-          { icon: "🏷️", text: "Tag automatici" },
-          { icon: "📝", text: "Descrizioni AI" },
-          { icon: "📤", text: "Condividi ovunque" },
-        ].map((feature, i) => (
-          <motion.div
-            key={feature.text}
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.3 + i * 0.1 }}
-            className="flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--card-bg)] border border-[var(--card-border)]"
-          >
-            <span>{feature.icon}</span>
-            <span className="text-sm text-[var(--foreground-muted)]">{feature.text}</span>
-          </motion.div>
-        ))}
-      </div>
     </motion.div>
   );
 }
