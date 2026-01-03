@@ -29,19 +29,21 @@ export function ShareSheet({ link, isOpen, onClose, onClickTracked }: ShareSheet
   const formatPost = (platform: 'whatsapp' | 'telegram' | 'instagram' | 'tiktok') => {
     const tags = link.tags.slice(0, 5).map(t => `#${t}`).join(" ");
     const emoji = link.thumbnail_type === "emoji" ? link.custom_thumbnail : "✨";
-    const urlPart = hasUrl ? `\n\n👉 ${link.url}` : "";
     
     switch (platform) {
       case 'whatsapp':
+        // URL added separately, WhatsApp will auto-preview
+        return `${emoji} *${link.title}*\n\n${link.description || ""}${tags ? `\n\n${tags}` : ""}${hasUrl ? `\n\n${link.url}` : ""}\n\n_via fliqk_`;
+      
       case 'telegram':
-        return `${emoji} *${link.title}*\n\n${link.description || ""}${tags ? `\n\n${tags}` : ""}${urlPart}`;
+        return `${emoji} *${link.title}*\n\n${link.description || ""}${tags ? `\n\n${tags}` : ""}${hasUrl ? `\n\n${link.url}` : ""}\n\n_via fliqk_`;
       
       case 'instagram':
       case 'tiktok':
-        return `${emoji} ${link.title}\n\n${link.description || ""}${tags ? `\n\n${tags}` : ""}${hasUrl ? "\n\n🔗 Link in bio" : ""}`;
+        return `${emoji} ${link.title}\n\n${link.description || ""}${tags ? `\n\n${tags}` : ""}${hasUrl ? "\n\n🔗 Link in bio" : ""}\n\nvia fliqk`;
       
       default:
-        return `${link.title}\n\n${link.description || ""}${urlPart}`;
+        return `${link.title}\n\n${link.description || ""}${hasUrl ? `\n\n${link.url}` : ""}\n\nvia fliqk`;
     }
   };
 

@@ -104,7 +104,12 @@ export function LinkEditor({
     let text = `${emoji} *${title.trim() || tCommon('post')}*`;
     if (description.trim()) text += `\n\n${description.trim()}`;
     if (tagsText) text += `\n\n${tagsText}`;
-    if (finalUrl) text += `\n\n👉 ${finalUrl}`;
+    // URL is included separately in share, no need for text link
+    if (finalUrl && platform === 'whatsapp') {
+      // WhatsApp will auto-preview the URL, just add it without emoji
+      text += `\n\n${finalUrl}`;
+    }
+    text += `\n\n_via fliqk_`;
     
     return text;
   };
