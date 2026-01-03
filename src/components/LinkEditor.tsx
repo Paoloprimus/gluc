@@ -109,7 +109,7 @@ export function LinkEditor({
       // WhatsApp will auto-preview the URL, just add it without emoji
       text += `\n\n${finalUrl}`;
     }
-    text += `\n\n_via fliqk_`;
+    text += `\n\n🟩 _via fliqk.to_`;
     
     return text;
   };

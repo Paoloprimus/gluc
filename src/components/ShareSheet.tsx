@@ -33,17 +33,17 @@ export function ShareSheet({ link, isOpen, onClose, onClickTracked }: ShareSheet
     switch (platform) {
       case 'whatsapp':
         // URL added separately, WhatsApp will auto-preview
-        return `${emoji} *${link.title}*\n\n${link.description || ""}${tags ? `\n\n${tags}` : ""}${hasUrl ? `\n\n${link.url}` : ""}\n\n_via fliqk_`;
+        return `${emoji} *${link.title}*\n\n${link.description || ""}${tags ? `\n\n${tags}` : ""}${hasUrl ? `\n\n${link.url}` : ""}\n\n🟩 _via fliqk.to_`;
       
       case 'telegram':
-        return `${emoji} *${link.title}*\n\n${link.description || ""}${tags ? `\n\n${tags}` : ""}${hasUrl ? `\n\n${link.url}` : ""}\n\n_via fliqk_`;
+        return `${emoji} *${link.title}*\n\n${link.description || ""}${tags ? `\n\n${tags}` : ""}${hasUrl ? `\n\n${link.url}` : ""}\n\n🟩 _via fliqk.to_`;
       
       case 'instagram':
       case 'tiktok':
-        return `${emoji} ${link.title}\n\n${link.description || ""}${tags ? `\n\n${tags}` : ""}${hasUrl ? "\n\n🔗 Link in bio" : ""}\n\nvia fliqk`;
+        return `${emoji} ${link.title}\n\n${link.description || ""}${tags ? `\n\n${tags}` : ""}${hasUrl ? "\n\n🔗 Link in bio" : ""}\n\n🟩 via fliqk.to`;
       
       default:
-        return `${link.title}\n\n${link.description || ""}${hasUrl ? `\n\n${link.url}` : ""}\n\nvia fliqk`;
+        return `${link.title}\n\n${link.description || ""}${hasUrl ? `\n\n${link.url}` : ""}\n\n🟩 via fliqk.to`;
     }
   };
 
