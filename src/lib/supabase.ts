@@ -405,6 +405,52 @@ export async function addToCollection(linkId: string, collectionId: string | nul
   return !error;
 }
 
+// Auto-assign collection based on first tag (called when post is sent)
+export async function autoAssignCollection(userId: string, linkId: string, tags: string[]): Promise<void> {
+  if (!tags || tags.length === 0) return;
+  
+  const firstTag = tags[0].toLowerCase();
+  
+  // Check if collection with this name exists
+  const { data: existingCollection } = await supabase.client
+    .from('collections')
+    .select('id')
+    .eq('user_id', userId)
+    .eq('name', firstTag)
+    .single();
+  
+  let collectionId: string;
+  
+  if (existingCollection) {
+    collectionId = existingCollection.id;
+  } else {
+    // Create new collection with tag name
+    // Pick a color based on tag name hash
+    const colors = ['#BEFF00', '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD', '#98D8C8'];
+    const colorIndex = firstTag.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % colors.length;
+    
+    const { data: newCollection } = await supabase.client
+      .from('collections')
+      .insert({
+        user_id: userId,
+        name: firstTag,
+        emoji: '📁',
+        color: colors[colorIndex]
+      })
+      .select()
+      .single();
+    
+    if (!newCollection) return;
+    collectionId = newCollection.id;
+  }
+  
+  // Assign link to collection
+  await supabase.client
+    .from('links')
+    .update({ collection_id: collectionId })
+    .eq('id', linkId);
+}
+
 // =============================================
 // Stats Functions
 // =============================================

@@ -22,7 +22,7 @@ import {
   Share2
 } from "lucide-react";
 import type { FliqkLink, NewLink, ThumbnailType, PostType } from "@/types";
-import { uploadThumbnail, uploadMedia } from "@/lib/supabase";
+import { uploadThumbnail, uploadMedia, autoAssignCollection } from "@/lib/supabase";
 
 // Popular emoji for thumbnails
 const EMOJI_OPTIONS = ["🔥", "✨", "💡", "🎯", "🚀", "💎", "⭐", "❤️", "🎉", "👀", "💪", "🌟", "📌", "🔗", "💫", "🎨"];
@@ -101,15 +101,15 @@ export function LinkEditor({
       ? (url.startsWith("http") ? url : `https://${url}`)
       : null;
     
-    let text = `${emoji} *${title.trim() || tCommon('post')}*`;
+    // For link posts, put URL first so WhatsApp preview absorbs it
+    let text = '';
+    if (finalUrl) {
+      text = `${finalUrl}\n\n`;
+    }
+    text += `${emoji} *${title.trim() || tCommon('post')}*`;
     if (description.trim()) text += `\n\n${description.trim()}`;
     if (tagsText) text += `\n\n${tagsText}`;
-    // URL is included separately in share, no need for text link
-    if (finalUrl && platform === 'whatsapp') {
-      // WhatsApp will auto-preview the URL, just add it without emoji
-      text += `\n\n${finalUrl}`;
-    }
-    text += `\n\n🟩 _via fliqk.to_`;
+    text += `\n\n_shared via fliqk.to_`;
     
     return text;
   };
@@ -387,12 +387,17 @@ export function LinkEditor({
     return true;
   };
 
-  // Mark as sent after sharing
+  // Mark as sent after sharing and auto-assign to collection based on first tag
   const markAsSent = async () => {
     const postToUpdate = savedPost || link;
     if (postToUpdate && onUpdate && postToUpdate.status !== 'sent') {
       await onUpdate({ ...postToUpdate, status: 'sent' });
       setSavedPost({ ...postToUpdate, status: 'sent' });
+      
+      // Auto-assign to collection based on first tag
+      if (tags.length > 0) {
+        await autoAssignCollection(userId, postToUpdate.id, tags);
+      }
     }
   };
 
