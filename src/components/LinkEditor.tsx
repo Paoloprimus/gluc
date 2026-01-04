@@ -85,13 +85,14 @@ export function LinkEditor({
   const [includeUrlPreview, setIncludeUrlPreview] = useState(false); // Default: no preview card
   const [includeTitle, setIncludeTitle] = useState(false); // Default: no title in share
 
-  // Determine if content is valid for preview
+  // Determine if content is valid for preview - only description required (+ URL for link posts)
   const hasValidContent = () => {
-    if (postType === 'link') return url.trim() && title.trim();
-    if (postType === 'image') return (customThumbnail || thumbnailType === 'emoji') && title.trim();
-    if (postType === 'text') return title.trim() || description.trim();
-    if (postType === 'audio') return mediaUrl && title.trim();
-    if (postType === 'video') return mediaUrl && title.trim();
+    const hasDescription = description.trim().length > 0;
+    if (postType === 'link') return url.trim() && hasDescription;
+    if (postType === 'image') return (customThumbnail || thumbnailType === 'emoji') && hasDescription;
+    if (postType === 'text') return hasDescription;
+    if (postType === 'audio') return mediaUrl && hasDescription;
+    if (postType === 'video') return mediaUrl && hasDescription;
     return false;
   };
 
@@ -527,9 +528,13 @@ export function LinkEditor({
                     <Image size={48} className="text-[var(--foreground-muted)]" />
                   )}
                 </div>
-              ) : postType === 'link' && includeUrlPreview && getCurrentThumbnail() ? (
+              ) : postType === 'link' && includeUrlPreview ? (
                 <div className="w-full h-48 rounded-xl overflow-hidden bg-[var(--background-secondary)] mb-4 flex items-center justify-center">
-                  <img src={getCurrentThumbnail()!} alt="" className="w-full h-full object-cover" />
+                  {getCurrentThumbnail() ? (
+                    <img src={getCurrentThumbnail()!} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    <Link2 size={48} className="text-[var(--foreground-muted)]" />
+                  )}
                 </div>
               ) : null}
               
@@ -1057,11 +1062,11 @@ export function LinkEditor({
               {/* Helper text */}
               {!hasValidContent() && (
                 <p className="text-center text-sm text-[var(--foreground-muted)]">
-                  {postType === 'link' && t('needUrlAndTitle')}
-                  {postType === 'image' && t('needImageAndTitle')}
-                  {postType === 'text' && t('needTitleOrDescription')}
-                  {postType === 'audio' && t('needAudioAndTitle')}
-                  {postType === 'video' && t('needVideoAndTitle')}
+                  {postType === 'link' && t('needUrlAndDescription')}
+                  {postType === 'image' && t('needImageAndDescription')}
+                  {postType === 'text' && t('needDescription')}
+                  {postType === 'audio' && t('needAudioAndDescription')}
+                  {postType === 'video' && t('needVideoAndDescription')}
                 </p>
               )}
             </div>
