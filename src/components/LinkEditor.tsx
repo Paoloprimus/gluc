@@ -497,9 +497,9 @@ export function LinkEditor({
           >
             <h2 className="text-xl font-bold">{t('previewPost')}</h2>
             
-            {/* Preview Card */}
+            {/* Preview Card - shows exactly what will be shared */}
             <div className="p-4 rounded-2xl bg-[var(--card-bg)] border border-[var(--card-border)]">
-              {/* Media Preview */}
+              {/* Media Preview - only for media posts OR link posts with preview enabled */}
               {postType === 'audio' && mediaUrl ? (
                 <div className="mb-4 p-4 rounded-xl bg-[var(--background-secondary)]">
                   <div className="flex items-center gap-3 mb-3">
@@ -517,36 +517,37 @@ export function LinkEditor({
                 <div className="mb-4 rounded-xl overflow-hidden bg-[var(--background-secondary)]">
                   <video src={mediaUrl} controls className="w-full" />
                 </div>
-              ) : (
+              ) : postType === 'image' ? (
                 <div className="w-full h-48 rounded-xl overflow-hidden bg-[var(--background-secondary)] mb-4 flex items-center justify-center">
                   {thumbnailType === "emoji" ? (
                     <span className="text-8xl">{selectedEmoji}</span>
                   ) : getCurrentThumbnail() ? (
                     <img src={getCurrentThumbnail()!} alt="" className="w-full h-full object-cover" />
-                  ) : postType === 'audio' ? (
-                    <Mic size={48} className="text-[var(--foreground-muted)]" />
-                  ) : postType === 'video' ? (
-                    <Video size={48} className="text-[var(--foreground-muted)]" />
                   ) : (
-                    <Link2 size={48} className="text-[var(--foreground-muted)]" />
+                    <Image size={48} className="text-[var(--foreground-muted)]" />
                   )}
                 </div>
-              )}
-              
-              <h3 className="font-bold text-lg mb-2">{title || t('titlePlaceholder')}</h3>
-              {description && <p className="text-[var(--foreground-muted)] mb-3">{description}</p>}
-              
-              {tags.length > 0 && (
-                <div className="flex flex-wrap gap-2 mb-3">
-                  {tags.map(tag => (
-                    <span key={tag} className="tag">#{tag}</span>
-                  ))}
+              ) : postType === 'link' && includeUrlPreview && getCurrentThumbnail() ? (
+                <div className="w-full h-48 rounded-xl overflow-hidden bg-[var(--background-secondary)] mb-4 flex items-center justify-center">
+                  <img src={getCurrentThumbnail()!} alt="" className="w-full h-full object-cover" />
                 </div>
+              ) : null}
+              
+              {/* Title - only if toggle is ON */}
+              {includeTitle && title && (
+                <h3 className="font-bold text-lg mb-2">{title}</h3>
               )}
               
+              {/* Description - main content */}
+              {description && <p className="text-[var(--foreground)] mb-3">{description}</p>}
+              
+              {/* Link notation for link posts */}
               {postType === 'link' && url && (
-                <p className="text-sm text-[var(--accent-primary)]">🔗 {url}</p>
+                <p className="text-[var(--foreground-muted)] mb-3">[{getDomainFromUrl(url)}]</p>
               )}
+              
+              {/* Branding */}
+              <p className="text-[var(--foreground-muted)] text-sm">shared via [[fliqk.to]]</p>
             </div>
 
             {/* Quick Share - Direct from preview */}
