@@ -37,27 +37,29 @@ export function ShareSheet({ link, isOpen, onClose, onClickTracked }: ShareSheet
   };
 
   const formatPost = (platform: 'whatsapp' | 'telegram' | 'instagram' | 'tiktok') => {
-    // Personal text (description is the main content)
-    const personalText = link.description || link.title || '';
+    const parts: string[] = [];
     
-    // Clean, minimal format with square bracket notation for links
-    const linkNotation = hasUrl ? `\n\n[${getDomainFromUrl(link.url!)}]` : '';
-    const branding = '\n\n[[fliqk.to]]';
-    
-    switch (platform) {
-      case 'whatsapp':
-      case 'telegram':
-        // Minimal format: personal text + [domain] + [[fliqk.to]]
-        return `${personalText}${linkNotation}${branding}`;
-      
-      case 'instagram':
-      case 'tiktok':
-        // For copy-paste platforms, slightly different format
-        return `${personalText}${hasUrl ? "\n\n🔗 Link in bio" : ""}${branding}`;
-      
-      default:
-        return `${personalText}${linkNotation}${branding}`;
+    // Description (main content)
+    if (link.description) {
+      parts.push(link.description);
+    } else if (link.title) {
+      parts.push(link.title);
     }
+    
+    // Link notation
+    if (hasUrl) {
+      if (platform === 'instagram' || platform === 'tiktok') {
+        parts.push('🔗 Link in bio');
+      } else {
+        parts.push(`[${getDomainFromUrl(link.url!)}]`);
+      }
+    }
+    
+    // Branding
+    parts.push('shared via [[fliqk.to]]');
+    
+    // Compact format with single line breaks
+    return parts.join('\n');
   };
 
   const handleWhatsApp = () => {

@@ -83,6 +83,7 @@ export function LinkEditor({
   const [uploadingImage, setUploadingImage] = useState(false);
   const [copiedText, setCopiedText] = useState(false);
   const [includeUrlPreview, setIncludeUrlPreview] = useState(false); // Default: no preview card
+  const [includeTitle, setIncludeTitle] = useState(false); // Default: no title in share
 
   // Determine if content is valid for preview
   const hasValidContent = () => {
@@ -106,23 +107,29 @@ export function LinkEditor({
 
   // Format post for sharing - minimal, personal format
   const formatShareText = () => {
-    // Personal text (description is the main content, title optional)
-    const personalText = description.trim() || title.trim() || '';
+    const parts: string[] = [];
     
-    let text = personalText;
-    
-    // For link posts: add [domain.com] 
-    if (postType === 'link' && url.trim()) {
-      const fullUrl = url.startsWith('http') ? url : `https://${url}`;
-      const domain = getDomainFromUrl(url);
-      // Square brackets indicate it's a link - the URL is the actual clickable part
-      text += `\n\n[${domain}]`;
+    // Title (optional, default off)
+    if (includeTitle && title.trim()) {
+      parts.push(title.trim());
     }
     
-    // Always add fliqk branding with double brackets
-    text += `\n\n[[fliqk.to]]`;
+    // Description (main content)
+    if (description.trim()) {
+      parts.push(description.trim());
+    }
     
-    return text;
+    // For link posts: add [domain.com]
+    if (postType === 'link' && url.trim()) {
+      const domain = getDomainFromUrl(url);
+      parts.push(`[${domain}]`);
+    }
+    
+    // Fliqk branding - "shared via" not linkable, [[fliqk.to]] is the link
+    parts.push('shared via [[fliqk.to]]');
+    
+    // Join with single line breaks for compact format
+    return parts.join('\n');
   };
   
   // Get full URL for sharing (when user wants preview)
@@ -546,20 +553,36 @@ export function LinkEditor({
             <div className="p-4 rounded-xl bg-[var(--background-secondary)] border border-[var(--card-border)]">
               <p className="text-sm font-medium mb-3 text-center">{t('shareNow')}</p>
               
-              {/* Preview toggle - only for link posts */}
-              {postType === 'link' && url && (
-                <button
-                  onClick={() => setIncludeUrlPreview(!includeUrlPreview)}
-                  className={`w-full mb-3 p-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2 ${
-                    includeUrlPreview 
-                      ? 'bg-[var(--accent-primary)] text-black' 
-                      : 'bg-[var(--card-bg)] border border-[var(--card-border)] text-[var(--foreground-muted)]'
-                  }`}
-                >
-                  <Eye size={16} />
-                  {includeUrlPreview ? t('previewOn') : t('previewOff')}
-                </button>
-              )}
+              {/* Share options toggles */}
+              <div className="flex gap-2 mb-3">
+                {/* Title toggle */}
+                {title.trim() && (
+                  <button
+                    onClick={() => setIncludeTitle(!includeTitle)}
+                    className={`flex-1 p-2 rounded-lg text-xs font-medium transition-colors ${
+                      includeTitle 
+                        ? 'bg-[var(--accent-primary)] text-black' 
+                        : 'bg-[var(--card-bg)] border border-[var(--card-border)] text-[var(--foreground-muted)]'
+                    }`}
+                  >
+                    {includeTitle ? '✓ ' : '+ '}{t('title')}
+                  </button>
+                )}
+                
+                {/* Preview toggle - only for link posts */}
+                {postType === 'link' && url && (
+                  <button
+                    onClick={() => setIncludeUrlPreview(!includeUrlPreview)}
+                    className={`flex-1 p-2 rounded-lg text-xs font-medium transition-colors ${
+                      includeUrlPreview 
+                        ? 'bg-[var(--accent-primary)] text-black' 
+                        : 'bg-[var(--card-bg)] border border-[var(--card-border)] text-[var(--foreground-muted)]'
+                    }`}
+                  >
+                    {includeUrlPreview ? '✓ ' : '+ '}{t('preview')}
+                  </button>
+                )}
+              </div>
               
               {/* Native Share (with file support) - Show prominently for media posts */}
               {(postType === 'image' || postType === 'audio' || postType === 'video') && typeof navigator !== 'undefined' && 'share' in navigator && (
