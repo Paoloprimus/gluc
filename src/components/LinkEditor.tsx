@@ -82,6 +82,7 @@ export function LinkEditor({
   const [fetchingMeta, setFetchingMeta] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [copiedText, setCopiedText] = useState(false);
+  const [includeUrlPreview, setIncludeUrlPreview] = useState(false); // Default: no preview card
 
   // Determine if content is valid for preview
   const hasValidContent = () => {
@@ -93,20 +94,38 @@ export function LinkEditor({
     return false;
   };
 
-  // Format post for sharing (no URL in text - cleaner, WhatsApp handles link preview separately)
+  // Extract domain from URL for clean display
+  const getDomainFromUrl = (urlString: string): string => {
+    try {
+      const urlObj = new URL(urlString.startsWith('http') ? urlString : `https://${urlString}`);
+      return urlObj.hostname.replace('www.', '');
+    } catch {
+      return urlString;
+    }
+  };
+
+  // Format post for sharing - minimal, personal format
   const formatShareText = () => {
-    const tagsText = tags.slice(0, 5).map(t => `#${t}`).join(" ");
-    const emoji = thumbnailType === "emoji" ? selectedEmoji : "✨";
+    // Personal text (description is the main content, title optional)
+    const personalText = description.trim() || title.trim() || '';
     
-    let text = `${emoji} *${title.trim() || tCommon('post')}*`;
-    if (description.trim()) text += `\n\n${description.trim()}`;
-    if (tagsText) text += `\n\n${tagsText}`;
-    text += `\n\n_shared via fliqk.to_`;
+    let text = personalText;
+    
+    // For link posts: add [domain.com] 
+    if (postType === 'link' && url.trim()) {
+      const fullUrl = url.startsWith('http') ? url : `https://${url}`;
+      const domain = getDomainFromUrl(url);
+      // Square brackets indicate it's a link - the URL is the actual clickable part
+      text += `\n\n[${domain}]`;
+    }
+    
+    // Always add fliqk branding with double brackets
+    text += `\n\n[[fliqk.to]]`;
     
     return text;
   };
   
-  // Get URL for sharing
+  // Get full URL for sharing (when user wants preview)
   const getShareUrl = () => {
     if (postType === 'link' && url.trim()) {
       return url.startsWith("http") ? url : `https://${url}`;
@@ -121,10 +140,11 @@ export function LinkEditor({
     const text = formatShareText();
     const shareUrl = getShareUrl();
     
-    // WhatsApp: share just the text, the URL preview is generated automatically
-    if (shareUrl) {
+    // If user wants preview AND it's a link post, include full URL for preview card
+    if (includeUrlPreview && shareUrl) {
       window.open(`https://wa.me/?text=${encodeURIComponent(text + '\n\n' + shareUrl)}`, '_blank');
     } else {
+      // Default: just the clean text with [domain] notation
       window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
     }
     
@@ -138,10 +158,12 @@ export function LinkEditor({
     const text = formatShareText();
     const shareUrl = getShareUrl();
     
-    const telegramUrl = shareUrl 
-      ? `https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(text)}`
-      : `https://t.me/share/url?text=${encodeURIComponent(text)}`;
-    window.open(telegramUrl, '_blank');
+    // If user wants preview AND it's a link post
+    if (includeUrlPreview && shareUrl) {
+      window.open(`https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(text)}`, '_blank');
+    } else {
+      window.open(`https://t.me/share/url?text=${encodeURIComponent(text)}`, '_blank');
+    }
     
     await markAsSent(savedLink);
   };
@@ -150,9 +172,11 @@ export function LinkEditor({
     const savedLink = await ensureSaved();
     if (!savedLink) return;
     
-    const text = formatShareText().replace(/\*/g, ''); // Remove markdown
+    const text = formatShareText();
     const shareUrl = getShareUrl();
-    const fullText = shareUrl ? `${text}\n\n${shareUrl}` : text;
+    
+    // Include full URL only if preview is enabled
+    const fullText = (includeUrlPreview && shareUrl) ? `${text}\n\n${shareUrl}` : text;
     
     await navigator.clipboard.writeText(fullText);
     setCopiedText(true);
@@ -521,6 +545,21 @@ export function LinkEditor({
             {/* Quick Share - Direct from preview */}
             <div className="p-4 rounded-xl bg-[var(--background-secondary)] border border-[var(--card-border)]">
               <p className="text-sm font-medium mb-3 text-center">{t('shareNow')}</p>
+              
+              {/* Preview toggle - only for link posts */}
+              {postType === 'link' && url && (
+                <button
+                  onClick={() => setIncludeUrlPreview(!includeUrlPreview)}
+                  className={`w-full mb-3 p-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2 ${
+                    includeUrlPreview 
+                      ? 'bg-[var(--accent-primary)] text-black' 
+                      : 'bg-[var(--card-bg)] border border-[var(--card-border)] text-[var(--foreground-muted)]'
+                  }`}
+                >
+                  <Eye size={16} />
+                  {includeUrlPreview ? t('previewOn') : t('previewOff')}
+                </button>
+              )}
               
               {/* Native Share (with file support) - Show prominently for media posts */}
               {(postType === 'image' || postType === 'audio' || postType === 'video') && typeof navigator !== 'undefined' && 'share' in navigator && (

@@ -123,7 +123,9 @@
     "imageType": "🖼️ Bild",
     "audioType": "Audio",
     "videoType": "Video",
-    "textType": "✏️ Text"
+    "textType": "✏️ Text",
+    "previewOn": "✓ Mit Link-Vorschau",
+    "previewOff": "+ Vorschau hinzufügen"
   },
   "list": {
     "all": "Alle",

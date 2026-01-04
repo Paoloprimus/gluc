@@ -26,25 +26,37 @@ export function ShareSheet({ link, isOpen, onClose, onClickTracked }: ShareSheet
 
   const hasUrl = !!link.url;
 
+  // Extract domain from URL for clean display
+  const getDomainFromUrl = (urlString: string): string => {
+    try {
+      const urlObj = new URL(urlString.startsWith('http') ? urlString : `https://${urlString}`);
+      return urlObj.hostname.replace('www.', '');
+    } catch {
+      return urlString;
+    }
+  };
+
   const formatPost = (platform: 'whatsapp' | 'telegram' | 'instagram' | 'tiktok') => {
-    const tags = link.tags.slice(0, 5).map(t => `#${t}`).join(" ");
-    const emoji = link.thumbnail_type === "emoji" ? link.custom_thumbnail : "✨";
+    // Personal text (description is the main content)
+    const personalText = link.description || link.title || '';
     
-    // Text content WITHOUT URL - URL is added at the end so WhatsApp creates preview
-    const textContent = `${emoji} *${link.title}*${link.description ? `\n\n${link.description}` : ""}${tags ? `\n\n${tags}` : ""}\n\n_shared via fliqk.to_`;
+    // Clean, minimal format with square bracket notation for links
+    const linkNotation = hasUrl ? `\n\n[${getDomainFromUrl(link.url!)}]` : '';
+    const branding = '\n\n[[fliqk.to]]';
     
     switch (platform) {
       case 'whatsapp':
       case 'telegram':
-        // Add URL at end - WhatsApp will show preview but not duplicate it as text
-        return hasUrl ? `${textContent}\n\n${link.url}` : textContent;
+        // Minimal format: personal text + [domain] + [[fliqk.to]]
+        return `${personalText}${linkNotation}${branding}`;
       
       case 'instagram':
       case 'tiktok':
-        return `${emoji} ${link.title}${link.description ? `\n\n${link.description}` : ""}${tags ? `\n\n${tags}` : ""}${hasUrl ? "\n\n🔗 Link in bio" : ""}\n\nshared via fliqk.to`;
+        // For copy-paste platforms, slightly different format
+        return `${personalText}${hasUrl ? "\n\n🔗 Link in bio" : ""}${branding}`;
       
       default:
-        return hasUrl ? `${textContent}\n\n${link.url}` : textContent;
+        return `${personalText}${linkNotation}${branding}`;
     }
   };
 

@@ -159,7 +159,51 @@ export async function addLink(userId: string, link: NewLink): Promise<{ data: Fl
     .select()
     .single();
   
+  // Auto-assign to "pensieri" collection for text drafts
+  if (data && link.post_type === 'text' && link.status === 'draft') {
+    // Import happens at runtime, so we call the function directly below
+    await autoAssignThoughtsCollectionInternal(userId, data.id);
+  }
+  
   return { data: data as FliqkLink | null, error: error as Error | null };
+}
+
+// Internal version without status check (used right after insert)
+async function autoAssignThoughtsCollectionInternal(userId: string, linkId: string): Promise<void> {
+  // Check if "pensieri" collection exists
+  const { data: existingCollection } = await supabase.client
+    .from('collections')
+    .select('id')
+    .eq('user_id', userId)
+    .eq('name', 'pensieri')
+    .single();
+  
+  let collectionId: string;
+  
+  if (existingCollection) {
+    collectionId = existingCollection.id;
+  } else {
+    // Create "pensieri" collection
+    const { data: newCollection } = await supabase.client
+      .from('collections')
+      .insert({
+        user_id: userId,
+        name: 'pensieri',
+        emoji: '💭',
+        color: '#9CA3AF'
+      })
+      .select()
+      .single();
+    
+    if (!newCollection) return;
+    collectionId = newCollection.id;
+  }
+  
+  // Assign link to pensieri collection
+  await supabase.client
+    .from('links')
+    .update({ collection_id: collectionId })
+    .eq('id', linkId);
 }
 
 export async function updateLink(linkId: string, updates: Partial<FliqkLink>): Promise<boolean> {
