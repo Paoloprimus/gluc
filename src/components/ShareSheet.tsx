@@ -30,20 +30,21 @@ export function ShareSheet({ link, isOpen, onClose, onClickTracked }: ShareSheet
     const tags = link.tags.slice(0, 5).map(t => `#${t}`).join(" ");
     const emoji = link.thumbnail_type === "emoji" ? link.custom_thumbnail : "✨";
     
-    // For link posts, put URL first so preview absorbs it
-    const urlPrefix = hasUrl ? `${link.url}\n\n` : "";
+    // Text content WITHOUT URL - URL is added at the end so WhatsApp creates preview
+    const textContent = `${emoji} *${link.title}*${link.description ? `\n\n${link.description}` : ""}${tags ? `\n\n${tags}` : ""}\n\n_shared via fliqk.to_`;
     
     switch (platform) {
       case 'whatsapp':
       case 'telegram':
-        return `${urlPrefix}${emoji} *${link.title}*\n\n${link.description || ""}${tags ? `\n\n${tags}` : ""}\n\n_shared via fliqk.to_`;
+        // Add URL at end - WhatsApp will show preview but not duplicate it as text
+        return hasUrl ? `${textContent}\n\n${link.url}` : textContent;
       
       case 'instagram':
       case 'tiktok':
-        return `${emoji} ${link.title}\n\n${link.description || ""}${tags ? `\n\n${tags}` : ""}${hasUrl ? "\n\n🔗 Link in bio" : ""}\n\nshared via fliqk.to`;
+        return `${emoji} ${link.title}${link.description ? `\n\n${link.description}` : ""}${tags ? `\n\n${tags}` : ""}${hasUrl ? "\n\n🔗 Link in bio" : ""}\n\nshared via fliqk.to`;
       
       default:
-        return `${urlPrefix}${link.title}\n\n${link.description || ""}\n\nshared via fliqk.to`;
+        return hasUrl ? `${textContent}\n\n${link.url}` : textContent;
     }
   };
 

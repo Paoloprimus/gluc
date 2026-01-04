@@ -93,51 +93,68 @@ export function LinkEditor({
     return false;
   };
 
-  // Format post for sharing
-  const formatShareText = (platform: 'whatsapp' | 'telegram') => {
+  // Format post for sharing (no URL in text - cleaner, WhatsApp handles link preview separately)
+  const formatShareText = () => {
     const tagsText = tags.slice(0, 5).map(t => `#${t}`).join(" ");
     const emoji = thumbnailType === "emoji" ? selectedEmoji : "✨";
-    const finalUrl = postType === 'link' && url.trim() 
-      ? (url.startsWith("http") ? url : `https://${url}`)
-      : null;
     
-    // For link posts, put URL first so WhatsApp preview absorbs it
-    let text = '';
-    if (finalUrl) {
-      text = `${finalUrl}\n\n`;
-    }
-    text += `${emoji} *${title.trim() || tCommon('post')}*`;
+    let text = `${emoji} *${title.trim() || tCommon('post')}*`;
     if (description.trim()) text += `\n\n${description.trim()}`;
     if (tagsText) text += `\n\n${tagsText}`;
     text += `\n\n_shared via fliqk.to_`;
     
     return text;
   };
+  
+  // Get URL for sharing
+  const getShareUrl = () => {
+    if (postType === 'link' && url.trim()) {
+      return url.startsWith("http") ? url : `https://${url}`;
+    }
+    return null;
+  };
 
   const handleShareWhatsApp = async () => {
-    await ensureSaved();
-    const text = formatShareText('whatsapp');
-    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
-    await markAsSent();
+    const savedLink = await ensureSaved();
+    if (!savedLink) return;
+    
+    const text = formatShareText();
+    const shareUrl = getShareUrl();
+    
+    // WhatsApp: share just the text, the URL preview is generated automatically
+    if (shareUrl) {
+      window.open(`https://wa.me/?text=${encodeURIComponent(text + '\n\n' + shareUrl)}`, '_blank');
+    } else {
+      window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+    }
+    
+    await markAsSent(savedLink);
   };
 
   const handleShareTelegram = async () => {
-    await ensureSaved();
-    const text = formatShareText('telegram');
-    const finalUrl = postType === 'link' && url.trim() 
-      ? (url.startsWith("http") ? url : `https://${url}`)
-      : null;
-    const telegramUrl = finalUrl 
-      ? `https://t.me/share/url?url=${encodeURIComponent(finalUrl)}&text=${encodeURIComponent(text)}`
+    const savedLink = await ensureSaved();
+    if (!savedLink) return;
+    
+    const text = formatShareText();
+    const shareUrl = getShareUrl();
+    
+    const telegramUrl = shareUrl 
+      ? `https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(text)}`
       : `https://t.me/share/url?text=${encodeURIComponent(text)}`;
     window.open(telegramUrl, '_blank');
-    await markAsSent();
+    
+    await markAsSent(savedLink);
   };
 
   const handleCopyText = async () => {
-    await ensureSaved();
-    const text = formatShareText('whatsapp').replace(/\*/g, ''); // Remove markdown
-    await navigator.clipboard.writeText(text);
+    const savedLink = await ensureSaved();
+    if (!savedLink) return;
+    
+    const text = formatShareText().replace(/\*/g, ''); // Remove markdown
+    const shareUrl = getShareUrl();
+    const fullText = shareUrl ? `${text}\n\n${shareUrl}` : text;
+    
+    await navigator.clipboard.writeText(fullText);
     setCopiedText(true);
     setTimeout(() => setCopiedText(false), 2000);
     // Copy doesn't mark as sent - user might just be copying
@@ -274,9 +291,10 @@ export function LinkEditor({
 
   // Web Share API - share with file
   const handleNativeShare = async () => {
-    await ensureSaved();
+    const savedLink = await ensureSaved();
+    if (!savedLink) return;
     
-    const text = formatShareText('whatsapp').replace(/\*/g, '');
+    const text = formatShareText().replace(/\*/g, '');
     
     // Check if Web Share API is supported
     if (!navigator.share) {
@@ -315,7 +333,7 @@ export function LinkEditor({
       }
       
       await navigator.share(shareData);
-      await markAsSent();
+      await markAsSent(savedLink);
     } catch (err) {
       // User cancelled or error
       if ((err as Error).name !== 'AbortError') {
@@ -373,26 +391,33 @@ export function LinkEditor({
     }
   };
 
-  // Auto-save as draft before sharing
-  const ensureSaved = async (): Promise<boolean> => {
-    if (!savedPost && !isEditing) {
-      const linkData = buildLinkData('draft');
-      const newPost = await onSave(linkData);
-      if (newPost) {
-        setSavedPost(newPost);
-        return true;
-      }
-      return false;
+  // Auto-save as draft before sharing - returns the saved post
+  const ensureSaved = async (): Promise<FliqkLink | null> => {
+    // If editing existing link, return it
+    if (isEditing && link) {
+      return link;
     }
-    return true;
+    // If already saved in this session, return that
+    if (savedPost) {
+      return savedPost;
+    }
+    // Otherwise save as draft first
+    const linkData = buildLinkData('draft');
+    const newPost = await onSave(linkData);
+    if (newPost) {
+      setSavedPost(newPost);
+      return newPost;
+    }
+    return null;
   };
 
-  // Mark as sent after sharing and auto-assign to collection based on first tag
-  const markAsSent = async () => {
-    const postToUpdate = savedPost || link;
+  // Mark as sent after sharing - takes the post directly to avoid state timing issues
+  const markAsSent = async (postToMark?: FliqkLink | null) => {
+    const postToUpdate = postToMark || savedPost || link;
     if (postToUpdate && onUpdate && postToUpdate.status !== 'sent') {
-      await onUpdate({ ...postToUpdate, status: 'sent' });
-      setSavedPost({ ...postToUpdate, status: 'sent' });
+      const updatedPost = { ...postToUpdate, status: 'sent' as const };
+      await onUpdate(updatedPost);
+      setSavedPost(updatedPost);
       
       // Auto-assign to collection based on first tag
       if (tags.length > 0) {
