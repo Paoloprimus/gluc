@@ -52,6 +52,7 @@
   },
   "nav": {
     "social": "Social",
+    "notes": "Notizen",
     "collections": "Sammlungen",
     "export": "Exportieren",
     "stats": "Statistiken",
@@ -154,6 +155,21 @@
     "clicks": "Klicks",
     "draft": "Entwurf",
     "sentStatus": "📤 Gesendet"
+  },
+  "notes": {
+    "title": "📝 Notizen",
+    "empty": "Keine Notizen",
+    "tapPlus": "Drücke + um zu starten",
+    "close": "Schließen",
+    "archive": "Archiv",
+    "back": "← Zurück",
+    "emptyArchive": "Keine archivierten Notizen",
+    "today": "heute",
+    "items": "Einträge",
+    "expiringNote": "Notiz läuft ab",
+    "expiringDescription": "Diese Notiz ist älter als 7 Tage. Du kannst sie bearbeiten (wird zur heutigen Notiz) oder archivieren.",
+    "editNote": "Bearbeiten",
+    "archiveNote": "Archivieren"
   },
   "collections": {
     "title": "📚 Sammlungen",

@@ -166,7 +166,16 @@
     "title": "📝 Note",
     "empty": "Nessuna nota",
     "tapPlus": "Premi + per iniziare",
-    "close": "Chiudi"
+    "close": "Chiudi",
+    "archive": "Archivio",
+    "back": "← Indietro",
+    "emptyArchive": "Nessuna nota archiviata",
+    "today": "oggi",
+    "items": "voci",
+    "expiringNote": "Nota in scadenza",
+    "expiringDescription": "Questa nota ha più di 7 giorni. Puoi modificarla (diventerà la nota di oggi) o archiviarla.",
+    "editNote": "Modifica",
+    "archiveNote": "Archivia"
   },
   "collections": {
     "title": "📚 Raccolte",
