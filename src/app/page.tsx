@@ -6,7 +6,7 @@ import { useTranslations } from "next-intl";
 import { LoginPage } from "@/components/LoginPage";
 import { TopBar, ActivePage } from "@/components/TopBar";
 import { LinkCard } from "@/components/LinkCard";
-import { LinkEditor } from "@/components/LinkEditor";
+import { PostEditor } from "@/components/PostEditor";
 import { ShareSheet } from "@/components/ShareSheet";
 import { ExportModal } from "@/components/ExportModal";
 import { EmptyState } from "@/components/EmptyState";
@@ -266,7 +266,7 @@ export default function Home() {
         {activePage === "social" && (
           <>
             {viewMode === "editor" ? (
-              <LinkEditor
+              <PostEditor
                 link={editingLink || undefined}
                 initialUrl={initialUrl || undefined}
                 userId={session.userId}
