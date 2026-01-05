@@ -592,16 +592,27 @@ export async function getUserNotes(userId: string): Promise<DailyNote[]> {
 // Get or create today's note
 export async function getOrCreateTodayNote(userId: string): Promise<DailyNote | null> {
   const today = new Date().toISOString().split('T')[0];
+  console.log('[Notes] getOrCreateTodayNote for user:', userId, 'date:', today);
   
   // Try to get existing note
-  const { data: existing } = await supabase.client
+  const { data: existing, error: selectError } = await supabase.client
     .from('daily_notes')
     .select('*')
     .eq('user_id', userId)
     .eq('date', today)
     .single();
   
-  if (existing) return existing as DailyNote;
+  if (selectError && selectError.code !== 'PGRST116') {
+    // PGRST116 = no rows returned (expected when note doesn't exist)
+    console.error('[Notes] Error fetching note:', selectError);
+  }
+  
+  if (existing) {
+    console.log('[Notes] Found existing note:', existing.id);
+    return existing as DailyNote;
+  }
+  
+  console.log('[Notes] Creating new note...');
   
   // Create new note
   const { data: newNote, error } = await supabase.client
@@ -615,10 +626,11 @@ export async function getOrCreateTodayNote(userId: string): Promise<DailyNote | 
     .single();
   
   if (error) {
-    console.error('Error creating note:', error);
+    console.error('[Notes] Error creating note:', error);
     return null;
   }
   
+  console.log('[Notes] Created note:', newNote?.id);
   return newNote as DailyNote;
 }
 
@@ -637,13 +649,25 @@ export async function updateNote(noteId: string, updates: Partial<DailyNote>): P
 
 // Add item to a note
 export async function addNoteItem(noteId: string, text: string): Promise<NoteItem | null> {
-  const { data: note } = await supabase.client
+  console.log('[Notes] addNoteItem to note:', noteId, 'text:', text);
+  
+  const { data: note, error: fetchError } = await supabase.client
     .from('daily_notes')
     .select('*')
     .eq('id', noteId)
     .single();
   
-  if (!note) return null;
+  if (fetchError) {
+    console.error('[Notes] Error fetching note for update:', fetchError);
+    return null;
+  }
+  
+  if (!note) {
+    console.error('[Notes] Note not found:', noteId);
+    return null;
+  }
+  
+  console.log('[Notes] Current items:', note.items);
   
   const newItem: NoteItem = {
     id: crypto.randomUUID(),
@@ -653,6 +677,7 @@ export async function addNoteItem(noteId: string, text: string): Promise<NoteIte
   };
   
   const updatedItems = [...(note.items || []), newItem];
+  console.log('[Notes] Updated items:', updatedItems);
   
   const { error } = await supabase.client
     .from('daily_notes')
@@ -662,7 +687,12 @@ export async function addNoteItem(noteId: string, text: string): Promise<NoteIte
     })
     .eq('id', noteId);
   
-  if (error) return null;
+  if (error) {
+    console.error('[Notes] Error updating note:', error);
+    return null;
+  }
+  
+  console.log('[Notes] Item added successfully');
   return newItem;
 }
 

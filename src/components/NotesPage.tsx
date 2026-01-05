@@ -91,7 +91,10 @@ export function NotesPage({ userId }: NotesPageProps) {
   const handleNewNote = async () => {
     setSaving(true);
     try {
+      console.log('[NotesPage] Creating/opening note for user:', userId);
       const todayNote = await getOrCreateTodayNote(userId);
+      console.log('[NotesPage] Result:', todayNote);
+      
       if (todayNote) {
         const normalized = {
           ...todayNote,
@@ -99,9 +102,13 @@ export function NotesPage({ userId }: NotesPageProps) {
         };
         setActiveNote(normalized);
         await loadNotes();
+      } else {
+        console.error('[NotesPage] Failed to create/get note - result is null');
+        alert('Errore: impossibile creare la nota. Controlla la console.');
       }
     } catch (error) {
-      console.error('Error creating note:', error);
+      console.error('[NotesPage] Error creating note:', error);
+      alert('Errore: ' + (error as Error).message);
     }
     setSaving(false);
   };
