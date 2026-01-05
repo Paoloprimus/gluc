@@ -2,23 +2,16 @@
 
 import { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
-import { Plus, X } from "lucide-react";
+import { Plus, X, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
-
-interface NoteItem {
-  id: string;
-  text: string;
-  created_at: string;
-  edited_at: string;
-}
-
-interface DailyNote {
-  id: string;
-  date: string;
-  se: NoteItem[];
-  cosa: NoteItem[];
-  chi: NoteItem[];
-}
+import { 
+  getUserNotes, 
+  getOrCreateTodayNote, 
+  addNoteItem, 
+  removeNoteItem,
+  archiveOldNotes 
+} from "@/lib/supabase";
+import type { DailyNote, NoteItem } from "@/types";
 
 interface NotesPageProps {
   userId: string;
@@ -33,74 +26,76 @@ const formatNoteDate = (date: Date): string => {
   return `${day}${month}${year}`;
 };
 
-// Get today's date string
-const getTodayString = (): string => {
-  return new Date().toISOString().split('T')[0];
-};
-
 export function NotesPage({ userId }: NotesPageProps) {
   const t = useTranslations('notes');
   
-  // For now, use local state (will connect to Supabase later)
   const [notes, setNotes] = useState<DailyNote[]>([]);
   const [activeNote, setActiveNote] = useState<DailyNote | null>(null);
   const [newItemText, setNewItemText] = useState({ se: '', cosa: '', chi: '' });
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
 
-  // Create or get today's note
-  const getOrCreateTodayNote = (): DailyNote => {
-    const today = getTodayString();
-    const existing = notes.find(n => n.date === today);
-    if (existing) return existing;
+  // Load notes on mount
+  useEffect(() => {
+    loadNotes();
+  }, [userId]);
+
+  const loadNotes = async () => {
+    setLoading(true);
+    const data = await getUserNotes(userId);
+    setNotes(data);
+    setLoading(false);
     
-    const newNote: DailyNote = {
-      id: crypto.randomUUID(),
-      date: today,
-      se: [],
-      cosa: [],
-      chi: [],
-    };
-    setNotes([newNote, ...notes]);
-    return newNote;
+    // Archive old notes in background
+    archiveOldNotes(userId);
   };
 
   // Open today's note when + is pressed
-  const handleNewNote = () => {
-    const todayNote = getOrCreateTodayNote();
-    setActiveNote(todayNote);
+  const handleNewNote = async () => {
+    setSaving(true);
+    const todayNote = await getOrCreateTodayNote(userId);
+    if (todayNote) {
+      setActiveNote(todayNote);
+      // Refresh notes list
+      const data = await getUserNotes(userId);
+      setNotes(data);
+    }
+    setSaving(false);
   };
 
   // Add item to a field
-  const handleAddItem = (field: 'se' | 'cosa' | 'chi') => {
+  const handleAddItem = async (field: 'se' | 'cosa' | 'chi') => {
     if (!activeNote || !newItemText[field].trim()) return;
     
-    const newItem: NoteItem = {
-      id: crypto.randomUUID(),
-      text: newItemText[field].trim(),
-      created_at: new Date().toISOString(),
-      edited_at: new Date().toISOString(),
-    };
+    setSaving(true);
+    const newItem = await addNoteItem(activeNote.id, field, newItemText[field].trim());
     
-    const updatedNote = {
-      ...activeNote,
-      [field]: [...activeNote[field], newItem],
-    };
-    
-    setActiveNote(updatedNote);
-    setNotes(notes.map(n => n.id === updatedNote.id ? updatedNote : n));
-    setNewItemText({ ...newItemText, [field]: '' });
+    if (newItem) {
+      const updatedNote = {
+        ...activeNote,
+        [field]: [...activeNote[field], newItem],
+      };
+      setActiveNote(updatedNote);
+      setNotes(notes.map(n => n.id === updatedNote.id ? updatedNote : n));
+      setNewItemText({ ...newItemText, [field]: '' });
+    }
+    setSaving(false);
   };
 
   // Remove item from a field
-  const handleRemoveItem = (field: 'se' | 'cosa' | 'chi', itemId: string) => {
+  const handleRemoveItem = async (field: 'se' | 'cosa' | 'chi', itemId: string) => {
     if (!activeNote) return;
     
-    const updatedNote = {
-      ...activeNote,
-      [field]: activeNote[field].filter(item => item.id !== itemId),
-    };
+    const success = await removeNoteItem(activeNote.id, field, itemId);
     
-    setActiveNote(updatedNote);
-    setNotes(notes.map(n => n.id === updatedNote.id ? updatedNote : n));
+    if (success) {
+      const updatedNote = {
+        ...activeNote,
+        [field]: activeNote[field].filter(item => item.id !== itemId),
+      };
+      setActiveNote(updatedNote);
+      setNotes(notes.map(n => n.id === updatedNote.id ? updatedNote : n));
+    }
   };
 
   // Render a field section
@@ -137,6 +132,14 @@ export function NotesPage({ userId }: NotesPageProps) {
     </div>
   );
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-16">
+        <Loader2 size={32} className="animate-spin text-[var(--accent-primary)]" />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -147,9 +150,10 @@ export function NotesPage({ userId }: NotesPageProps) {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={handleNewNote}
-            className="p-2 rounded-xl bg-[var(--accent-primary)] text-black"
+            disabled={saving}
+            className="p-2 rounded-xl bg-[var(--accent-primary)] text-black disabled:opacity-50"
           >
-            <Plus size={20} />
+            {saving ? <Loader2 size={20} className="animate-spin" /> : <Plus size={20} />}
           </motion.button>
         )}
       </div>
