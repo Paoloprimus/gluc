@@ -119,12 +119,20 @@ export async function updateUserPreferences(userId: string, preferences: Partial
 export async function getUserLinks(
   userId: string, 
   sortOrder: 'newest' | 'oldest' | 'alpha' = 'newest',
-  statusFilter?: 'draft' | 'sent' | 'all'
+  statusFilter?: 'draft' | 'sent' | 'all',
+  recentOnly: boolean = true // Default: only last month
 ): Promise<FliqkLink[]> {
   let query = supabase.client
     .from('links')
     .select('*')
     .eq('user_id', userId);
+  
+  // Filter by date (last month by default)
+  if (recentOnly) {
+    const oneMonthAgo = new Date();
+    oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+    query = query.gte('created_at', oneMonthAgo.toISOString());
+  }
   
   // Filter by status
   if (statusFilter && statusFilter !== 'all') {
