@@ -101,7 +101,7 @@ export type ViewMode = 'grid' | 'list';
 export type SortOrder = 'newest' | 'oldest' | 'alpha' | 'random';
 
 // =============================================
-// Daily Notes (Metabolic Workspace)
+// Daily Notes
 // =============================================
 
 export interface NoteItem {
@@ -116,28 +116,15 @@ export interface DailyNote {
   id: string;
   user_id: string;
   date: string; // YYYY-MM-DD
-  se: NoteItem[];
-  cosa: NoteItem[];
-  chi: NoteItem[];
+  items: NoteItem[];
   created_at: string;
   updated_at: string;
-}
-
-export interface NewDailyNote {
-  date: string;
-  se: NoteItem[];
-  cosa: NoteItem[];
-  chi: NoteItem[];
 }
 
 export interface ArchivedNote {
   id: string;
   user_id: string;
   original_date: string;
-  content: {
-    se: NoteItem[];
-    cosa: NoteItem[];
-    chi: NoteItem[];
-  };
+  items: NoteItem[];
   archived_at: string;
 }

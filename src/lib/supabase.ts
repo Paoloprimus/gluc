@@ -568,7 +568,7 @@ export async function getUserStats(userId: string) {
 }
 
 // =============================================
-// Daily Notes Functions (Metabolic Workspace)
+// Daily Notes Functions
 // =============================================
 
 import type { DailyNote, NoteItem, ArchivedNote } from '@/types';
@@ -609,9 +609,7 @@ export async function getOrCreateTodayNote(userId: string): Promise<DailyNote | 
     .insert({
       user_id: userId,
       date: today,
-      se: [],
-      cosa: [],
-      chi: [],
+      items: [],
     })
     .select()
     .single();
@@ -637,13 +635,8 @@ export async function updateNote(noteId: string, updates: Partial<DailyNote>): P
   return !error;
 }
 
-// Add item to a note field
-export async function addNoteItem(
-  noteId: string, 
-  field: 'se' | 'cosa' | 'chi', 
-  text: string
-): Promise<NoteItem | null> {
-  // First get the current note
+// Add item to a note
+export async function addNoteItem(noteId: string, text: string): Promise<NoteItem | null> {
   const { data: note } = await supabase.client
     .from('daily_notes')
     .select('*')
@@ -659,12 +652,12 @@ export async function addNoteItem(
     edited_at: new Date().toISOString(),
   };
   
-  const updatedField = [...(note[field] || []), newItem];
+  const updatedItems = [...(note.items || []), newItem];
   
   const { error } = await supabase.client
     .from('daily_notes')
     .update({
-      [field]: updatedField,
+      items: updatedItems,
       updated_at: new Date().toISOString(),
     })
     .eq('id', noteId);
@@ -673,12 +666,8 @@ export async function addNoteItem(
   return newItem;
 }
 
-// Remove item from a note field
-export async function removeNoteItem(
-  noteId: string,
-  field: 'se' | 'cosa' | 'chi',
-  itemId: string
-): Promise<boolean> {
+// Remove item from a note
+export async function removeNoteItem(noteId: string, itemId: string): Promise<boolean> {
   const { data: note } = await supabase.client
     .from('daily_notes')
     .select('*')
@@ -687,44 +676,12 @@ export async function removeNoteItem(
   
   if (!note) return false;
   
-  const updatedField = (note[field] || []).filter((item: NoteItem) => item.id !== itemId);
+  const updatedItems = (note.items || []).filter((item: NoteItem) => item.id !== itemId);
   
   const { error } = await supabase.client
     .from('daily_notes')
     .update({
-      [field]: updatedField,
-      updated_at: new Date().toISOString(),
-    })
-    .eq('id', noteId);
-  
-  return !error;
-}
-
-// Update a specific item's text (and reset edited_at)
-export async function updateNoteItem(
-  noteId: string,
-  field: 'se' | 'cosa' | 'chi',
-  itemId: string,
-  newText: string
-): Promise<boolean> {
-  const { data: note } = await supabase.client
-    .from('daily_notes')
-    .select('*')
-    .eq('id', noteId)
-    .single();
-  
-  if (!note) return false;
-  
-  const updatedField = (note[field] || []).map((item: NoteItem) => 
-    item.id === itemId 
-      ? { ...item, text: newText, edited_at: new Date().toISOString() }
-      : item
-  );
-  
-  const { error } = await supabase.client
-    .from('daily_notes')
-    .update({
-      [field]: updatedField,
+      items: updatedItems,
       updated_at: new Date().toISOString(),
     })
     .eq('id', noteId);
@@ -737,7 +694,6 @@ export async function archiveOldNotes(userId: string): Promise<void> {
   const fourWeeksAgo = new Date();
   fourWeeksAgo.setDate(fourWeeksAgo.getDate() - 28);
   
-  // Get notes older than 4 weeks
   const { data: oldNotes } = await supabase.client
     .from('daily_notes')
     .select('*')
@@ -746,21 +702,15 @@ export async function archiveOldNotes(userId: string): Promise<void> {
   
   if (!oldNotes || oldNotes.length === 0) return;
   
-  // Archive each note
   for (const note of oldNotes) {
     await supabase.client
       .from('notes_archive')
       .insert({
         user_id: userId,
         original_date: note.date,
-        content: {
-          se: note.se,
-          cosa: note.cosa,
-          chi: note.chi,
-        },
+        items: note.items,
       });
     
-    // Delete the original note
     await supabase.client
       .from('daily_notes')
       .delete()

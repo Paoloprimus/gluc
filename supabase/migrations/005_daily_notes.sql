@@ -1,11 +1,9 @@
--- Daily Notes table for metabolic workspace
+-- Daily Notes table (simplified: just items array)
 CREATE TABLE IF NOT EXISTS daily_notes (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   date DATE NOT NULL,
-  se JSONB DEFAULT '[]'::jsonb,
-  cosa JSONB DEFAULT '[]'::jsonb,
-  chi JSONB DEFAULT '[]'::jsonb,
+  items JSONB DEFAULT '[]'::jsonb,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW(),
   
@@ -21,9 +19,7 @@ ALTER TABLE daily_notes ENABLE ROW LEVEL SECURITY;
 
 -- Users can only see their own notes
 CREATE POLICY "Users can view own notes" ON daily_notes
-  FOR SELECT USING (auth.uid()::text = user_id::text OR user_id IN (
-    SELECT id FROM users WHERE id = user_id
-  ));
+  FOR SELECT USING (true);
 
 -- Users can insert their own notes
 CREATE POLICY "Users can insert own notes" ON daily_notes
@@ -42,7 +38,7 @@ CREATE TABLE IF NOT EXISTS notes_archive (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   original_date DATE NOT NULL,
-  content JSONB NOT NULL,
+  items JSONB NOT NULL,
   archived_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -57,4 +53,3 @@ CREATE POLICY "Users can view own archive" ON notes_archive
 
 CREATE POLICY "Users can insert own archive" ON notes_archive
   FOR INSERT WITH CHECK (true);
-
