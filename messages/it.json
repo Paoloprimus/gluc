@@ -164,11 +164,9 @@
   },
   "notes": {
     "title": "📝 Note",
-    "comingSoon": "In arrivo",
-    "comingSoonDescription": "Le note giornaliere ti aiuteranno a metabolizzare i tuoi pensieri con tre semplici domande.",
-    "seDescription": "Cosa sto imparando oggi?",
-    "cosaDescription": "Cosa sto costruendo?",
-    "chiDescription": "Chi sto diventando?"
+    "empty": "Nessuna nota",
+    "tapPlus": "Premi + per iniziare",
+    "close": "Chiudi"
   },
   "collections": {
     "title": "📚 Raccolte",
