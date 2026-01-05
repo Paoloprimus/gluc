@@ -351,13 +351,12 @@ export function PostEditor({
             <div className="p-4 rounded-xl bg-[var(--background-secondary)] border border-[var(--card-border)]">
               <p className="text-sm font-medium mb-3 text-center">{t('shareNow')}</p>
               
-              {/* Optional toggles */}
-              <div className="flex gap-2 mb-3">
-                {/* Preview toggle - only for link posts */}
-                {isLinkPost && (
+              {/* Preview toggle - only for link posts */}
+              {isLinkPost && (
+                <div className="mb-3">
                   <button
                     onClick={() => setIncludeUrlPreview(!includeUrlPreview)}
-                    className={`flex-1 p-2 rounded-lg text-xs font-medium transition-colors ${
+                    className={`w-full p-2 rounded-lg text-xs font-medium transition-colors ${
                       includeUrlPreview 
                         ? 'bg-[var(--accent-primary)] text-black' 
                         : 'bg-[var(--card-bg)] border border-[var(--card-border)] text-[var(--foreground-muted)]'
@@ -365,34 +364,8 @@ export function PostEditor({
                   >
                     {includeUrlPreview ? '✓ ' : '+ '}{t('preview')}
                   </button>
-                )}
-                
-                {/* Media toggle */}
-                {!mediaUrl && (
-                  <button
-                    onClick={() => mediaInputRef.current?.click()}
-                    disabled={uploadingMedia}
-                    className="flex-1 p-2 rounded-lg text-xs font-medium bg-[var(--card-bg)] border border-[var(--card-border)] text-[var(--foreground-muted)] flex items-center justify-center gap-1"
-                  >
-                    {uploadingMedia ? (
-                      <Loader2 size={14} className="animate-spin" />
-                    ) : (
-                      <>
-                        <Upload size={14} />
-                        {t('addMedia')}
-                      </>
-                    )}
-                  </button>
-                )}
-              </div>
-              
-              <input
-                ref={mediaInputRef}
-                type="file"
-                accept="image/*,audio/*"
-                onChange={handleMediaUpload}
-                className="hidden"
-              />
+                </div>
+              )}
               
               {/* Share buttons */}
               <div className="grid grid-cols-3 gap-2">
@@ -531,6 +504,64 @@ export function PostEditor({
                   +
                 </button>
               </div>
+            </div>
+
+            {/* Optional Media (image or audio) */}
+            <div>
+              <label className="block text-sm font-medium mb-2">{t('addMedia')} <span className="text-[var(--foreground-muted)]">({t('optional')})</span></label>
+              
+              <input
+                ref={mediaInputRef}
+                type="file"
+                accept="image/*,audio/*"
+                onChange={handleMediaUpload}
+                className="hidden"
+              />
+              
+              {mediaUrl ? (
+                <div className="p-3 rounded-xl bg-[var(--card-bg)] border border-[var(--card-border)]">
+                  {mediaType?.startsWith('image/') ? (
+                    <div className="relative">
+                      <img src={mediaUrl} alt="" className="w-full h-32 object-cover rounded-lg" />
+                      <button
+                        onClick={() => { setMediaUrl(null); setMediaType(null); }}
+                        className="absolute top-2 right-2 p-1.5 rounded-full bg-black/50 text-white hover:bg-red-500"
+                      >
+                        <X size={14} />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-lg bg-[var(--accent-primary)]/20 flex items-center justify-center">
+                        <Mic size={20} className="text-[var(--accent-primary)]" />
+                      </div>
+                      <audio src={mediaUrl} controls className="flex-1 h-8" />
+                      <button
+                        onClick={() => { setMediaUrl(null); setMediaType(null); }}
+                        className="p-1.5 rounded-lg hover:bg-red-500/10 text-red-500"
+                      >
+                        <X size={16} />
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <button
+                  onClick={() => mediaInputRef.current?.click()}
+                  disabled={uploadingMedia}
+                  className="w-full p-4 rounded-xl border-2 border-dashed border-[var(--card-border)] hover:border-[var(--accent-primary)] transition-colors flex items-center justify-center gap-2 text-[var(--foreground-muted)]"
+                >
+                  {uploadingMedia ? (
+                    <Loader2 size={20} className="animate-spin" />
+                  ) : (
+                    <>
+                      <Image size={18} />
+                      <span>/</span>
+                      <Mic size={18} />
+                    </>
+                  )}
+                </button>
+              )}
             </div>
 
             {/* Actions */}

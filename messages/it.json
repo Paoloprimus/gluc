@@ -52,6 +52,7 @@
   },
   "nav": {
     "social": "Social",
+    "notes": "Note",
     "collections": "Raccolte",
     "export": "Esporta",
     "stats": "Statistiche",
@@ -160,6 +161,14 @@
     "clicks": "click",
     "draft": "Bozza",
     "sentStatus": "📤 Inviato"
+  },
+  "notes": {
+    "title": "📝 Note",
+    "comingSoon": "In arrivo",
+    "comingSoonDescription": "Le note giornaliere ti aiuteranno a metabolizzare i tuoi pensieri con tre semplici domande.",
+    "seDescription": "Cosa sto imparando oggi?",
+    "cosaDescription": "Cosa sto costruendo?",
+    "chiDescription": "Chi sto diventando?"
   },
   "collections": {
     "title": "📚 Raccolte",

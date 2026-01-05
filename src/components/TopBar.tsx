@@ -2,9 +2,9 @@
 
 import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
-import { Send, FolderOpen, Download, BarChart3, Settings, LogOut } from "lucide-react";
+import { Send, FileText, Download, BarChart3, Settings, LogOut } from "lucide-react";
 
-export type ActivePage = "social" | "collections" | "stats" | "settings";
+export type ActivePage = "social" | "notes" | "stats" | "settings";
 
 interface TopBarProps {
   nickname: string;
@@ -43,10 +43,10 @@ export function TopBar({ nickname, activePage, onPageChange, onExport, onLogout 
               onClick={() => onPageChange("social")}
             />
             <NavButton
-              icon={<FolderOpen size={18} />}
-              label={t('collections')}
-              isActive={activePage === "collections"}
-              onClick={() => onPageChange("collections")}
+              icon={<FileText size={18} />}
+              label={t('notes')}
+              isActive={activePage === "notes"}
+              onClick={() => onPageChange("notes")}
             />
             <NavButton
               icon={<Download size={18} />}

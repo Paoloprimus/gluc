@@ -13,7 +13,7 @@ import { EmptyState } from "@/components/EmptyState";
 import { FilterBar } from "@/components/FilterBar";
 import { StatsPage } from "@/components/StatsPage";
 import { SettingsPage } from "@/components/SettingsPage";
-import { CollectionsPage } from "@/components/CollectionsPage";
+import { NotesPage } from "@/components/NotesPage";
 import { getSession, setSession, clearSession, applyTheme, initializeTheme } from "@/lib/session";
 import { getUserLinks, addLink, updateLink, deleteLink, updateUserPreferences, incrementClickCount, getUserCollections } from "@/lib/supabase";
 import type { FliqkLink, NewLink, Session, UserPreferences, Collection } from "@/types";
@@ -350,15 +350,8 @@ export default function Home() {
           </>
         )}
 
-        {activePage === "collections" && (
-          <CollectionsPage 
-            userId={session.userId} 
-            onSelectItem={(link) => {
-              setEditingLink(link);
-              setActivePage("social");
-              setViewMode("editor");
-            }}
-          />
+        {activePage === "notes" && (
+          <NotesPage userId={session.userId} />
         )}
 
         {activePage === "stats" && <StatsPage userId={session.userId} />}
