@@ -53,8 +53,7 @@ export function NotesPage({ userId }: NotesPageProps) {
   
   const [notes, setNotes] = useState<DailyNote[]>([]);
   const [archivedNotes, setArchivedNotes] = useState<ArchivedNote[]>([]);
-  const [activeNote, setActiveNote] = useState<DailyNote | null>(null);
-  const [newItemText, setNewItemText] = useState('');
+  const [newItemText, setNewItemText] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [showArchive, setShowArchive] = useState(false);
@@ -69,7 +68,6 @@ export function NotesPage({ userId }: NotesPageProps) {
     setLoading(true);
     try {
       const data = await getUserNotes(userId);
-      // Ensure items array is properly initialized
       const normalizedNotes = data.map(note => ({
         ...note,
         items: Array.isArray(note.items) ? note.items : [],
@@ -87,48 +85,39 @@ export function NotesPage({ userId }: NotesPageProps) {
     setArchivedNotes(data);
   };
 
-  // Open today's note when + is pressed
+  // Create today's note if it doesn't exist
   const handleNewNote = async () => {
     setSaving(true);
     try {
-      console.log('[NotesPage] Creating/opening note for user:', userId);
       const todayNote = await getOrCreateTodayNote(userId);
-      console.log('[NotesPage] Result:', todayNote);
-      
       if (todayNote) {
-        const normalized = {
-          ...todayNote,
-          items: Array.isArray(todayNote.items) ? todayNote.items : [],
-        };
-        setActiveNote(normalized);
         await loadNotes();
-      } else {
-        console.error('[NotesPage] Failed to create/get note - result is null');
-        alert('Errore: impossibile creare la nota. Controlla la console.');
       }
     } catch (error) {
-      console.error('[NotesPage] Error creating note:', error);
-      alert('Errore: ' + (error as Error).message);
+      console.error('Error creating note:', error);
     }
     setSaving(false);
   };
 
-  // Add item
-  const handleAddItem = async () => {
-    if (!activeNote || !newItemText.trim()) return;
+  // Check if today's note exists
+  const hasTodayNote = notes.some(n => isToday(n.date));
+
+  // Add item to a specific note
+  const handleAddItem = async (noteId: string) => {
+    const text = newItemText[noteId];
+    if (!text?.trim()) return;
     
     setSaving(true);
     try {
-      const newItem = await addNoteItem(activeNote.id, newItemText.trim());
+      const newItem = await addNoteItem(noteId, text.trim());
       
       if (newItem) {
-        const updatedNote = {
-          ...activeNote,
-          items: [...activeNote.items, newItem],
-        };
-        setActiveNote(updatedNote);
-        setNotes(notes.map(n => n.id === updatedNote.id ? updatedNote : n));
-        setNewItemText('');
+        setNotes(notes.map(n => 
+          n.id === noteId 
+            ? { ...n, items: [...n.items, newItem] }
+            : n
+        ));
+        setNewItemText({ ...newItemText, [noteId]: '' });
       }
     } catch (error) {
       console.error('Error adding item:', error);
@@ -137,19 +126,16 @@ export function NotesPage({ userId }: NotesPageProps) {
   };
 
   // Remove item
-  const handleRemoveItem = async (itemId: string) => {
-    if (!activeNote) return;
-    
+  const handleRemoveItem = async (noteId: string, itemId: string) => {
     try {
-      const success = await removeNoteItem(activeNote.id, itemId);
+      const success = await removeNoteItem(noteId, itemId);
       
       if (success) {
-        const updatedNote = {
-          ...activeNote,
-          items: activeNote.items.filter(item => item.id !== itemId),
-        };
-        setActiveNote(updatedNote);
-        setNotes(notes.map(n => n.id === updatedNote.id ? updatedNote : n));
+        setNotes(notes.map(n => 
+          n.id === noteId 
+            ? { ...n, items: n.items.filter(item => item.id !== itemId) }
+            : n
+        ));
       }
     } catch (error) {
       console.error('Error removing item:', error);
@@ -162,11 +148,9 @@ export function NotesPage({ userId }: NotesPageProps) {
       await archiveOldNotes(userId);
       await loadNotes();
     } else {
-      // Edit: merge into today's note or convert to today's note
       const todayNote = notes.find(n => isToday(n.date));
       
       if (todayNote) {
-        // Merge: add old note items to today's note with source_date marker
         const mergedItems = [
           ...todayNote.items,
           ...note.items.map(item => ({
@@ -179,28 +163,12 @@ export function NotesPage({ userId }: NotesPageProps) {
         await updateNote(todayNote.id, { items: mergedItems });
         await archiveOldNotes(userId);
         await loadNotes();
-        
-        // Open the merged note
-        setActiveNote({ ...todayNote, items: mergedItems });
       } else {
-        // No today's note: convert old note to today's note
         await updateNote(note.id, { date: getTodayString() });
         await loadNotes();
-        
-        // Open the converted note
-        setActiveNote({ ...note, date: getTodayString() });
       }
     }
     setExpiringAction(null);
-  };
-
-  // Open note with expiring check
-  const handleOpenNote = (note: DailyNote) => {
-    if (isExpiring(note.date) && !isToday(note.date)) {
-      setExpiringAction({ noteId: note.id });
-    } else {
-      setActiveNote(note);
-    }
   };
 
   if (loading) {
@@ -236,7 +204,7 @@ export function NotesPage({ userId }: NotesPageProps) {
           )}
         </div>
         
-        {!activeNote && !showArchive && (
+        {!showArchive && !hasTodayNote && (
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
@@ -300,60 +268,9 @@ export function NotesPage({ userId }: NotesPageProps) {
         )}
       </AnimatePresence>
 
-      {/* Active note editor */}
-      {activeNote ? (
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="space-y-4"
-        >
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-bold text-[var(--foreground-muted)]">
-              {formatNoteDate(activeNote.date)}
-            </h2>
-            <button
-              onClick={() => setActiveNote(null)}
-              className="text-sm text-[var(--foreground-muted)] hover:text-[var(--foreground)]"
-            >
-              {t('close')}
-            </button>
-          </div>
-          
-          <div className="p-4 rounded-2xl bg-[var(--card-bg)] border border-[var(--card-border)] space-y-3">
-            {/* Existing items */}
-            {activeNote.items.map(item => (
-              <div key={item.id} className="flex items-start gap-2 group">
-                <span className={item.source_date ? "text-amber-500" : "text-[var(--foreground-muted)]"}>•</span>
-                <p className={`flex-1 text-sm ${item.source_date ? "text-amber-500/80" : ""}`}>
-                  {item.text}
-                </p>
-                <button
-                  onClick={() => handleRemoveItem(item.id)}
-                  className="opacity-0 group-hover:opacity-100 p-1 hover:text-red-500 transition-opacity"
-                >
-                  <X size={14} />
-                </button>
-              </div>
-            ))}
-            
-            {/* Add new item */}
-            <div className="flex items-center gap-2">
-              <span className="text-[var(--foreground-muted)]">•</span>
-              <input
-                type="text"
-                value={newItemText}
-                onChange={(e) => setNewItemText(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleAddItem()}
-                placeholder="..."
-                className="flex-1 bg-transparent text-sm outline-none placeholder:text-[var(--foreground-muted)]/50"
-                autoFocus
-              />
-            </div>
-          </div>
-        </motion.div>
-      ) : showArchive ? (
-        /* Archived notes list */
-        <div className="space-y-3">
+      {showArchive ? (
+        /* Archived notes */
+        <div className="space-y-6">
           {archivedNotes.length === 0 ? (
             <div className="text-center py-16">
               <Archive size={32} className="mx-auto text-[var(--foreground-muted)] mb-4" />
@@ -361,14 +278,13 @@ export function NotesPage({ userId }: NotesPageProps) {
             </div>
           ) : (
             archivedNotes.map(note => (
-              <div
-                key={note.id}
-                className="p-4 rounded-xl bg-[var(--card-bg)] border border-[var(--card-border)] opacity-60"
-              >
-                <p className="font-bold mb-2">{formatNoteDate(note.original_date)}</p>
-                <div className="text-sm text-[var(--foreground-muted)] space-y-1">
+              <div key={note.id} className="opacity-60">
+                <p className="font-bold text-lg mb-2">{formatNoteDate(note.original_date)}</p>
+                <div className="space-y-1 pl-2">
                   {note.items?.map((item, i) => (
-                    <p key={i}>• {item.text}</p>
+                    <p key={i} className="text-sm text-[var(--foreground-muted)] break-words whitespace-pre-wrap">
+                      • {item.text}
+                    </p>
                   ))}
                 </div>
               </div>
@@ -376,8 +292,8 @@ export function NotesPage({ userId }: NotesPageProps) {
           )}
         </div>
       ) : (
-        /* Notes list */
-        <div className="space-y-3">
+        /* All notes expanded */
+        <div className="space-y-8">
           {notes.length === 0 ? (
             <div className="text-center py-16">
               <p className="text-[var(--foreground-muted)]">{t('empty')}</p>
@@ -389,25 +305,17 @@ export function NotesPage({ userId }: NotesPageProps) {
               const today = isToday(note.date);
               
               return (
-                <motion.button
-                  key={note.id}
-                  whileHover={{ scale: 1.01 }}
-                  whileTap={{ scale: 0.99 }}
-                  onClick={() => handleOpenNote(note)}
-                  className={`w-full p-4 rounded-xl bg-[var(--card-bg)] border text-left ${
-                    today 
-                      ? 'border-[var(--accent-primary)]' 
-                      : expiring 
-                        ? 'border-amber-500/50' 
-                        : 'border-[var(--card-border)]'
-                  }`}
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <p className="font-bold">{formatNoteDate(note.date)}</p>
+                <div key={note.id} className="space-y-2">
+                  {/* Date header */}
+                  <div className="flex items-center gap-2">
+                    <p className="font-bold text-lg">{formatNoteDate(note.date)}</p>
                     {expiring && (
-                      <span className="text-xs px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-500">
+                      <button
+                        onClick={() => setExpiringAction({ noteId: note.id })}
+                        className="text-xs px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-500 hover:bg-amber-500/30"
+                      >
                         (ex)
-                      </span>
+                      </button>
                     )}
                     {today && (
                       <span className="text-xs px-2 py-0.5 rounded-full bg-[var(--accent-primary)]/20 text-[var(--accent-primary)]">
@@ -415,10 +323,49 @@ export function NotesPage({ userId }: NotesPageProps) {
                       </span>
                     )}
                   </div>
-                  <div className="text-sm text-[var(--foreground-muted)]">
-                    {note.items.length} {t('items')}
+                  
+                  {/* Items */}
+                  <div className="space-y-1 pl-2">
+                    {note.items.map(item => (
+                      <div key={item.id} className="flex items-start gap-2 group">
+                        <span className={`flex-shrink-0 ${item.source_date ? "text-amber-500" : "text-[var(--foreground-muted)]"}`}>•</span>
+                        <p className={`flex-1 text-sm break-words whitespace-pre-wrap ${item.source_date ? "text-amber-500/80" : ""}`}>
+                          {item.text}
+                        </p>
+                        <button
+                          onClick={() => handleRemoveItem(note.id, item.id)}
+                          className="flex-shrink-0 opacity-0 group-hover:opacity-100 p-1 hover:text-red-500 transition-opacity"
+                        >
+                          <X size={14} />
+                        </button>
+                      </div>
+                    ))}
+                    
+                    {/* Add new item input */}
+                    <div className="flex items-start gap-2">
+                      <span className="flex-shrink-0 text-[var(--foreground-muted)]">•</span>
+                      <textarea
+                        value={newItemText[note.id] || ''}
+                        onChange={(e) => setNewItemText({ ...newItemText, [note.id]: e.target.value })}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' && !e.shiftKey) {
+                            e.preventDefault();
+                            handleAddItem(note.id);
+                          }
+                        }}
+                        placeholder="..."
+                        rows={1}
+                        className="flex-1 bg-transparent text-sm outline-none placeholder:text-[var(--foreground-muted)]/50 resize-none overflow-hidden break-words"
+                        style={{ minHeight: '1.5em' }}
+                        onInput={(e) => {
+                          const target = e.target as HTMLTextAreaElement;
+                          target.style.height = 'auto';
+                          target.style.height = target.scrollHeight + 'px';
+                        }}
+                      />
+                    </div>
                   </div>
-                </motion.button>
+                </div>
               );
             })
           )}
