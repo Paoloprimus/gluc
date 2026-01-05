@@ -37,16 +37,16 @@ export function TopBar({ nickname, activePage, onPageChange, onExport, onLogout 
           {/* Navigation */}
           <nav className="flex items-center gap-1">
             <NavButton
-              icon={<Send size={18} />}
-              label={t('social')}
-              isActive={activePage === "social"}
-              onClick={() => onPageChange("social")}
-            />
-            <NavButton
               icon={<FileText size={18} />}
               label={t('notes')}
               isActive={activePage === "notes"}
               onClick={() => onPageChange("notes")}
+            />
+            <NavButton
+              icon={<Send size={18} />}
+              label={t('social')}
+              isActive={activePage === "social"}
+              onClick={() => onPageChange("social")}
             />
             <NavButton
               icon={<Download size={18} />}
