@@ -15,6 +15,8 @@ Ti invito a provare fliqk, un'app per salvare e condividere link e pensieri.
 
 Clicca "Primo accesso", inserisci il token, scegli un nickname e sei dentro!
 
+📖 Guida: fliqk.to/guida.html
+
 Tip: aggiungi l'app alla Home per accederci velocemente.
 
 Dimmi cosa ne pensi! 💚
@@ -61,6 +63,8 @@ Ich lade dich ein, fliqk auszuprobieren – eine App zum Speichern und Teilen vo
 🔑 Token: [TOKEN_EINFÜGEN]
 
 Klicke "Erstregistrierung", gib den Token ein, wähle einen Nickname – fertig!
+
+📖 Anleitung: fliqk.to/guida.html
 
 Tipp: Füge die App zum Startbildschirm hinzu für schnellen Zugriff.
 
