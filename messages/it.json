@@ -49,6 +49,7 @@
     "registrationError": "Errore durante la registrazione",
     "nicknameInUse": "Nickname già in uso",
     "differentDevice": "Account già collegato a un altro dispositivo",
+    "nicknameWarning": "Il nickname è la tua chiave d'accesso. Non condividerlo.",
     "invalidToken": "Token non valido o già utilizzato"
   },
   "nav": {

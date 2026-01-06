@@ -222,6 +222,9 @@ export function LoginPage({ onLogin, onBack }: LoginPageProps) {
                   className="w-full p-3 rounded-xl bg-[var(--card-bg)] border border-[var(--card-border)] focus:border-[var(--accent-primary)] transition-colors lowercase"
                   autoFocus
                 />
+                <p className="text-xs text-[var(--foreground-muted)] mt-2">
+                  🔒 {t('nicknameWarning')}
+                </p>
               </label>
 
               <label className="block">

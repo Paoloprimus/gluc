@@ -49,7 +49,8 @@
     "registrationError": "Fehler bei der Registrierung",
     "nicknameInUse": "Nickname bereits vergeben",
     "invalidToken": "Token ungültig oder bereits verwendet",
-    "differentDevice": "Konto bereits mit einem anderen Gerät verbunden"
+    "differentDevice": "Konto bereits mit einem anderen Gerät verbunden",
+    "nicknameWarning": "Der Nickname ist dein Zugangsschlüssel. Teile ihn nicht."
   },
   "nav": {
     "social": "Social",
