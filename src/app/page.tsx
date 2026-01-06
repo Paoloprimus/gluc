@@ -29,7 +29,7 @@ export default function Home() {
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
   // App state
-  const [activePage, setActivePage] = useState<ActivePage>("social");
+  const [activePage, setActivePage] = useState<ActivePage>("notes");
   const [viewMode, setViewMode] = useState<ViewMode>("list");
   const [links, setLinks] = useState<FliqkLink[]>([]);
   const [collections, setCollections] = useState<Collection[]>([]);
