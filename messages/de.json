@@ -244,6 +244,8 @@
     "codeCopied": "Code kopiert!",
     "bookmarkletTip": "Falls das Ziehen nicht funktioniert: Code kopieren, dann in Chrome Rechtsklick auf Lesezeichenleiste → \"Seite hinzufügen\" → im URL-Feld einfügen",
     "mobileTip": "Auf Mobilgeräten: Installiere fliqk als App, dann nutze \"Teilen\" → \"fliqk\"",
+    "guide": "Anleitung",
+    "guideDescription": "Wie man fliqk benutzt",
     "adminDescription": "Benutzer- und Token-Verwaltung",
     "dangerZone": "Gefahrenzone",
     "deleteAccount": "Konto löschen",

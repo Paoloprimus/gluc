@@ -17,7 +17,8 @@ import {
   Shield,
   Trash2,
   AlertTriangle,
-  Loader2
+  Loader2,
+  HelpCircle
 } from "lucide-react";
 import type { UserPreferences, Locale } from "@/types";
 import { applyLocale, getCurrentLocale } from "@/lib/session";
@@ -238,6 +239,23 @@ export function SettingsPage({ preferences, onUpdatePreferences, isAdmin, userId
           </div>
         </div>
       </AccordionSection>
+
+      {/* Help/Guide Link */}
+      <motion.a
+        href="/guida.html"
+        target="_blank"
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.98 }}
+        className="block w-full p-4 rounded-xl bg-[var(--card-bg)] border border-[var(--card-border)] hover:border-[var(--accent-primary)]/50 transition-colors"
+      >
+        <div className="flex items-center gap-3">
+          <HelpCircle size={20} className="text-[var(--accent-primary)]" />
+          <div>
+            <span className="font-semibold">{t('guide')}</span>
+            <p className="text-xs text-[var(--foreground-muted)]">{t('guideDescription')}</p>
+          </div>
+        </div>
+      </motion.a>
 
       {/* Admin Section - Only visible for admin users */}
       {isAdmin && (

@@ -250,6 +250,8 @@
     "codeCopied": "Codice copiato!",
     "bookmarkletTip": "Se il trascinamento non funziona: copia il codice, poi in Chrome click destro sulla barra preferiti → \"Aggiungi pagina\" → incolla nel campo URL",
     "mobileTip": "Su mobile: Installa fliqk come app, poi usa \"Condividi\" → \"fliqk\"",
+    "guide": "Guida",
+    "guideDescription": "Come usare fliqk",
     "adminDescription": "Gestione utenti e token",
     "dangerZone": "Zona pericolosa",
     "deleteAccount": "Elimina account",
