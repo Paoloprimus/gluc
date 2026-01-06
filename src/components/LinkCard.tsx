@@ -201,16 +201,18 @@ export function LinkCard({ link, onDelete, onShare, onEdit, onClickTrack, index 
             </div>
           </div>
 
-          {/* Edit button */}
-          <motion.button
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-            onClick={() => onEdit(link)}
-            className="flex-shrink-0 p-2 rounded-lg hover:bg-[var(--card-bg)] transition-colors self-start"
-            title={t('edit')}
-          >
-            <Pencil size={16} className="text-[var(--foreground-muted)]" />
-          </motion.button>
+          {/* Edit button - only for drafts */}
+          {isDraft && (
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              onClick={() => onEdit(link)}
+              className="flex-shrink-0 p-2 rounded-lg hover:bg-[var(--card-bg)] transition-colors self-start"
+              title={t('edit')}
+            >
+              <Pencil size={16} className="text-[var(--foreground-muted)]" />
+            </motion.button>
+          )}
         </div>
 
         {/* Description */}
