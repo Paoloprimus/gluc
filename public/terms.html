@@ -3,62 +3,152 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Termini di Servizio - fliqk</title>
+  <title>Termini di Servizio / Nutzungsbedingungen - fliqk</title>
   <style>
     body {
       font-family: system-ui, -apple-system, sans-serif;
-      max-width: 700px;
+      max-width: 800px;
       margin: 0 auto;
       padding: 40px 20px;
       line-height: 1.6;
       color: #333;
+      background: #fafafa;
+    }
+    .lang-toggle {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 30px;
+    }
+    .lang-toggle button {
+      padding: 8px 20px;
+      border: 2px solid #a3e635;
+      background: white;
+      border-radius: 20px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .lang-toggle button.active {
+      background: #a3e635;
+      color: black;
     }
     h1 { color: #a3e635; }
-    h2 { margin-top: 30px; }
+    h2 { margin-top: 30px; color: #333; }
     a { color: #a3e635; }
+    .section { display: none; }
+    .section.active { display: block; }
+    hr { margin: 40px 0; border: none; border-top: 1px solid #ddd; }
   </style>
 </head>
 <body>
-  <h1>Termini di Servizio</h1>
-  <p><em>Ultimo aggiornamento: Gennaio 2026</em></p>
+  <div class="lang-toggle">
+    <button id="btn-it" class="active" onclick="showLang('it')">🇮🇹 Italiano</button>
+    <button id="btn-de" onclick="showLang('de')">🇩🇪 Deutsch</button>
+  </div>
 
-  <h2>1. Accettazione</h2>
-  <p>Usando fliqk accetti questi termini. Se non li accetti, non usare il servizio.</p>
+  <!-- ITALIANO -->
+  <div id="it" class="section active">
+    <h1>Termini di Servizio</h1>
+    <p><em>Ultimo aggiornamento: Gennaio 2026</em></p>
 
-  <h2>2. Il servizio</h2>
-  <p>fliqk ti permette di salvare link, note e media, e di condividerli. Il servizio è in fase beta e potrebbe cambiare.</p>
+    <h2>1. Accettazione</h2>
+    <p>Usando fliqk accetti questi termini. Se non li accetti, non usare il servizio.</p>
 
-  <h2>3. Account</h2>
-  <ul>
-    <li>Devi avere un token d'invito per registrarti</li>
-    <li>Sei responsabile del tuo account e del tuo nickname</li>
-    <li>Un nickname per persona</li>
-  </ul>
+    <h2>2. Il servizio</h2>
+    <p>fliqk ti permette di salvare link, note e media, e di condividerli. Il servizio è in fase beta e potrebbe cambiare.</p>
 
-  <h2>4. Contenuti</h2>
-  <ul>
-    <li>I contenuti che salvi sono tuoi</li>
-    <li>Non salvare contenuti illegali, offensivi o che violano diritti altrui</li>
-    <li>Possiamo rimuovere contenuti che violano questi termini</li>
-  </ul>
+    <h2>3. Account</h2>
+    <ul>
+      <li>Devi avere un token d'invito per registrarti</li>
+      <li>Sei responsabile del tuo account e del tuo nickname</li>
+      <li>Un nickname per persona</li>
+    </ul>
 
-  <h2>5. Disponibilità</h2>
-  <p>Il servizio è fornito "così com'è". Non garantiamo disponibilità 24/7 o assenza di bug. Faremo del nostro meglio.</p>
+    <h2>4. Contenuti</h2>
+    <ul>
+      <li>I contenuti che salvi sono tuoi</li>
+      <li>Non salvare contenuti illegali, offensivi o che violano diritti altrui</li>
+      <li>Possiamo rimuovere contenuti che violano questi termini</li>
+    </ul>
 
-  <h2>6. Cancellazione</h2>
-  <ul>
-    <li>Puoi cancellare il tuo account in qualsiasi momento</li>
-    <li>Possiamo sospendere account che violano i termini</li>
-  </ul>
+    <h2>5. Disponibilità</h2>
+    <p>Il servizio è fornito "così com'è". Non garantiamo disponibilità 24/7 o assenza di bug. Faremo del nostro meglio.</p>
 
-  <h2>7. Modifiche</h2>
-  <p>Possiamo modificare questi termini. Ti avviseremo in caso di cambiamenti significativi.</p>
+    <h2>6. Cancellazione</h2>
+    <ul>
+      <li>Puoi cancellare il tuo account in qualsiasi momento</li>
+      <li>Possiamo sospendere account che violano i termini</li>
+    </ul>
 
-  <h2>8. Contatti</h2>
-  <p>Per domande: tramite l'admin che ti ha invitato.</p>
+    <h2>7. Modifiche</h2>
+    <p>Possiamo modificare questi termini. Ti avviseremo in caso di cambiamenti significativi.</p>
 
-  <hr>
-  <p><a href="/">← Torna a fliqk</a></p>
+    <h2>8. Contatti</h2>
+    <p>Per domande: tramite l'admin che ti ha invitato.</p>
+
+    <hr>
+    <p><a href="/">← Torna a fliqk</a></p>
+  </div>
+
+  <!-- DEUTSCH -->
+  <div id="de" class="section">
+    <h1>Nutzungsbedingungen</h1>
+    <p><em>Letzte Aktualisierung: Januar 2026</em></p>
+
+    <h2>1. Akzeptanz</h2>
+    <p>Durch die Nutzung von fliqk akzeptierst du diese Bedingungen. Wenn du sie nicht akzeptierst, nutze den Dienst nicht.</p>
+
+    <h2>2. Der Dienst</h2>
+    <p>fliqk ermöglicht es dir, Links, Notizen und Medien zu speichern und zu teilen. Der Dienst ist in der Beta-Phase und kann sich ändern.</p>
+
+    <h2>3. Konto</h2>
+    <ul>
+      <li>Du benötigst einen Einladungs-Token zur Registrierung</li>
+      <li>Du bist für dein Konto und deinen Nickname verantwortlich</li>
+      <li>Ein Nickname pro Person</li>
+    </ul>
+
+    <h2>4. Inhalte</h2>
+    <ul>
+      <li>Die Inhalte, die du speicherst, gehören dir</li>
+      <li>Speichere keine illegalen, beleidigenden oder rechtsverletzenden Inhalte</li>
+      <li>Wir können Inhalte entfernen, die gegen diese Bedingungen verstoßen</li>
+    </ul>
+
+    <h2>5. Verfügbarkeit</h2>
+    <p>Der Dienst wird "wie besehen" bereitgestellt. Wir garantieren keine 24/7-Verfügbarkeit oder Fehlerfreiheit. Wir tun unser Bestes.</p>
+
+    <h2>6. Löschung</h2>
+    <ul>
+      <li>Du kannst dein Konto jederzeit löschen</li>
+      <li>Wir können Konten sperren, die gegen die Bedingungen verstoßen</li>
+    </ul>
+
+    <h2>7. Änderungen</h2>
+    <p>Wir können diese Bedingungen ändern. Bei wesentlichen Änderungen werden wir dich informieren.</p>
+
+    <h2>8. Kontakt</h2>
+    <p>Bei Fragen: wende dich an den Admin, der dich eingeladen hat.</p>
+
+    <hr>
+    <p><a href="/">← Zurück zu fliqk</a></p>
+  </div>
+
+  <script>
+    function showLang(lang) {
+      document.getElementById('it').classList.remove('active');
+      document.getElementById('de').classList.remove('active');
+      document.getElementById('btn-it').classList.remove('active');
+      document.getElementById('btn-de').classList.remove('active');
+      
+      document.getElementById(lang).classList.add('active');
+      document.getElementById('btn-' + lang).classList.add('active');
+    }
+
+    // Auto-detect language
+    const browserLang = navigator.language || navigator.userLanguage;
+    if (browserLang.startsWith('de')) {
+      showLang('de');
+    }
+  </script>
 </body>
 </html>
-

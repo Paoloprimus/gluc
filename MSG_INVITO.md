@@ -1,8 +1,10 @@
-# 📱 Messaggi di invito per le tester
+# 📱 Messaggi di invito per le tester / Einladungsnachrichten für Tester
 
-## 🇮🇹 Italiano
+---
 
-### Messaggio breve (copia-incolla)
+## 🇮🇹 ITALIANO
+
+### Messaggio breve
 ```
 Ciao! 👋
 
@@ -18,24 +20,36 @@ Tip: aggiungi l'app alla Home per accederci velocemente.
 Dimmi cosa ne pensi! 💚
 ```
 
-### Messaggio con istruzioni bookmarklet
+### Come aggiungere alla Home (da mandare se chiedono)
+```
+📱 iPhone:
+1. Apri fliqk.to in Safari
+2. Tap su ⬆️ (condividi)
+3. "Aggiungi alla schermata Home"
+
+📱 Android:
+1. Apri fliqk.to in Chrome
+2. Tap sui tre puntini
+3. "Installa app"
+```
+
+### Istruzioni bookmarklet (opzionale, per power user)
 ```
 Per salvare link al volo:
 
 📌 iPhone/Safari:
 1. Crea un segnalibro qualsiasi
-2. Modificalo e nel campo URL incolla questo:
+2. Modificalo e nel campo URL incolla:
 
 javascript:(function(){window.open('https://fliqk.to/?url='+encodeURIComponent(location.href))})()
 
-3. Quando trovi un link, tap sul segnalibro
-
-📌 Android: usa Condividi → fliqk
+3. Rinominalo "fliqk"
+4. Quando trovi un link, tap sul segnalibro!
 ```
 
 ---
 
-## 🇩🇪 Deutsch
+## 🇩🇪 DEUTSCH
 
 ### Kurze Nachricht
 ```
@@ -46,27 +60,58 @@ Ich lade dich ein, fliqk auszuprobieren – eine App zum Speichern und Teilen vo
 📲 Öffne fliqk.to
 🔑 Token: [TOKEN_EINFÜGEN]
 
-Klicke auf "Erstregistrierung", gib den Token ein, wähle einen Nickname – fertig!
+Klicke "Erstregistrierung", gib den Token ein, wähle einen Nickname – fertig!
 
-Tipp: Füge die App zum Startbildschirm hinzu.
+Tipp: Füge die App zum Startbildschirm hinzu für schnellen Zugriff.
 
 Sag mir, was du davon hältst! 💚
 ```
 
+### Zum Startbildschirm hinzufügen (bei Nachfrage senden)
+```
+📱 iPhone:
+1. Öffne fliqk.to in Safari
+2. Tippe auf ⬆️ (Teilen)
+3. "Zum Home-Bildschirm"
+
+📱 Android:
+1. Öffne fliqk.to in Chrome
+2. Tippe auf die drei Punkte
+3. "App installieren"
+```
+
+### Bookmarklet Anleitung (optional, für Power-User)
+```
+Um Links schnell zu speichern:
+
+📌 iPhone/Safari:
+1. Erstelle ein beliebiges Lesezeichen
+2. Bearbeite es und füge im URL-Feld ein:
+
+javascript:(function(){window.open('https://fliqk.to/?url='+encodeURIComponent(location.href))})()
+
+3. Benenne es in "fliqk" um
+4. Wenn du einen Link findest, tippe auf das Lesezeichen!
+```
+
 ---
 
-## ⚠️ Note importanti
+## ⚠️ Note importanti / Wichtige Hinweise
 
-- Ogni token funziona **una volta sola**
-- Il nickname deve essere **unico** (niente duplicati)
-- I dati sono su server EU (GDPR compliant)
-- L'app è in beta: potrebbero esserci bug!
+| 🇮🇹 Italiano | 🇩🇪 Deutsch |
+|-------------|------------|
+| Ogni token funziona **una volta sola** | Jeder Token funktioniert **nur einmal** |
+| Il nickname deve essere **unico** | Der Nickname muss **einzigartig** sein |
+| I dati sono su server EU (GDPR) | Daten auf EU-Servern (DSGVO) |
+| L'app è in beta: potrebbero esserci bug! | Die App ist in der Beta: es könnte Bugs geben! |
 
 ---
 
-## 📋 Token disponibili
+## 📋 Gestione Token
 
-Vai su fliqk.to/admin per vedere/creare token.
+Vai su **fliqk.to/admin** per:
+- Vedere i token disponibili
+- Creare nuovi token
+- Vedere chi li ha usati
 
 Ogni tester = 1 token personale.
-
