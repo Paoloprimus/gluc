@@ -335,38 +335,43 @@ export function NotesPage({ userId }: NotesPageProps) {
                         <p className={`flex-1 text-sm break-words whitespace-pre-wrap ${item.source_date ? "text-amber-500/80" : ""}`}>
                           {item.text}
                         </p>
-                        <button
-                          onClick={() => handleRemoveItem(note.id, item.id)}
-                          className="flex-shrink-0 opacity-0 group-hover:opacity-100 p-1 hover:text-red-500 transition-opacity"
-                        >
-                          <X size={14} />
-                        </button>
+                        {/* Only show remove button for today's note */}
+                        {today && (
+                          <button
+                            onClick={() => handleRemoveItem(note.id, item.id)}
+                            className="flex-shrink-0 opacity-0 group-hover:opacity-100 p-1 hover:text-red-500 transition-opacity"
+                          >
+                            <X size={14} />
+                          </button>
+                        )}
                       </div>
                     ))}
                     
-                    {/* Add new item input */}
-                    <div className="flex items-start gap-2">
-                      <span className="flex-shrink-0 text-[var(--foreground-muted)]">•</span>
-                      <textarea
-                        value={newItemText[note.id] || ''}
-                        onChange={(e) => setNewItemText({ ...newItemText, [note.id]: e.target.value })}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter' && !e.shiftKey) {
-                            e.preventDefault();
-                            handleAddItem(note.id);
-                          }
-                        }}
-                        placeholder="..."
-                        rows={1}
-                        className="flex-1 bg-transparent text-sm outline-none placeholder:text-[var(--foreground-muted)]/50 resize-none overflow-hidden break-words"
-                        style={{ minHeight: '1.5em' }}
-                        onInput={(e) => {
-                          const target = e.target as HTMLTextAreaElement;
-                          target.style.height = 'auto';
-                          target.style.height = target.scrollHeight + 'px';
-                        }}
-                      />
-                    </div>
+                    {/* Add new item input - only for today's note */}
+                    {today && (
+                      <div className="flex items-start gap-2">
+                        <span className="flex-shrink-0 text-[var(--foreground-muted)]">•</span>
+                        <textarea
+                          value={newItemText[note.id] || ''}
+                          onChange={(e) => setNewItemText({ ...newItemText, [note.id]: e.target.value })}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' && !e.shiftKey) {
+                              e.preventDefault();
+                              handleAddItem(note.id);
+                            }
+                          }}
+                          placeholder="..."
+                          rows={1}
+                          className="flex-1 bg-transparent text-sm outline-none placeholder:text-[var(--foreground-muted)]/50 resize-none overflow-hidden break-words"
+                          style={{ minHeight: '1.5em' }}
+                          onInput={(e) => {
+                            const target = e.target as HTMLTextAreaElement;
+                            target.style.height = 'auto';
+                            target.style.height = target.scrollHeight + 'px';
+                          }}
+                        />
+                      </div>
+                    )}
                   </div>
                 </div>
               );
