@@ -49,6 +49,7 @@ export function PostEditor({
   
   // Form state - simplified
   const [url, setUrl] = useState(link?.url || initialUrl || "");
+  const [title, setTitle] = useState(link?.title || "");
   const [description, setDescription] = useState(link?.description || "");
   const [tags, setTags] = useState<string[]>(link?.tags || []);
   const [newTag, setNewTag] = useState("");
@@ -117,7 +118,7 @@ export function PostEditor({
   const buildLinkData = (status: 'draft' | 'sent'): NewLink => {
     return {
       url: url.trim() || null,
-      title: description.trim().slice(0, 100), // Use first 100 chars of description as title
+      title: title.trim() || description.trim().slice(0, 50) || 'Post', // Use title if set, otherwise first 50 chars of description
       description: description.trim(),
       thumbnail: null,
       custom_thumbnail: null,
@@ -334,6 +335,11 @@ export function PostEditor({
                 </div>
               )}
               
+              {/* Title if present */}
+              {title.trim() && (
+                <p className="font-bold text-[var(--foreground)] mb-2">{title}</p>
+              )}
+              
               {/* Description - main content */}
               <p className="text-[var(--foreground)] mb-3">{description}</p>
               
@@ -444,6 +450,18 @@ export function PostEditor({
                   className="flex-1 bg-transparent outline-none"
                 />
               </div>
+            </div>
+
+            {/* Title (optional) */}
+            <div>
+              <label className="block text-sm font-medium mb-2">{t('title')} <span className="text-[var(--foreground-muted)]">({t('optional')})</span></label>
+              <input
+                type="text"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder={t('titlePlaceholder')}
+                className="w-full p-3 rounded-xl bg-[var(--card-bg)] border border-[var(--card-border)] outline-none focus:border-[var(--accent-primary)]"
+              />
             </div>
 
             {/* Description (mandatory) */}
