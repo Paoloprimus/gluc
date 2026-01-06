@@ -14,6 +14,7 @@ import { FilterBar } from "@/components/FilterBar";
 import { StatsPage } from "@/components/StatsPage";
 import { SettingsPage } from "@/components/SettingsPage";
 import { NotesPage } from "@/components/NotesPage";
+import { OnboardingCard } from "@/components/OnboardingCard";
 import { getSession, setSession, clearSession, applyTheme, initializeTheme } from "@/lib/session";
 import { getUserLinks, addLink, updateLink, deleteLink, updateUserPreferences, incrementClickCount, getUserCollections } from "@/lib/supabase";
 import type { FliqkLink, NewLink, Session, UserPreferences, Collection } from "@/types";
@@ -43,6 +44,9 @@ export default function Home() {
 
   // URL from bookmarklet/share
   const [initialUrl, setInitialUrl] = useState<string | null>(null);
+
+  // Onboarding state
+  const [showOnboarding, setShowOnboarding] = useState(false);
 
   // Check auth and load data on mount
   useEffect(() => {
@@ -91,11 +95,11 @@ export default function Home() {
   }, [session, session?.preferences.sort_order]);
 
   // Handle login
-  const handleLogin = async (userId: string, nickname: string, role?: 'admin' | 'tester' | 'user') => {
+  const handleLogin = async (userId: string, nickname: string, role?: 'admin' | 'tester' | 'user', isNewUser?: boolean) => {
     const theme = initializeTheme();
-    // Get locale from cookie or default to 'it'
+    // Get locale from cookie or default to 'en'
     const localeCookie = document.cookie.match(/NEXT_LOCALE=([^;]+)/)?.[1];
-    const locale = (localeCookie === 'de' ? 'de' : 'it') as 'it' | 'de';
+    const locale = (localeCookie === 'de' ? 'de' : localeCookie === 'it' ? 'it' : 'en') as 'it' | 'de' | 'en';
     
     const newSession: Session = {
       userId,
@@ -109,6 +113,11 @@ export default function Home() {
     };
     setSession(newSession);
     setSessionState(newSession);
+    
+    // Show onboarding for new users
+    if (isNewUser) {
+      setShowOnboarding(true);
+    }
   };
 
   // Handle logout
@@ -388,6 +397,17 @@ export default function Home() {
         isOpen={showExport}
         onClose={() => setShowExport(false)}
       />
+
+      {/* Onboarding Card */}
+      {showOnboarding && (
+        <OnboardingCard
+          onGoToGuide={() => {
+            setShowOnboarding(false);
+            window.open('/guida.html', '_blank');
+          }}
+          onDismiss={() => setShowOnboarding(false)}
+        />
+      )}
       </main>
   );
 }

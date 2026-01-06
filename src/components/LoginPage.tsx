@@ -6,7 +6,7 @@ import { useTranslations } from "next-intl";
 import { User, Ticket, FileCheck, Loader2, ArrowRight, ArrowLeft } from "lucide-react";
 
 interface LoginPageProps {
-  onLogin: (userId: string, nickname: string, role?: 'admin' | 'tester' | 'user') => void;
+  onLogin: (userId: string, nickname: string, role?: 'admin' | 'tester' | 'user', isNewUser?: boolean) => void;
   onBack?: () => void;
 }
 
@@ -33,7 +33,7 @@ export function LoginPage({ onLogin, onBack }: LoginPageProps) {
       const result = await registerUser(nickname.trim(), token.trim());
       
       if (result.success && result.userId) {
-        onLogin(result.userId, nickname.trim().toLowerCase());
+        onLogin(result.userId, nickname.trim().toLowerCase(), undefined, true); // true = new user
       } else {
         // Translate error codes
         const errorKey = result.error || 'registrationError';
@@ -59,9 +59,12 @@ export function LoginPage({ onLogin, onBack }: LoginPageProps) {
       const result = await loginUser(nickname.trim());
       
       if (result.success && result.user) {
-        onLogin(result.user.id, result.user.nickname, result.user.role);
+        onLogin(result.user.id, result.user.nickname, result.user.role, false); // false = not new user
       } else {
-        setError(result.error || t('userNotFound'));
+        // Translate error codes
+        const errorKey = result.error || 'userNotFound';
+        const translatedError = t(errorKey as 'userNotFound' | 'connectionError' | 'differentDevice');
+        setError(translatedError);
       }
     } catch {
       setError(t('connectionError'));

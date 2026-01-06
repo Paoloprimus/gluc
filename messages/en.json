@@ -270,6 +270,12 @@
   "suggestions": {
     "title": "Did you mean...",
     "description": "We couldn't find the domain. Here are some suggestions:"
+  },
+  "onboarding": {
+    "welcome": "Welcome to fliqk!",
+    "message": "Before you start, check out the guide in Settings to learn how everything works.",
+    "goToGuide": "Open Guide",
+    "later": "Later"
   }
 }
 

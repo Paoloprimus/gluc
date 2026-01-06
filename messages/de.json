@@ -264,5 +264,11 @@
   "suggestions": {
     "title": "Meintest du vielleicht...",
     "description": "Die Domain wurde nicht gefunden. Hier sind einige Vorschläge:"
+  },
+  "onboarding": {
+    "welcome": "Willkommen bei fliqk!",
+    "message": "Bevor du loslegst, schau dir die Anleitung in den Einstellungen an.",
+    "goToGuide": "Anleitung öffnen",
+    "later": "Später"
   }
 }
