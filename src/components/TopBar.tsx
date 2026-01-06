@@ -27,7 +27,8 @@ export function TopBar({ nickname, activePage, onPageChange, onExport, onLogout 
               className="text-xl font-black tracking-tight"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              onClick={() => onPageChange("social")}
+              onClick={() => window.location.reload()}
+              title="Refresh"
             >
               <span className="text-[var(--accent-primary)]">fliqk</span>
             </motion.button>
