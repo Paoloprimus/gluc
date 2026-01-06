@@ -113,30 +113,55 @@ export function LinkCard({ link, onDelete, onShare, onEdit, onClickTrack, index 
         {/* Header with thumbnail */}
         <div className="flex gap-3">
           {/* Thumbnail */}
-          <div className="flex-shrink-0 w-16 h-16 rounded-xl overflow-hidden bg-[var(--card-bg)] flex items-center justify-center">
-            {link.thumbnail_type === "emoji" ? (
-              <span className="text-4xl">{link.custom_thumbnail || "🔗"}</span>
-            ) : link.post_type === 'audio' ? (
-              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[var(--accent-primary)]/20 to-[var(--accent-primary)]/30">
-                <Mic size={28} className="text-[var(--accent-primary)]" />
-              </div>
-            ) : link.post_type === 'video' && link.media_url ? (
-              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[var(--accent-primary)]/20 to-[var(--accent-primary)]/30 relative">
-                <Play size={28} className="text-[var(--accent-primary)]" />
-              </div>
-            ) : getThumbnail() && !imageError ? (
-              <img
-                src={getThumbnail()!}
-                alt=""
-                className="w-full h-full object-cover"
-                onError={() => setImageError(true)}
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[var(--accent-primary)]/20 to-[var(--accent-secondary)]/20">
-                <Globe size={24} className="text-[var(--foreground-muted)]" />
-              </div>
-            )}
-          </div>
+          {hasUrl ? (
+            <a
+              href={link.url!}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => onClickTrack(link.id)}
+              className="flex-shrink-0 w-16 h-16 rounded-xl overflow-hidden bg-[var(--card-bg)] flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity"
+            >
+              {link.thumbnail_type === "emoji" ? (
+                <span className="text-4xl">{link.custom_thumbnail || "🔗"}</span>
+              ) : getThumbnail() && !imageError ? (
+                <img
+                  src={getThumbnail()!}
+                  alt=""
+                  className="w-full h-full object-cover"
+                  onError={() => setImageError(true)}
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[var(--accent-primary)]/20 to-[var(--accent-secondary)]/20">
+                  <Globe size={24} className="text-[var(--foreground-muted)]" />
+                </div>
+              )}
+            </a>
+          ) : (
+            <div className="flex-shrink-0 w-16 h-16 rounded-xl overflow-hidden bg-[var(--card-bg)] flex items-center justify-center">
+              {link.thumbnail_type === "emoji" ? (
+                <span className="text-4xl">{link.custom_thumbnail || "🔗"}</span>
+              ) : link.post_type === 'audio' ? (
+                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[var(--accent-primary)]/20 to-[var(--accent-primary)]/30">
+                  <Mic size={28} className="text-[var(--accent-primary)]" />
+                </div>
+              ) : link.post_type === 'video' && link.media_url ? (
+                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[var(--accent-primary)]/20 to-[var(--accent-primary)]/30 relative">
+                  <Play size={28} className="text-[var(--accent-primary)]" />
+                </div>
+              ) : getThumbnail() && !imageError ? (
+                <img
+                  src={getThumbnail()!}
+                  alt=""
+                  className="w-full h-full object-cover"
+                  onError={() => setImageError(true)}
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[var(--accent-primary)]/20 to-[var(--accent-secondary)]/20">
+                  <Globe size={24} className="text-[var(--foreground-muted)]" />
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Title and meta */}
           <div className="flex-1 min-w-0">
@@ -144,10 +169,16 @@ export function LinkCard({ link, onDelete, onShare, onEdit, onClickTrack, index 
               {link.title}
             </h3>
             {hasUrl ? (
-              <p className="text-xs text-[var(--foreground-muted)] mt-1 flex items-center gap-1">
+              <a 
+                href={link.url!}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => onClickTrack(link.id)}
+                className="text-xs text-[var(--foreground-muted)] mt-1 flex items-center gap-1 hover:text-[var(--accent-primary)] transition-colors"
+              >
                 <Globe size={12} />
                 {getDomain(link.url!)}
-              </p>
+              </a>
             ) : (
               <p className="text-xs text-[var(--accent-primary)] mt-1 flex items-center gap-1">
                 {link.post_type === 'image' && tEditor('imageType')}
