@@ -38,7 +38,8 @@ fliqk è un'app per salvare link, pensieri e media, e condividerli facilmente su
 - Scrivi pensieri giornalieri
 - Un punto per ogni pensiero
 - Tap + per creare la nota di oggi
-- Le note più vecchie di 7 giorni mostrano "(ex)"
+- Note > 7 giorni → badge "(ex)" (puoi modificarle o archiviarle)
+- Note > 28 giorni → archiviate automaticamente
 
 ### Social (📤)
 - I tuoi post (link, testo, media)
@@ -87,7 +88,8 @@ Usa il menu "Condividi" → "fliqk" (se hai installato l'app)
 ## 💡 Tips
 
 - **Primo tag = categoria**: il primo tag è obbligatorio e determina come viene organizzato
-- **Note scadono**: dopo 7 giorni, le note vanno in archivio se non le tocchi
+- **Note (ex)**: dopo 7 giorni appare il badge, puoi modificarle o archiviarle manualmente
+- **Auto-archiviazione**: dopo 28 giorni le note vengono archiviate automaticamente
 - **Tema auto**: segue quello del telefono, oppure lo scegli tu
 
 ---
@@ -138,7 +140,8 @@ fliqk ist eine App zum Speichern von Links, Gedanken und Medien und zum einfache
 - Schreibe tägliche Gedanken
 - Ein Punkt pro Gedanke
 - Tippe + um die heutige Notiz zu erstellen
-- Notizen älter als 7 Tage zeigen "(ex)"
+- Notizen > 7 Tage → Badge "(ex)" (bearbeiten oder archivieren)
+- Notizen > 28 Tage → automatisch archiviert
 
 ### Social (📤)
 - Deine Posts (Links, Text, Medien)
@@ -187,7 +190,8 @@ Nutze das Menü "Teilen" → "fliqk" (wenn die App installiert ist)
 ## 💡 Tipps
 
 - **Erster Tag = Kategorie**: Der erste Tag ist Pflicht und bestimmt die Einordnung
-- **Notizen verfallen**: Nach 7 Tagen gehen Notizen ins Archiv, wenn du sie nicht bearbeitest
+- **Notizen (ex)**: Nach 7 Tagen erscheint das Badge, du kannst sie bearbeiten oder archivieren
+- **Auto-Archivierung**: Nach 28 Tagen werden Notizen automatisch archiviert
 - **Automatisches Theme**: Folgt dem Handy-Theme, oder du wählst selbst
 
 ---
