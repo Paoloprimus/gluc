@@ -63,12 +63,14 @@ export async function registerUser(nickname: string, token: string): Promise<{ s
   
   // Get role from token (default to 'tester' for backward compatibility)
   const role = tokenData.grants_role || 'tester';
+  const deviceId = getDeviceId();
   
   const { data: newUser, error: userError } = await supabase.client
     .from('users')
     .insert({ 
       nickname: nickname.toLowerCase(),
-      role: role
+      role: role,
+      device_id: deviceId
     })
     .select()
     .single();
@@ -85,6 +87,19 @@ export async function registerUser(nickname: string, token: string): Promise<{ s
   return { success: true, userId: newUser.id };
 }
 
+// Generate a unique device ID
+export function getDeviceId(): string {
+  if (typeof window === 'undefined') return '';
+  
+  let deviceId = localStorage.getItem('fliqk_device_id');
+  if (!deviceId) {
+    // Generate a random device ID
+    deviceId = 'dev_' + crypto.randomUUID();
+    localStorage.setItem('fliqk_device_id', deviceId);
+  }
+  return deviceId;
+}
+
 export async function loginUser(nickname: string): Promise<{ success: boolean; user?: { id: string; nickname: string; preferences: UserPreferences; role?: 'admin' | 'tester' | 'user' }; error?: string }> {
   const { data: user, error } = await supabase.client
     .from('users')
@@ -93,10 +108,74 @@ export async function loginUser(nickname: string): Promise<{ success: boolean; u
     .single();
   
   if (error || !user) {
-    return { success: false, error: 'Utente non trovato' };
+    return { success: false, error: 'userNotFound' };
+  }
+
+  const currentDeviceId = getDeviceId();
+  const isAdmin = user.role === 'admin';
+  
+  // Check device restriction (admin can use multiple devices)
+  if (!isAdmin && user.device_id && user.device_id !== currentDeviceId) {
+    return { success: false, error: 'differentDevice' };
+  }
+  
+  // Store device_id if not set yet
+  if (!user.device_id) {
+    await supabase.client
+      .from('users')
+      .update({ device_id: currentDeviceId })
+      .eq('id', user.id);
   }
 
   return { success: true, user: { ...user, role: user.role || 'user' } };
+}
+
+// Delete user account and all associated data
+export async function deleteAccount(userId: string): Promise<{ success: boolean; error?: string }> {
+  try {
+    // 1. Delete all user's links/posts
+    await supabase.client
+      .from('links')
+      .delete()
+      .eq('user_id', userId);
+    
+    // 2. Delete all user's daily notes
+    await supabase.client
+      .from('daily_notes')
+      .delete()
+      .eq('user_id', userId);
+    
+    // 3. Delete all user's archived notes
+    await supabase.client
+      .from('notes_archive')
+      .delete()
+      .eq('user_id', userId);
+    
+    // 4. Delete all user's collections
+    await supabase.client
+      .from('collections')
+      .delete()
+      .eq('user_id', userId);
+    
+    // 5. Delete the user
+    const { error } = await supabase.client
+      .from('users')
+      .delete()
+      .eq('id', userId);
+    
+    if (error) {
+      return { success: false, error: 'deleteError' };
+    }
+    
+    // 6. Clear local device ID
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('fliqk_device_id');
+    }
+    
+    return { success: true };
+  } catch {
+    return { success: false, error: 'deleteError' };
+  }
 }
 
 // =============================================

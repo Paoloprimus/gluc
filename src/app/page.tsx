@@ -353,6 +353,8 @@ export default function Home() {
             preferences={session.preferences}
             onUpdatePreferences={handleUpdatePreferences}
             isAdmin={session.role === 'admin'}
+            userId={session.userId}
+            onLogout={handleLogout}
           />
         )}
         </div>

@@ -48,6 +48,7 @@
     "connectionError": "Errore di connessione",
     "registrationError": "Errore durante la registrazione",
     "nicknameInUse": "Nickname già in uso",
+    "differentDevice": "Account già collegato a un altro dispositivo",
     "invalidToken": "Token non valido o già utilizzato"
   },
   "nav": {
@@ -249,7 +250,13 @@
     "codeCopied": "Codice copiato!",
     "bookmarkletTip": "Se il trascinamento non funziona: copia il codice, poi in Chrome click destro sulla barra preferiti → \"Aggiungi pagina\" → incolla nel campo URL",
     "mobileTip": "Su mobile: Installa fliqk come app, poi usa \"Condividi\" → \"fliqk\"",
-    "adminDescription": "Gestione utenti e token"
+    "adminDescription": "Gestione utenti e token",
+    "dangerZone": "Zona pericolosa",
+    "deleteAccount": "Elimina account",
+    "deleteAccountDescription": "Elimina il tuo account e tutti i dati associati. Questa azione è irreversibile.",
+    "deleteAccountConfirm": "Sei sicuro di voler eliminare il tuo account? Tutti i tuoi post, note e dati verranno eliminati permanentemente.",
+    "deleteAccountButton": "Sì, elimina il mio account",
+    "deleting": "Eliminazione in corso..."
   },
   "share": {
     "title": "Condividi",

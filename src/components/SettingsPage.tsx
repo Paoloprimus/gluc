@@ -14,22 +14,31 @@ import {
   Smartphone,
   SortAsc,
   Globe,
-  Shield
+  Shield,
+  Trash2,
+  AlertTriangle,
+  Loader2
 } from "lucide-react";
 import type { UserPreferences, Locale } from "@/types";
 import { applyLocale, getCurrentLocale } from "@/lib/session";
+import { deleteAccount } from "@/lib/supabase";
 
 interface SettingsPageProps {
   preferences: UserPreferences;
   onUpdatePreferences: (updates: Partial<UserPreferences>) => void;
   isAdmin?: boolean;
+  userId: string;
+  onLogout: () => void;
 }
 
-export function SettingsPage({ preferences, onUpdatePreferences, isAdmin }: SettingsPageProps) {
+export function SettingsPage({ preferences, onUpdatePreferences, isAdmin, userId, onLogout }: SettingsPageProps) {
   const t = useTranslations('settings');
+  const tCommon = useTranslations('common');
   const [openSection, setOpenSection] = useState<string | null>("appearance");
   const [copiedBookmarklet, setCopiedBookmarklet] = useState(false);
   const [currentLocale] = useState<Locale>(getCurrentLocale());
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const bookmarkletCode = `javascript:(function(){window.open('${typeof window !== 'undefined' ? window.location.origin : 'https://fliqk.to'}/?url='+encodeURIComponent(window.location.href),'_blank')})()`;
 
@@ -46,6 +55,17 @@ export function SettingsPage({ preferences, onUpdatePreferences, isAdmin }: Sett
 
   const toggleSection = (section: string) => {
     setOpenSection(openSection === section ? null : section);
+  };
+
+  const handleDeleteAccount = async () => {
+    setIsDeleting(true);
+    const result = await deleteAccount(userId);
+    if (result.success) {
+      onLogout();
+    } else {
+      setIsDeleting(false);
+      setShowDeleteConfirm(false);
+    }
   };
 
   return (
@@ -236,6 +256,69 @@ export function SettingsPage({ preferences, onUpdatePreferences, isAdmin }: Sett
           </div>
         </motion.a>
       )}
+
+      {/* Danger Zone - Delete Account */}
+      <div className="mt-8 pt-6 border-t border-red-500/20">
+        <h3 className="text-sm font-semibold text-red-500 mb-3 flex items-center gap-2">
+          <AlertTriangle size={16} />
+          {t('dangerZone')}
+        </h3>
+        
+        {!showDeleteConfirm ? (
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => setShowDeleteConfirm(true)}
+            className="w-full p-4 rounded-xl border border-red-500/30 hover:border-red-500/50 hover:bg-red-500/10 transition-colors text-left"
+          >
+            <div className="flex items-center gap-3">
+              <Trash2 size={20} className="text-red-500" />
+              <div>
+                <span className="font-semibold text-red-500">{t('deleteAccount')}</span>
+                <p className="text-xs text-[var(--foreground-muted)]">{t('deleteAccountDescription')}</p>
+              </div>
+            </div>
+          </motion.button>
+        ) : (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="p-4 rounded-xl bg-red-500/10 border border-red-500/30"
+          >
+            <p className="text-sm text-red-400 mb-4">{t('deleteAccountConfirm')}</p>
+            <div className="flex gap-3">
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => setShowDeleteConfirm(false)}
+                disabled={isDeleting}
+                className="flex-1 p-3 rounded-xl border border-[var(--card-border)] hover:bg-[var(--card-bg)] transition-colors"
+              >
+                {tCommon('cancel')}
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={handleDeleteAccount}
+                disabled={isDeleting}
+                className="flex-1 p-3 rounded-xl bg-red-500 text-white font-semibold hover:bg-red-600 transition-colors flex items-center justify-center gap-2"
+              >
+                {isDeleting ? (
+                  <>
+                    <Loader2 size={16} className="animate-spin" />
+                    {t('deleting')}
+                  </>
+                ) : (
+                  <>
+                    <Trash2 size={16} />
+                    {t('deleteAccountButton')}
+                  </>
+                )}
+              </motion.button>
+            </div>
+          </motion.div>
+        )}
+      </div>
     </div>
   );
 }

@@ -48,7 +48,8 @@
     "connectionError": "Verbindungsfehler",
     "registrationError": "Fehler bei der Registrierung",
     "nicknameInUse": "Nickname bereits vergeben",
-    "invalidToken": "Token ungültig oder bereits verwendet"
+    "invalidToken": "Token ungültig oder bereits verwendet",
+    "differentDevice": "Konto bereits mit einem anderen Gerät verbunden"
   },
   "nav": {
     "social": "Social",
@@ -243,7 +244,13 @@
     "codeCopied": "Code kopiert!",
     "bookmarkletTip": "Falls das Ziehen nicht funktioniert: Code kopieren, dann in Chrome Rechtsklick auf Lesezeichenleiste → \"Seite hinzufügen\" → im URL-Feld einfügen",
     "mobileTip": "Auf Mobilgeräten: Installiere fliqk als App, dann nutze \"Teilen\" → \"fliqk\"",
-    "adminDescription": "Benutzer- und Token-Verwaltung"
+    "adminDescription": "Benutzer- und Token-Verwaltung",
+    "dangerZone": "Gefahrenzone",
+    "deleteAccount": "Konto löschen",
+    "deleteAccountDescription": "Lösche dein Konto und alle zugehörigen Daten. Diese Aktion kann nicht rückgängig gemacht werden.",
+    "deleteAccountConfirm": "Bist du sicher, dass du dein Konto löschen möchtest? Alle deine Posts, Notizen und Daten werden dauerhaft gelöscht.",
+    "deleteAccountButton": "Ja, mein Konto löschen",
+    "deleting": "Wird gelöscht..."
   },
   "share": {
     "title": "Teilen",
