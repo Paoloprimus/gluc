@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="it">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Guida fliqk / fliqk Anleitung</title>
+  <title>fliqk Guide / Guida fliqk / fliqk Anleitung</title>
   <style>
     * { box-sizing: border-box; }
     body {
@@ -75,6 +75,100 @@
 </head>
 <body>
 
+  <!-- ENGLISH -->
+  <div id="en" class="section">
+    <a href="/" class="back-link">← fliqk.to</a>
+    <h1>📱 fliqk Guide</h1>
+    <p><em>Save. Organize. Share.</em></p>
+
+    <h2>🚀 Getting Started</h2>
+    
+    <h3>1. First Login</h3>
+    <ul>
+      <li>Open <strong>fliqk.to</strong> on your phone</li>
+      <li>Tap "First access"</li>
+      <li>Enter the <strong>token</strong> you received</li>
+      <li>Choose a <strong>nickname</strong> (this will be your @name)</li>
+      <li>Accept the terms and tap "Start"</li>
+    </ul>
+
+    <h3>2. Add to Home Screen</h3>
+    <p><strong>iPhone:</strong></p>
+    <ul>
+      <li>Open fliqk.to in Safari</li>
+      <li>Tap <span class="emoji">⬆️</span> (share)</li>
+      <li>"Add to Home Screen"</li>
+    </ul>
+    <p><strong>Android:</strong></p>
+    <ul>
+      <li>Open fliqk.to in Chrome</li>
+      <li>Tap the three dots</li>
+      <li>"Install app"</li>
+    </ul>
+
+    <h2>📝 The Pages</h2>
+
+    <h3>Notes <span class="emoji">📝</span></h3>
+    <ul>
+      <li>Write daily thoughts</li>
+      <li>One bullet point per thought</li>
+      <li>Tap + to create today's note</li>
+      <li>Notes > 7 days → "(ex)" badge</li>
+      <li>Notes > 28 days → automatically archived</li>
+    </ul>
+
+    <h3>Social <span class="emoji">📤</span></h3>
+    <ul>
+      <li>Your posts (links, text, media)</li>
+      <li>Tap + to create a new post</li>
+      <li>Filter: All / Sent / Drafts</li>
+    </ul>
+
+    <h3>Stats <span class="emoji">📊</span></h3>
+    <ul>
+      <li>How many posts you have</li>
+      <li>Most used tags</li>
+    </ul>
+
+    <h3>Settings <span class="emoji">⚙️</span></h3>
+    <ul>
+      <li>Light/dark theme</li>
+      <li>Language EN/IT/DE</li>
+      <li>Post order</li>
+    </ul>
+
+    <h2>📤 Creating a Post</h2>
+    <ol>
+      <li>Tap the green <strong>+</strong></li>
+      <li>Write a <strong>description</strong> (required)</li>
+      <li>Paste a <strong>link</strong> (optional)</li>
+      <li>Add at least one <strong>tag</strong> (required)</li>
+      <li>Tap <strong>Preview</strong></li>
+      <li>Choose: 💾 Save or 📤 WhatsApp/Telegram</li>
+    </ol>
+
+    <h2>💡 Tips</h2>
+    <div class="tip">
+      <strong>First tag = category</strong><br>
+      The first tag is required and determines how the post is organized.
+    </div>
+    <div class="tip">
+      <strong>Notes (ex)</strong><br>
+      After 7 days a badge appears. You can edit or archive them manually. After 28 days they're archived automatically.
+    </div>
+
+    <h2>❓ Problems?</h2>
+    <ul>
+      <li><strong>Won't open?</strong> Use Safari (iPhone) or Chrome (Android)</li>
+      <li><strong>Won't save?</strong> Check your internet connection</li>
+      <li><strong>Lost token?</strong> Contact whoever gave it to you</li>
+    </ul>
+
+    <p style="margin-top: 3rem; text-align: center; color: #666;">
+      <a href="/privacy">Privacy</a> · <a href="/terms.html">Terms</a>
+    </p>
+  </div>
+
   <!-- ITALIANO -->
   <div id="it" class="section">
     <a href="/" class="back-link">← fliqk.to</a>
@@ -133,7 +227,7 @@
     <h3>Impostazioni <span class="emoji">⚙️</span></h3>
     <ul>
       <li>Tema chiaro/scuro</li>
-      <li>Lingua IT/DE</li>
+      <li>Lingua IT/DE/EN</li>
       <li>Ordine post</li>
     </ul>
 
@@ -227,7 +321,7 @@
     <h3>Einstellungen <span class="emoji">⚙️</span></h3>
     <ul>
       <li>Helles/dunkles Theme</li>
-      <li>Sprache IT/DE</li>
+      <li>Sprache IT/DE/EN</li>
       <li>Post-Reihenfolge</li>
     </ul>
 
@@ -267,11 +361,17 @@
     // Auto-detect language
     function detectLang() {
       const browserLangs = navigator.languages || [navigator.language];
-      const isGerman = browserLangs.some(l => l.toLowerCase().startsWith('de'));
-      return isGerman ? 'de' : 'it';
+      for (const lang of browserLangs) {
+        const l = lang.toLowerCase();
+        if (l.startsWith('de')) return 'de';
+        if (l.startsWith('it')) return 'it';
+        if (l.startsWith('en')) return 'en';
+      }
+      return 'en'; // Default to English
     }
 
     function showLang(lang) {
+      document.getElementById('en').classList.remove('active');
       document.getElementById('it').classList.remove('active');
       document.getElementById('de').classList.remove('active');
       document.getElementById(lang).classList.add('active');
@@ -283,4 +383,3 @@
   </script>
 </body>
 </html>
-

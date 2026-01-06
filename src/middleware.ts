@@ -1,10 +1,11 @@
 import {NextRequest, NextResponse} from 'next/server';
 
-const locales = ['it', 'de'];
-const defaultLocale = 'it';
+const locales = ['it', 'de', 'en'];
+const defaultLocale = 'en'; // English as default for international users
 
-// Language codes that should map to German
+// Language codes mapping
 const germanLanguages = ['de', 'de-DE', 'de-AT', 'de-CH'];
+const italianLanguages = ['it', 'it-IT', 'it-CH'];
 
 export function middleware(request: NextRequest) {
   // Check if locale cookie exists
@@ -19,10 +20,14 @@ export function middleware(request: NextRequest) {
   const preferredLanguage = acceptLanguage.split(',')[0]?.split(';')[0]?.trim();
   
   let detectedLocale = defaultLocale;
-  if (preferredLanguage && germanLanguages.some(lang => 
-    preferredLanguage.toLowerCase().startsWith(lang.toLowerCase())
-  )) {
-    detectedLocale = 'de';
+  if (preferredLanguage) {
+    const langLower = preferredLanguage.toLowerCase();
+    if (germanLanguages.some(lang => langLower.startsWith(lang.toLowerCase()))) {
+      detectedLocale = 'de';
+    } else if (italianLanguages.some(lang => langLower.startsWith(lang.toLowerCase()))) {
+      detectedLocale = 'it';
+    }
+    // Otherwise stays 'en' (default)
   }
   
   // Set the locale cookie

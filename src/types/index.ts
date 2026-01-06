@@ -9,7 +9,7 @@ export interface User {
   preferences: UserPreferences;
 }
 
-export type Locale = 'it' | 'de';
+export type Locale = 'it' | 'de' | 'en';
 
 export interface UserPreferences {
   theme: 'light' | 'dark';

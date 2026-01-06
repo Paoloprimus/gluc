@@ -3,9 +3,72 @@
 import { useState, useEffect } from "react";
 import { ArrowLeft } from "lucide-react";
 
-type Lang = 'it' | 'de';
+type Lang = 'it' | 'de' | 'en';
 
 const content = {
+  en: {
+    title: "Privacy Policy",
+    lastUpdate: "Last updated: January 2026",
+    sections: [
+      {
+        title: "1. What we collect",
+        content: `We only collect data strictly necessary for the service:
+        
+• **Nickname**: the name you choose to identify yourself
+• **Content**: links, images and texts you save in the app
+• **Preferences**: theme (light/dark), language, sorting
+
+We don't collect: email, password, payment data, location, contacts.`
+      },
+      {
+        title: "2. How we use data",
+        content: `Your data is used exclusively to:
+
+• Allow you to save and organize your content
+• Sync data between your devices
+• Improve the service based on aggregate usage (anonymous statistics)`
+      },
+      {
+        title: "3. Where we store data",
+        content: `Data is stored on secure Supabase servers (cloud provider) based in the European Union. Servers use encryption and are GDPR compliant.`
+      },
+      {
+        title: "4. Who we share data with",
+        content: `We don't sell or share your data with third parties, except:
+
+• **Supabase**: our database provider (necessary for operation)
+
+We don't use: advertising tracking, third-party analytics, social login.`
+      },
+      {
+        title: "5. Your rights",
+        content: `You have the right to:
+
+• **Access**: know what data we have about you
+• **Rectification**: correct your data
+• **Deletion**: delete your account and all associated data
+• **Portability**: export your data in HTML format
+
+To exercise these rights, contact us.`
+      },
+      {
+        title: "6. Cookies",
+        content: `We only use essential technical cookies for:
+
+• Keeping your session active
+• Saving your preferences (theme, language)
+
+We don't use profiling or third-party cookies.`
+      },
+      {
+        title: "7. Contact",
+        content: `For privacy questions or to exercise your rights:
+
+📧 privacy@fliqk.to`
+      }
+    ],
+    back: "Back to home"
+  },
   it: {
     title: "Privacy Policy",
     lastUpdate: "Ultimo aggiornamento: Gennaio 2026",
@@ -135,20 +198,28 @@ Wir verwenden keine Profiling- oder Drittanbieter-Cookies.`
 };
 
 export default function PrivacyPage() {
-  const [lang, setLang] = useState<Lang>('it');
+  const [lang, setLang] = useState<Lang>('en');
 
   useEffect(() => {
-    // Use the same locale detection as next-intl
-    const localeCookie = document.cookie.match(/NEXT_LOCALE=([^;]+)/)?.[1];
-    if (localeCookie === 'de') {
-      setLang('de');
-    } else if (!localeCookie) {
+    // Detect language
+    const detectLang = (): Lang => {
+      const localeCookie = document.cookie.match(/NEXT_LOCALE=([^;]+)/)?.[1];
+      if (localeCookie === 'de') return 'de';
+      if (localeCookie === 'it') return 'it';
+      if (localeCookie === 'en') return 'en';
+      
+      // If no cookie, check browser language
       const browserLangs = navigator.languages || [navigator.language];
-      const isGerman = browserLangs.some(l => l.toLowerCase().startsWith('de'));
-      if (isGerman) {
-        setLang('de');
+      for (const browserLang of browserLangs) {
+        const l = browserLang.toLowerCase();
+        if (l.startsWith('de')) return 'de';
+        if (l.startsWith('it')) return 'it';
+        if (l.startsWith('en')) return 'en';
       }
-    }
+      return 'en'; // Default to English
+    };
+    
+    setLang(detectLang());
   }, []);
 
   const t = content[lang];

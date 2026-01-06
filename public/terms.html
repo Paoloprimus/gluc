@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="it">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Termini di Servizio / Nutzungsbedingungen - fliqk</title>
+  <title>Terms of Service / Termini di Servizio / Nutzungsbedingungen - fliqk</title>
   <style>
     body {
       font-family: system-ui, -apple-system, sans-serif;
@@ -41,12 +41,57 @@
 </head>
 <body>
   <div class="lang-toggle">
-    <button id="btn-it" class="active" onclick="showLang('it')">🇮🇹 Italiano</button>
+    <button id="btn-en" onclick="showLang('en')">🇬🇧 English</button>
+    <button id="btn-it" onclick="showLang('it')">🇮🇹 Italiano</button>
     <button id="btn-de" onclick="showLang('de')">🇩🇪 Deutsch</button>
   </div>
 
+  <!-- ENGLISH -->
+  <div id="en" class="section">
+    <h1>Terms of Service</h1>
+    <p><em>Last updated: January 2026</em></p>
+
+    <h2>1. Acceptance</h2>
+    <p>By using fliqk you accept these terms. If you don't accept them, don't use the service.</p>
+
+    <h2>2. The Service</h2>
+    <p>fliqk allows you to save links, notes and media, and share them. The service is in beta and may change.</p>
+
+    <h2>3. Account</h2>
+    <ul>
+      <li>You need an invite token to register</li>
+      <li>You are responsible for your account and nickname</li>
+      <li>One nickname per person</li>
+    </ul>
+
+    <h2>4. Content</h2>
+    <ul>
+      <li>The content you save is yours</li>
+      <li>Don't save illegal, offensive or rights-infringing content</li>
+      <li>We may remove content that violates these terms</li>
+    </ul>
+
+    <h2>5. Availability</h2>
+    <p>The service is provided "as is". We don't guarantee 24/7 availability or bug-free operation. We'll do our best.</p>
+
+    <h2>6. Deletion</h2>
+    <ul>
+      <li>You can delete your account at any time</li>
+      <li>We may suspend accounts that violate the terms</li>
+    </ul>
+
+    <h2>7. Changes</h2>
+    <p>We may modify these terms. We'll notify you of significant changes.</p>
+
+    <h2>8. Contact</h2>
+    <p>For questions: contact the admin who invited you.</p>
+
+    <hr>
+    <p><a href="/">← Back to fliqk</a></p>
+  </div>
+
   <!-- ITALIANO -->
-  <div id="it" class="section active">
+  <div id="it" class="section">
     <h1>Termini di Servizio</h1>
     <p><em>Ultimo aggiornamento: Gennaio 2026</em></p>
 
@@ -135,8 +180,10 @@
 
   <script>
     function showLang(lang) {
+      document.getElementById('en').classList.remove('active');
       document.getElementById('it').classList.remove('active');
       document.getElementById('de').classList.remove('active');
+      document.getElementById('btn-en').classList.remove('active');
       document.getElementById('btn-it').classList.remove('active');
       document.getElementById('btn-de').classList.remove('active');
       
@@ -145,10 +192,18 @@
     }
 
     // Auto-detect language
-    const browserLang = navigator.language || navigator.userLanguage;
-    if (browserLang.startsWith('de')) {
-      showLang('de');
+    function detectLang() {
+      const browserLangs = navigator.languages || [navigator.language];
+      for (const lang of browserLangs) {
+        const l = lang.toLowerCase();
+        if (l.startsWith('de')) return 'de';
+        if (l.startsWith('it')) return 'it';
+        if (l.startsWith('en')) return 'en';
+      }
+      return 'en'; // Default to English
     }
+
+    showLang(detectLang());
   </script>
 </body>
 </html>

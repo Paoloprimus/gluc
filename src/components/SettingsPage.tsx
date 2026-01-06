@@ -116,7 +116,7 @@ export function SettingsPage({ preferences, onUpdatePreferences, isAdmin, userId
             {t('chooseLanguage')}
           </p>
           
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-3 gap-3">
             <LanguageButton
               flag="🇮🇹"
               label={t('italian')}
@@ -128,6 +128,12 @@ export function SettingsPage({ preferences, onUpdatePreferences, isAdmin, userId
               label={t('german')}
               isActive={currentLocale === "de"}
               onClick={() => handleLocaleChange("de")}
+            />
+            <LanguageButton
+              flag="🇬🇧"
+              label={t('english')}
+              isActive={currentLocale === "en"}
+              onClick={() => handleLocaleChange("en")}
             />
           </div>
         </div>

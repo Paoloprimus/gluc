@@ -73,15 +73,15 @@ export function applyLocale(locale: Locale): void {
 
 // Get current locale from cookie
 export function getCurrentLocale(): Locale {
-  if (typeof window === "undefined") return 'it';
+  if (typeof window === "undefined") return 'en';
   
   const match = document.cookie.match(/NEXT_LOCALE=([^;]+)/);
   const locale = match?.[1];
   
-  if (locale === 'de' || locale === 'it') {
-    return locale;
+  if (locale === 'de' || locale === 'it' || locale === 'en') {
+    return locale as Locale;
   }
   
-  return 'it';
+  return 'en'; // Default to English for international users
 }
 
