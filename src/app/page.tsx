@@ -69,6 +69,7 @@ export default function Home() {
     }
     if (urlParam) {
       setInitialUrl(decodeURIComponent(urlParam));
+      setActivePage("social"); // Switch to social page for the editor
       setViewMode("editor");
       window.history.replaceState({}, "", window.location.pathname);
     }
