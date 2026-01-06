@@ -65,10 +65,13 @@ export function NotesPage({ userId }: NotesPageProps) {
     setLoading(true);
     try {
       const data = await getUserNotes(userId);
-      const normalizedNotes = data.map(note => ({
-        ...note,
-        items: Array.isArray(note.items) ? note.items : [],
-      }));
+      const normalizedNotes = data
+        .map(note => ({
+          ...note,
+          items: Array.isArray(note.items) ? note.items : [],
+        }))
+        // Filter out empty notes (except today's note which can be empty while editing)
+        .filter(note => note.items.length > 0 || isToday(note.date));
       setNotes(normalizedNotes);
     } catch (error) {
       console.error('Error loading notes:', error);
@@ -133,11 +136,20 @@ export function NotesPage({ userId }: NotesPageProps) {
       const success = await removeNoteItem(noteId, itemId);
       
       if (success) {
-        setNotes(notes.map(n => 
-          n.id === noteId 
-            ? { ...n, items: n.items.filter(item => item.id !== itemId) }
-            : n
-        ));
+        const note = notes.find(n => n.id === noteId);
+        const remainingItems = note?.items.filter(item => item.id !== itemId) || [];
+        
+        // If this was the last item and it's not today's note, remove the note entirely
+        if (remainingItems.length === 0 && note && !isToday(note.date)) {
+          await archiveSingleNote(noteId, userId);
+          setNotes(notes.filter(n => n.id !== noteId));
+        } else {
+          setNotes(notes.map(n => 
+            n.id === noteId 
+              ? { ...n, items: remainingItems }
+              : n
+          ));
+        }
       }
     } catch (error) {
       console.error('Error removing item:', error);
