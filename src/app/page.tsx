@@ -72,31 +72,23 @@ export default function Home() {
 
   // Load links and collections when session is set
   useEffect(() => {
+    const loadLinks = async () => {
+      if (!session) return;
+      const data = await getUserLinks(session.userId, session.preferences.sort_order);
+      setLinks(data);
+    };
+
+    const loadCollections = async () => {
+      if (!session) return;
+      const data = await getUserCollections(session.userId);
+      setCollections(data);
+    };
+
     if (session) {
       loadLinks();
       loadCollections();
     }
-  }, [session]);
-
-  const loadLinks = async () => {
-    if (!session) return;
-    // Always load ALL links, filter client-side
-    const data = await getUserLinks(session.userId, session.preferences.sort_order);
-    setLinks(data);
-  };
-
-  const loadCollections = async () => {
-    if (!session) return;
-    const data = await getUserCollections(session.userId);
-    setCollections(data);
-  };
-
-  // Reload when sort order changes
-  useEffect(() => {
-    if (session) {
-      loadLinks();
-    }
-  }, [session?.preferences.sort_order]);
+  }, [session, session?.preferences.sort_order]);
 
   // Handle login
   const handleLogin = async (userId: string, nickname: string, role?: 'admin' | 'tester' | 'user') => {

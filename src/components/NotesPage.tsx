@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useTranslations } from "next-intl";
 import { Plus, X, Loader2, Archive, Edit3, Clock } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -13,7 +13,7 @@ import {
   archiveOldNotes,
   getArchivedNotes
 } from "@/lib/supabase";
-import type { DailyNote, NoteItem, ArchivedNote } from "@/types";
+import type { DailyNote, ArchivedNote } from "@/types";
 
 interface NotesPageProps {
   userId: string;
@@ -59,12 +59,8 @@ export function NotesPage({ userId }: NotesPageProps) {
   const [showArchive, setShowArchive] = useState(false);
   const [expiringAction, setExpiringAction] = useState<{ noteId: string } | null>(null);
 
-  // Load notes on mount
-  useEffect(() => {
-    loadNotes();
-  }, [userId]);
-
-  const loadNotes = async () => {
+  // Load notes function
+  const loadNotes = useCallback(async () => {
     setLoading(true);
     try {
       const data = await getUserNotes(userId);
@@ -78,7 +74,12 @@ export function NotesPage({ userId }: NotesPageProps) {
       setNotes([]);
     }
     setLoading(false);
-  };
+  }, [userId]);
+
+  // Load notes on mount
+  useEffect(() => {
+    loadNotes();
+  }, [loadNotes]);
 
   const loadArchivedNotes = async () => {
     const data = await getArchivedNotes(userId);

@@ -308,7 +308,7 @@ export async function uploadMedia(file: File, userId: string): Promise<{ url: st
   const fileName = `${userId}/${Date.now()}.${fileExt}`;
   
   // Determine bucket based on file type
-  let bucket = 'media'; // Default bucket for all media
+  const bucket = 'media'; // Default bucket for all media
   
   const { data, error } = await supabase.client
     .storage

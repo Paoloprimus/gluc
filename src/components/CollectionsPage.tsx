@@ -43,28 +43,26 @@ export function CollectionsPage({ userId, onSelectItem }: CollectionsPageProps) 
 
   // Load collections
   useEffect(() => {
+    const loadCollections = async () => {
+      setIsLoading(true);
+      const data = await getUserCollections(userId);
+      setCollections(data);
+      setIsLoading(false);
+    };
     loadCollections();
   }, [userId]);
 
   // Load collection items when selected
   useEffect(() => {
+    const loadCollectionItems = async () => {
+      if (!selectedCollection) return;
+      const items = await getCollectionItems(selectedCollection.id, sortOrder);
+      setCollectionItems(items);
+    };
     if (selectedCollection) {
       loadCollectionItems();
     }
   }, [selectedCollection, sortOrder]);
-
-  const loadCollections = async () => {
-    setIsLoading(true);
-    const data = await getUserCollections(userId);
-    setCollections(data);
-    setIsLoading(false);
-  };
-
-  const loadCollectionItems = async () => {
-    if (!selectedCollection) return;
-    const items = await getCollectionItems(selectedCollection.id, sortOrder);
-    setCollectionItems(items);
-  };
 
   const handleCreateCollection = async (newCol: NewCollection) => {
     const created = await createCollection(userId, newCol);

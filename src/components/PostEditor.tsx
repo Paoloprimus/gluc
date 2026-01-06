@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslations } from "next-intl";
 import { 
@@ -9,7 +9,6 @@ import {
   Trash2,
   Eye,
   ChevronLeft,
-  Upload,
   Loader2,
   MessageCircle,
   Copy,
@@ -19,7 +18,7 @@ import {
   Mic
 } from "lucide-react";
 import type { FliqkLink, NewLink } from "@/types";
-import { uploadThumbnail, uploadMedia } from "@/lib/supabase";
+import { uploadMedia } from "@/lib/supabase";
 
 interface PostEditorProps {
   link?: FliqkLink;
