@@ -48,6 +48,7 @@ export function TopBar({ nickname, activePage, onPageChange, onExport, onLogout 
               isActive={activePage === "social"}
               onClick={() => onPageChange("social")}
             />
+            {/* Hidden for now - keeping it simple
             <NavButton
               icon={<Download size={18} />}
               label={t('export')}
@@ -59,6 +60,7 @@ export function TopBar({ nickname, activePage, onPageChange, onExport, onLogout 
               isActive={activePage === "stats"}
               onClick={() => onPageChange("stats")}
             />
+            */}
             <NavButton
               icon={<Settings size={18} />}
               label={t('settings')}
