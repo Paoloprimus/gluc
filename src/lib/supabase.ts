@@ -719,7 +719,7 @@ export async function removeNoteItem(noteId: string, itemId: string): Promise<bo
   return !error;
 }
 
-// Archive old notes (called periodically)
+// Archive old notes (called periodically - notes > 28 days)
 export async function archiveOldNotes(userId: string): Promise<void> {
   const fourWeeksAgo = new Date();
   fourWeeksAgo.setDate(fourWeeksAgo.getDate() - 28);
@@ -746,6 +746,38 @@ export async function archiveOldNotes(userId: string): Promise<void> {
       .delete()
       .eq('id', note.id);
   }
+}
+
+// Archive a single note by ID (manual archive)
+export async function archiveSingleNote(noteId: string, userId: string): Promise<boolean> {
+  // Get the note first
+  const { data: note, error: fetchError } = await supabase.client
+    .from('daily_notes')
+    .select('*')
+    .eq('id', noteId)
+    .eq('user_id', userId)
+    .single();
+  
+  if (fetchError || !note) return false;
+  
+  // Insert into archive
+  const { error: insertError } = await supabase.client
+    .from('notes_archive')
+    .insert({
+      user_id: userId,
+      original_date: note.date,
+      items: note.items,
+    });
+  
+  if (insertError) return false;
+  
+  // Delete from daily_notes
+  const { error: deleteError } = await supabase.client
+    .from('daily_notes')
+    .delete()
+    .eq('id', noteId);
+  
+  return !deleteError;
 }
 
 // Get archived notes (read-only)

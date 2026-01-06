@@ -11,6 +11,7 @@ import {
   removeNoteItem,
   updateNote,
   archiveOldNotes,
+  archiveSingleNote,
   getArchivedNotes
 } from "@/lib/supabase";
 import type { DailyNote, ArchivedNote } from "@/types";
@@ -146,7 +147,8 @@ export function NotesPage({ userId }: NotesPageProps) {
   // Handle expiring note action
   const handleExpiringNote = async (note: DailyNote, action: 'edit' | 'archive') => {
     if (action === 'archive') {
-      await archiveOldNotes(userId);
+      // Archive this specific note
+      await archiveSingleNote(note.id, userId);
       await loadNotes();
     } else {
       const todayNote = notes.find(n => isToday(n.date));
