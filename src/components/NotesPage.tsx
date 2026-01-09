@@ -361,47 +361,34 @@ export function NotesPage({ userId }: NotesPageProps) {
                     
                     {/* Add new item input - only for today's note */}
                     {today && (
-                      <>
-                        <div className="flex items-start gap-2">
-                          <span className="flex-shrink-0 text-[var(--foreground-muted)]">•</span>
-                          <textarea
-                            value={newItemText[note.id] || ''}
-                            onChange={(e) => setNewItemText({ ...newItemText, [note.id]: e.target.value })}
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter' && !e.shiftKey) {
-                                e.preventDefault();
-                                handleAddItem(note.id);
-                              }
-                            }}
-                            onBlur={() => {
-                              // Auto-save on blur if there's text
-                              if (newItemText[note.id]?.trim()) {
-                                handleAddItem(note.id);
-                              }
-                            }}
-                            placeholder="..."
-                            rows={1}
-                            className="flex-1 bg-transparent text-sm outline-none placeholder:text-[var(--foreground-muted)]/50 resize-none overflow-hidden break-words"
-                            style={{ minHeight: '1.5em' }}
-                            onInput={(e) => {
-                              const target = e.target as HTMLTextAreaElement;
-                              target.style.height = 'auto';
-                              target.style.height = target.scrollHeight + 'px';
-                            }}
-                          />
-                        </div>
-                        {/* Add button - always visible */}
-                        <motion.button
-                          whileHover={{ scale: 1.1 }}
-                          whileTap={{ scale: 0.9 }}
-                          onClick={() => handleAddItem(note.id)}
-                          disabled={!newItemText[note.id]?.trim() || saving}
-                          className="ml-4 mt-2 p-1.5 rounded-lg bg-[var(--accent-primary)]/20 text-[var(--accent-primary)] hover:bg-[var(--accent-primary)]/30 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                          title="Aggiungi nota"
-                        >
-                          <Plus size={16} />
-                        </motion.button>
-                      </>
+                      <div className="flex items-start gap-2">
+                        <span className="flex-shrink-0 text-[var(--foreground-muted)]">•</span>
+                        <textarea
+                          value={newItemText[note.id] || ''}
+                          onChange={(e) => setNewItemText({ ...newItemText, [note.id]: e.target.value })}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' && !e.shiftKey) {
+                              e.preventDefault();
+                              handleAddItem(note.id);
+                            }
+                          }}
+                          onBlur={() => {
+                            // Auto-save on blur if there's text
+                            if (newItemText[note.id]?.trim()) {
+                              handleAddItem(note.id);
+                            }
+                          }}
+                          placeholder="..."
+                          rows={1}
+                          className="flex-1 bg-transparent text-sm outline-none placeholder:text-[var(--foreground-muted)]/50 resize-none overflow-hidden break-words"
+                          style={{ minHeight: '1.5em' }}
+                          onInput={(e) => {
+                            const target = e.target as HTMLTextAreaElement;
+                            target.style.height = 'auto';
+                            target.style.height = target.scrollHeight + 'px';
+                          }}
+                        />
+                      </div>
                     )}
                   </div>
                 </div>
