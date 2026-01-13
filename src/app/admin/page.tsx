@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import { 
   Users, Link2, MousePointerClick, FileText, 
   Plus, Copy, Check, Trash2, Shield, TestTube, User,
-  RefreshCw, LogOut
+  RefreshCw, LogOut, Smartphone
 } from "lucide-react";
 
 interface UserData {
@@ -14,6 +14,7 @@ interface UserData {
   role: 'admin' | 'tester' | 'user';
   created_at: string;
   links_count?: number;
+  device_id?: string | null;
 }
 
 interface TokenData {
@@ -171,6 +172,22 @@ export default function AdminPage() {
     setTimeout(() => setCopiedToken(null), 2000);
   };
 
+  const resetDeviceId = async (userId: string, nickname: string) => {
+    if (!confirm(`Resettare il device_id di "${nickname}"? L'utente potrà accedere da un nuovo dispositivo.`)) {
+      return;
+    }
+    try {
+      const { resetUserDeviceId } = await import("@/lib/supabase");
+      const success = await resetUserDeviceId(userId);
+      if (success) {
+        loadData();
+        alert(`Device_id di "${nickname}" resettato con successo!`);
+      }
+    } catch (error) {
+      console.error('Error resetting device_id:', error);
+    }
+  };
+
   const handleLogout = () => {
     window.location.href = '/';
   };
@@ -325,6 +342,7 @@ export default function AdminPage() {
                     <th className="text-left px-4 py-3 text-sm font-medium">Nickname</th>
                     <th className="text-left px-4 py-3 text-sm font-medium">Ruolo</th>
                     <th className="text-left px-4 py-3 text-sm font-medium">Post</th>
+                    <th className="text-left px-4 py-3 text-sm font-medium">Dispositivo</th>
                     <th className="text-left px-4 py-3 text-sm font-medium">Registrato</th>
                   </tr>
                 </thead>
@@ -348,6 +366,20 @@ export default function AdminPage() {
                       </td>
                       <td className="px-4 py-3 text-[var(--foreground-muted)]">
                         {user.links_count}
+                      </td>
+                      <td className="px-4 py-3">
+                        {user.device_id ? (
+                          <button
+                            onClick={() => resetDeviceId(user.id, user.nickname)}
+                            className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs bg-orange-500/20 text-orange-400 hover:bg-orange-500/30 transition-colors"
+                            title="Reset dispositivo"
+                          >
+                            <Smartphone size={12} />
+                            Reset
+                          </button>
+                        ) : (
+                          <span className="text-xs text-[var(--foreground-muted)]">—</span>
+                        )}
                       </td>
                       <td className="px-4 py-3 text-sm text-[var(--foreground-muted)]">
                         {new Date(user.created_at).toLocaleDateString('it-IT')}

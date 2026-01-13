@@ -63,14 +63,12 @@ export async function registerUser(nickname: string, token: string): Promise<{ s
   
   // Get role from token (default to 'tester' for backward compatibility)
   const role = tokenData.grants_role || 'tester';
-  const deviceId = getDeviceId();
   
   const { data: newUser, error: userError } = await supabase.client
     .from('users')
     .insert({ 
       nickname: nickname.toLowerCase(),
-      role: role,
-      device_id: deviceId
+      role: role
     })
     .select()
     .single();
@@ -100,6 +98,16 @@ export function getDeviceId(): string {
   return deviceId;
 }
 
+// Reset device_id for a user (admin function)
+export async function resetUserDeviceId(userId: string): Promise<boolean> {
+  const { error } = await supabase.client
+    .from('users')
+    .update({ device_id: null })
+    .eq('id', userId);
+  
+  return !error;
+}
+
 export async function loginUser(nickname: string): Promise<{ success: boolean; user?: { id: string; nickname: string; preferences: UserPreferences; role?: 'admin' | 'tester' | 'user' }; error?: string }> {
   const { data: user, error } = await supabase.client
     .from('users')
@@ -109,22 +117,6 @@ export async function loginUser(nickname: string): Promise<{ success: boolean; u
   
   if (error || !user) {
     return { success: false, error: 'userNotFound' };
-  }
-
-  const currentDeviceId = getDeviceId();
-  const isAdmin = user.role === 'admin';
-  
-  // Check device restriction (admin can use multiple devices)
-  if (!isAdmin && user.device_id && user.device_id !== currentDeviceId) {
-    return { success: false, error: 'differentDevice' };
-  }
-  
-  // Store device_id if not set yet
-  if (!user.device_id) {
-    await supabase.client
-      .from('users')
-      .update({ device_id: currentDeviceId })
-      .eq('id', user.id);
   }
 
   return { success: true, user: { ...user, role: user.role || 'user' } };
